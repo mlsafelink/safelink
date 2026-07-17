@@ -1,0 +1,128 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header h1 { font-size: 2rem; color: var(--text-primary); }
+.header p { color: var(--text-secondary); }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--glass-border);
+  overflow-x: auto;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tab:hover { color: var(--text-primary); }
+
+.activeTab {
+  font-weight: 600;
+}
+
+/* Doc list */
+.docList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.docCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  gap: 1rem;
+}
+
+.docInfo { flex: 1; min-width: 0; }
+
+.docTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.docMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.dot { opacity: 0.4; }
+
+.version {
+  background: var(--bg-color);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  box-shadow: var(--shadow-inset);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.docActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.actionBtn:hover {
+  background: rgba(49, 130, 206, 0.1);
+  color: var(--primary-color);
+}
+
+.loading, .emptyCard {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}

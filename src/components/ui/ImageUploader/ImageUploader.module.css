@@ -1,0 +1,229 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-left: 0.25rem;
+}
+
+/* ---- PREVIEW STATE ---- */
+.previewContainer {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  height: 200px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-light);
+  border: 1px solid var(--glass-border);
+  background: #f7fafc;
+}
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.clearBtn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e53e3e;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+}
+
+.clearBtn:hover {
+  background: #ffffff;
+  transform: scale(1.1);
+}
+
+.successBadge {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  background: rgba(56, 161, 105, 0.9);
+  color: white;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* ---- UPLOADER BOX ---- */
+.uploaderBox {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.tabBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: var(--font-family);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tabBtn:hover {
+  color: var(--text-primary);
+}
+
+.activeTab {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+  font-weight: 600;
+  background: rgba(49, 130, 206, 0.03);
+}
+
+.content {
+  padding: 1.25rem;
+}
+
+/* ---- DROPZONE ---- */
+.dropzone {
+  border: 2px dashed rgba(49, 130, 206, 0.3);
+  border-radius: var(--radius-md);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropzone:hover {
+  border-color: var(--primary-color);
+  background: rgba(49, 130, 206, 0.05);
+}
+
+.dropzone.disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.promptState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.uploadIcon {
+  color: var(--primary-color);
+  opacity: 0.8;
+  margin-bottom: 0.25rem;
+}
+
+.promptState p {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.promptState span {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* ---- DRIVE FORM ---- */
+.driveForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.driveInstructions {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.driveInputGroup {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.driveInputGroup :global(.wrapper) {
+  flex: 1;
+}
+
+/* ---- SPINNER & ERROR ---- */
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(49, 130, 206, 0.2);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loadingState p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.errorAlert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(229, 62, 62, 0.08);
+  border-radius: 8px;
+  color: #e53e3e;
+  font-size: 0.8rem;
+  font-weight: 500;
+}

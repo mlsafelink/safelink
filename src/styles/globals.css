@@ -1,0 +1,41 @@
+:root {
+  /* Colors - Neumorphism / Glassmorphism */
+  --bg-color: #f0f3f8;
+  --text-primary: #2d3748;
+  --text-secondary: #718096;
+  --primary-color: #3182ce;
+  --primary-hover: #2b6cb0;
+  
+  /* Neumorphic Shadows */
+  --shadow-light: 8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff;
+  --shadow-inset: inset 4px 4px 8px #d1d9e6, inset -4px -4px 8px #ffffff;
+  
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

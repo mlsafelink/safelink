@@ -1,0 +1,360 @@
+/* Visor Público — Diseño premium para el cliente final */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+.viewer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e8edf5 50%, #f0f4f8 100%);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ---- HEADER ---- */
+.header {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+  padding: 1.5rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+}
+
+.headerInner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brandMark {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brandIcon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #3182ce, #2b6cb0);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
+}
+
+.brandName {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a202c;
+  letter-spacing: -0.3px;
+}
+
+.docTypeBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.badgeReporte { background: rgba(214, 158, 46, 0.15); color: #b7791f; }
+.badgePresupuesto { background: rgba(128, 90, 213, 0.15); color: #6b46c1; }
+.badgeInstructivo { background: rgba(229, 62, 62, 0.15); color: #c53030; }
+
+/* ---- MAIN CONTENT ---- */
+.content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ---- DOCUMENT CARD ---- */
+.docCard {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+/* ---- DOCUMENT HERO ---- */
+.docHero {
+  padding: 2.5rem 2.5rem 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: linear-gradient(135deg, rgba(49, 130, 206, 0.04) 0%, transparent 60%);
+}
+
+.docMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.metaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.docTitle {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1a202c;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+}
+
+.docSubtitle {
+  font-size: 1rem;
+  color: #718096;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ---- SECTIONS ---- */
+.sections {
+  padding: 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.section {}
+
+.sectionTitle {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #3182ce;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sectionTitle::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, rgba(49, 130, 206, 0.3), transparent);
+}
+
+.sectionBody {
+  font-size: 0.95rem;
+  color: #2d3748;
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+/* ---- TABLA MATERIALES ---- */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #718096;
+  background: rgba(0,0,0,0.03);
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+}
+
+.table td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  color: #2d3748;
+}
+
+.table tr:last-child td { border-bottom: none; }
+
+.table .numCol { text-align: right; }
+
+/* ---- TOTALES PRESUPUESTO ---- */
+.totalsBlock {
+  padding: 1.5rem 2.5rem 2rem;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.totalRow {
+  display: flex;
+  gap: 2rem;
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
+.totalRowFinal {
+  display: flex;
+  gap: 2rem;
+  background: linear-gradient(135deg, #3182ce, #2b6cb0);
+  color: white;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 16px rgba(49, 130, 206, 0.3);
+}
+
+.totalLabel { font-weight: 500; }
+.totalValue { font-weight: 700; min-width: 120px; text-align: right; }
+.totalFinalLabel { font-size: 0.85rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.9; }
+.totalFinalValue { font-size: 1.25rem; font-weight: 700; min-width: 140px; text-align: right; }
+
+/* ---- BLOQUES INSTRUCTIVO ---- */
+.bloquesTitulo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.bloquesTexto {
+  font-size: 0.95rem;
+  color: #2d3748;
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+.bloquesImagen {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.bloquesImagen img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ---- INFO EXTRA ---- */
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.infoItem {
+  background: rgba(0,0,0,0.03);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.infoItemLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #3182ce;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.35rem;
+}
+
+.infoItemValue {
+  font-size: 0.9rem;
+  color: #2d3748;
+  font-weight: 500;
+}
+
+/* ---- FOOTER ---- */
+.footer {
+  text-align: center;
+  padding: 2rem;
+  color: #a0aec0;
+  font-size: 0.8rem;
+}
+
+.footer a { color: #a0aec0; text-decoration: none; }
+
+/* ---- ESTADOS ---- */
+.loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: #718096;
+  font-family: 'Inter', sans-serif;
+}
+
+.notFound {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  font-family: 'Inter', sans-serif;
+  color: #718096;
+  text-align: center;
+  padding: 2rem;
+}
+
+.notFound h2 { font-size: 1.5rem; color: #2d3748; }
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 640px) {
+  .header { padding: 1rem 1.25rem; }
+  .brandName { font-size: 1rem; }
+  .content { padding: 1.25rem 1rem 3rem; }
+  .docHero { padding: 1.5rem 1.25rem 1.25rem; }
+  .docTitle { font-size: 1.375rem; }
+  .sections { padding: 1.25rem; }
+  .totalsBlock { padding: 1.25rem; }
+  .totalRow, .totalRowFinal { flex-direction: column; gap: 0.25rem; }
+  .totalValue, .totalFinalValue { text-align: left; }
+  .table { font-size: 0.8rem; }
+  .table th, .table td { padding: 0.5rem 0.6rem; }
+}
+
+.downloadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 1rem;
+  background: #3182ce;
+  color: white;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.2);
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.downloadBtn:hover {
+  background: #2b6cb0;
+  transform: translateY(-1px);
+}
+

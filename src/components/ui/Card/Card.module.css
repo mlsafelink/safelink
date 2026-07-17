@@ -1,0 +1,19 @@
+.card {
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  width: 100%;
+}
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.neumorphic {
+  background: var(--bg-color);
+  box-shadow: var(--shadow-light);
+  border: 1px solid rgba(255,255,255,0.2);
+}
