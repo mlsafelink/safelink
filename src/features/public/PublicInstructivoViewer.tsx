@@ -385,18 +385,24 @@ export function PublicInstructivoViewer() {
               <p style={{ fontSize: '0.78rem', color: '#475569', marginBottom: '0.5rem' }}>
                 Si durante la configuración surge algún inconveniente o no logra visualizar las cámaras, comuníquese con nuestro servicio técnico.
               </p>
-              <div className={styles.contactRow}>
-                <Phone size={13} className={styles.contactIcon} />
-                <span>11 1234 5678</span>
-              </div>
-              <div className={styles.contactRow}>
-                <Mail size={13} className={styles.contactIcon} />
-                <span>soporte@safelink.com.ar</span>
-              </div>
-              <div className={styles.contactRow}>
-                <Clock size={13} className={styles.contactIcon} />
-                <span>Lunes a Viernes de 9:00 a 18:00 hs.</span>
-              </div>
+              {instructivo.telefono_soporte && (
+                <div className={styles.contactRow}>
+                  <Phone size={13} className={styles.contactIcon} />
+                  <span>{instructivo.telefono_soporte}</span>
+                </div>
+              )}
+              {instructivo.email_soporte && (
+                <div className={styles.contactRow}>
+                  <Mail size={13} className={styles.contactIcon} />
+                  <span>{instructivo.email_soporte}</span>
+                </div>
+              )}
+              {instructivo.horario_soporte && (
+                <div className={styles.contactRow}>
+                  <Clock size={13} className={styles.contactIcon} />
+                  <span>{instructivo.horario_soporte}</span>
+                </div>
+              )}
             </div>
           </div>
 

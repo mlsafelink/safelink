@@ -29,6 +29,9 @@ const instructivoSchema = z.object({
   fecha_instalacion: z.string().optional(),
   tecnico_nombre: z.string().optional(),
   url_sitio_web: z.string().optional(),
+  telefono_soporte: z.string().optional(),
+  email_soporte: z.string().optional(),
+  horario_soporte: z.string().optional(),
 });
 
 type InstructivoFormData = z.infer<typeof instructivoSchema>;
@@ -65,6 +68,9 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
       fecha_instalacion: '',
       tecnico_nombre: '',
       url_sitio_web: 'www.safelink.com.ar',
+      telefono_soporte: '',
+      email_soporte: '',
+      horario_soporte: 'Lunes a Viernes de 9:00 a 18:00 hs.',
     },
   });
 
@@ -94,6 +100,9 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
           fecha_instalacion: instr.fecha_instalacion ?? '',
           tecnico_nombre: instr.tecnico_nombre ?? '',
           url_sitio_web: instr.url_sitio_web ?? 'www.safelink.com.ar',
+          telefono_soporte: instr.telefono_soporte ?? '',
+          email_soporte: instr.email_soporte ?? '',
+          horario_soporte: instr.horario_soporte ?? 'Lunes a Viernes de 9:00 a 18:00 hs.',
         });
         setQrImageUrl(instr.qr_image_url ?? '');
         setIsDataLoaded(true);
@@ -265,6 +274,25 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
                 placeholder="ej: www.safelink.com.ar"
                 {...register('url_sitio_web')}
                 className={styles.fullWidth}
+              />
+            </div>
+
+            {/* Datos de soporte */}
+            <div className={styles.grid3} style={{ marginTop: '0.5rem' }}>
+              <Input
+                label="Teléfono soporte"
+                placeholder="ej: 11 1234 5678"
+                {...register('telefono_soporte')}
+              />
+              <Input
+                label="Email soporte"
+                placeholder="ej: soporte@safelink.com.ar"
+                {...register('email_soporte')}
+              />
+              <Input
+                label="Horario de atención"
+                placeholder="ej: Lunes a Viernes de 9:00 a 18:00 hs."
+                {...register('horario_soporte')}
               />
             </div>
           </div>

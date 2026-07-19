@@ -71,6 +71,9 @@ export type Instructivo = {
   fecha_instalacion: string | null;
   tecnico_nombre: string | null;
   url_sitio_web: string | null;
+  telefono_soporte: string | null;
+  email_soporte: string | null;
+  horario_soporte: string | null;
 
   version: number;
   created_at: string;

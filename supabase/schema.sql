@@ -104,6 +104,9 @@ CREATE TABLE instructivos (
     fecha_instalacion DATE,
     tecnico_nombre TEXT,
     url_sitio_web TEXT DEFAULT 'www.safelink.com.ar',
+    telefono_soporte TEXT,
+    email_soporte TEXT,
+    horario_soporte TEXT DEFAULT 'Lunes a Viernes de 9:00 a 18:00 hs.',
 
     version INTEGER DEFAULT 1,
     previous_version_id UUID REFERENCES instructivos(id),
@@ -130,7 +133,14 @@ CREATE TABLE instructivos (
 --   ADD COLUMN IF NOT EXISTS cliente_direccion TEXT,
 --   ADD COLUMN IF NOT EXISTS fecha_instalacion DATE,
 --   ADD COLUMN IF NOT EXISTS tecnico_nombre TEXT,
---   ADD COLUMN IF NOT EXISTS url_sitio_web TEXT DEFAULT 'www.safelink.com.ar';
+--   ADD COLUMN IF NOT EXISTS url_sitio_web TEXT DEFAULT 'www.safelink.com.ar',
+--   ADD COLUMN IF NOT EXISTS telefono_soporte TEXT,
+--   ADD COLUMN IF NOT EXISTS email_soporte TEXT,
+--   ADD COLUMN IF NOT EXISTS horario_soporte TEXT DEFAULT 'Lunes a Viernes de 9:00 a 18:00 hs.';
+
+-- BUCKET de Storage (ejecutar UNA SOLA VEZ en Supabase SQL Editor):
+-- INSERT INTO storage.buckets (id, name, public) VALUES ('documents', 'documents', true)
+--   ON CONFLICT (id) DO NOTHING;
 
 ------------------------------------------------------
 -- SEGURIDAD: ROW LEVEL SECURITY (RLS)
