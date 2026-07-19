@@ -81,19 +81,56 @@ CREATE TABLE presupuestos (
     deleted_at TIMESTAMPTZ
 );
 
--- 5. Instructivos
+-- 5. Instructivos (plantilla estructurada)
 CREATE TABLE instructivos (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     consorcio_id UUID NOT NULL REFERENCES consorcios(id),
     public_id UUID UNIQUE NOT NULL DEFAULT uuid_generate_v4(),
     titulo VARCHAR(255) NOT NULL,
-    contenido JSONB NOT NULL, -- Estructura rica (bloques de texto, imágenes, etc)
+    contenido JSONB, -- Deprecated (nullable para backward compat)
+
+    -- Campos editables del template (amarillo en las anotaciones)
+    nombre_app TEXT DEFAULT 'Easy Viewer',
+    texto_descarga TEXT,
+    url_google_play TEXT,
+    url_app_store TEXT,
+    texto_post_instalacion TEXT DEFAULT 'Una vez instalada, abra la aplicación.',
+    qr_image_url TEXT,
+    nombre_dispositivo TEXT,
+    usuario_dispositivo TEXT,
+    password_dispositivo TEXT,
+    cliente_nombre TEXT,
+    cliente_direccion TEXT,
+    fecha_instalacion DATE,
+    tecnico_nombre TEXT,
+    url_sitio_web TEXT DEFAULT 'www.safelink.com.ar',
+
     version INTEGER DEFAULT 1,
     previous_version_id UUID REFERENCES instructivos(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
 );
+
+-- =====================================================
+-- MIGRACIÓN: Ejecutar en Supabase SQL Editor si la tabla ya existe
+-- =====================================================
+-- ALTER TABLE instructivos
+--   ALTER COLUMN contenido DROP NOT NULL,
+--   ADD COLUMN IF NOT EXISTS nombre_app TEXT DEFAULT 'Easy Viewer',
+--   ADD COLUMN IF NOT EXISTS texto_descarga TEXT,
+--   ADD COLUMN IF NOT EXISTS url_google_play TEXT,
+--   ADD COLUMN IF NOT EXISTS url_app_store TEXT,
+--   ADD COLUMN IF NOT EXISTS texto_post_instalacion TEXT DEFAULT 'Una vez instalada, abra la aplicación.',
+--   ADD COLUMN IF NOT EXISTS qr_image_url TEXT,
+--   ADD COLUMN IF NOT EXISTS nombre_dispositivo TEXT,
+--   ADD COLUMN IF NOT EXISTS usuario_dispositivo TEXT,
+--   ADD COLUMN IF NOT EXISTS password_dispositivo TEXT,
+--   ADD COLUMN IF NOT EXISTS cliente_nombre TEXT,
+--   ADD COLUMN IF NOT EXISTS cliente_direccion TEXT,
+--   ADD COLUMN IF NOT EXISTS fecha_instalacion DATE,
+--   ADD COLUMN IF NOT EXISTS tecnico_nombre TEXT,
+--   ADD COLUMN IF NOT EXISTS url_sitio_web TEXT DEFAULT 'www.safelink.com.ar';
 
 ------------------------------------------------------
 -- SEGURIDAD: ROW LEVEL SECURITY (RLS)

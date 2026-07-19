@@ -206,11 +206,56 @@
 
 @media (max-width: 768px) {
   .grid2 { grid-template-columns: 1fr; }
+  .grid3 { grid-template-columns: 1fr; }
   .tableHeader { display: none; }
   .tableRow { grid-template-columns: 1fr; }
   .totalsGrid { max-width: 100%; }
   .totalBox { max-width: 100%; }
 }
+
+/* --- Secciones del formulario de instructivo --- */
+.sectionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: rgba(49, 130, 206, 0.03);
+  border: 1px solid rgba(49, 130, 206, 0.12);
+  border-radius: var(--radius-md);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(49, 130, 206, 0.15);
+}
+
+.sectionHint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.textareaLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-left: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
 
 .imageGrid {
   display: flex;

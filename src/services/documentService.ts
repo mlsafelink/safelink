@@ -54,7 +54,24 @@ export type Instructivo = {
   consorcio_id: string;
   public_id: string;
   titulo: string;
-  contenido: InstructivoBloque[];
+  contenido?: InstructivoBloque[] | null; // deprecated, backward compat
+
+  // Campos del template (editables por instructivo)
+  nombre_app: string | null;
+  texto_descarga: string | null;
+  url_google_play: string | null;
+  url_app_store: string | null;
+  texto_post_instalacion: string | null;
+  qr_image_url: string | null;
+  nombre_dispositivo: string | null;
+  usuario_dispositivo: string | null;
+  password_dispositivo: string | null;
+  cliente_nombre: string | null;
+  cliente_direccion: string | null;
+  fecha_instalacion: string | null;
+  tecnico_nombre: string | null;
+  url_sitio_web: string | null;
+
   version: number;
   created_at: string;
   consorcios?: { nombre: string; administraciones?: { nombre: string } };
