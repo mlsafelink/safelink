@@ -128,6 +128,14 @@ export const reporteService = {
     if (error) throw error;
     return data as Reporte;
   },
+
+  async delete(id: string) {
+    const { error } = await supabase
+      .from('reportes')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) throw error;
+  },
 };
 
 export const presupuestoService = {
@@ -172,6 +180,14 @@ export const presupuestoService = {
     if (error) throw error;
     return data as Presupuesto;
   },
+
+  async delete(id: string) {
+    const { error } = await supabase
+      .from('presupuestos')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) throw error;
+  },
 };
 
 export const instructivoService = {
@@ -215,5 +231,13 @@ export const instructivoService = {
       .single();
     if (error) throw error;
     return data as Instructivo;
+  },
+
+  async delete(id: string) {
+    const { error } = await supabase
+      .from('instructivos')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) throw error;
   },
 };

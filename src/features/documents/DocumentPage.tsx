@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reporteService, presupuestoService, instructivoService } from '@/services/documentService';
 import { Card } from '@/components/ui/Card/Card';
 import { Button } from '@/components/ui/Button/Button';
-import { FileText, ClipboardList, BookOpen, Plus, ExternalLink, Edit, Copy, Download } from 'lucide-react';
-import { motion } from 'framer-motion';
+import {
+  FileText, ClipboardList, BookOpen, Plus, ExternalLink,
+  Edit, Copy, Download, Trash2, Check, X,
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { ReportePDF, PresupuestoPDF, InstructivoPDF } from '@/components/pdf/DocumentPDFs';
 import styles from './DocumentPage.module.css';
@@ -16,9 +19,12 @@ type ActiveTab = 'reportes' | 'presupuestos' | 'instructivos';
 type ViewMode = 'list' | 'form';
 
 export function DocumentPage() {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<ActiveTab>('reportes');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const { data: reportes = [], isLoading: loadingReportes } = useQuery({
     queryKey: ['reportes'],
@@ -38,16 +44,35 @@ export function DocumentPage() {
     enabled: activeTab === 'instructivos',
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => {
+      if (activeTab === 'reportes') return reporteService.delete(id);
+      if (activeTab === 'presupuestos') return presupuestoService.delete(id);
+      return instructivoService.delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [activeTab] });
+      setDeletingId(null);
+    },
+  });
+
   const handleNew = () => { setEditingId(null); setViewMode('form'); };
   const handleEdit = (id: string) => { setEditingId(id); setViewMode('form'); };
   const handleBack = () => { setEditingId(null); setViewMode('list'); };
 
-  const copyPublicLink = (publicId: string) => {
-    const url = `${window.location.origin}/p/${activeTab.slice(0, -1)}/${publicId}`;
+  const handleCopyLink = (publicId: string, docId: string) => {
+    const slug = activeTab === 'instructivos' ? 'instructivo'
+      : activeTab === 'presupuestos' ? 'presupuesto' : 'reporte';
+    const url = `${window.location.origin}/p/${slug}/${publicId}`;
     navigator.clipboard.writeText(url);
+    setCopiedId(docId);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Mostrar formularios
+  const getPublicSlug = () =>
+    activeTab === 'instructivos' ? 'instructivo'
+    : activeTab === 'presupuestos' ? 'presupuesto' : 'reporte';
+
   if (viewMode === 'form') {
     if (activeTab === 'reportes') return <ReporteForm onBack={handleBack} editingId={editingId} />;
     if (activeTab === 'presupuestos') return <PresupuestoForm onBack={handleBack} editingId={editingId} />;
@@ -85,7 +110,7 @@ export function DocumentPage() {
           <button
             key={tab.id}
             className={`${styles.tab} ${activeTab === tab.id ? styles.activeTab : ''}`}
-            onClick={() => { setActiveTab(tab.id); setViewMode('list'); }}
+            onClick={() => { setActiveTab(tab.id); setViewMode('list'); setDeletingId(null); }}
             style={activeTab === tab.id ? { borderBottomColor: tab.color, color: tab.color } : {}}
           >
             <tab.icon size={18} />
@@ -123,49 +148,123 @@ export function DocumentPage() {
                     <span className={styles.version}>v{doc.version}</span>
                   </div>
                 </div>
-                <div className={styles.docActions}>
-                  {activeTab === 'reportes' && (
-                    <PDFDownloadLink document={<ReportePDF reporte={doc as any} />} fileName={`${doc.titulo}.pdf`} className={styles.actionBtn} title="Descargar PDF">
-                      {/* @ts-ignore */}
-                      {({ loading }) => (loading ? '...' : <Download size={16} />)}
-                    </PDFDownloadLink>
+
+                {/* ── Acciones ── */}
+                <AnimatePresence mode="wait">
+                  {deletingId === doc.id ? (
+                    /* Confirmación de eliminación */
+                    <motion.div
+                      key="confirm"
+                      className={styles.deleteConfirm}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <span className={styles.confirmText}>¿Eliminar?</span>
+                      <button
+                        className={`${styles.actionBtn} ${styles.btnConfirmYes}`}
+                        onClick={() => deleteMutation.mutate(doc.id)}
+                        disabled={deleteMutation.isPending}
+                        title="Confirmar"
+                      >
+                        <Check size={15} />
+                      </button>
+                      <button
+                        className={`${styles.actionBtn} ${styles.btnConfirmNo}`}
+                        onClick={() => setDeletingId(null)}
+                        title="Cancelar"
+                      >
+                        <X size={15} />
+                      </button>
+                    </motion.div>
+                  ) : (
+                    /* Botones normales */
+                    <motion.div
+                      key="actions"
+                      className={styles.docActions}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      {/* PDF Download */}
+                      {activeTab === 'reportes' && (
+                        <PDFDownloadLink
+                          document={<ReportePDF reporte={doc as any} />}
+                          fileName={`${doc.titulo}.pdf`}
+                          className={`${styles.actionBtn} ${styles.btnDownload}`}
+                          title="Descargar PDF"
+                        >
+                          {/* @ts-ignore */}
+                          {({ loading }) => loading ? '...' : <Download size={15} />}
+                        </PDFDownloadLink>
+                      )}
+                      {activeTab === 'presupuestos' && (
+                        <PDFDownloadLink
+                          document={<PresupuestoPDF presupuesto={doc as any} />}
+                          fileName={`${doc.titulo}.pdf`}
+                          className={`${styles.actionBtn} ${styles.btnDownload}`}
+                          title="Descargar PDF"
+                        >
+                          {/* @ts-ignore */}
+                          {({ loading }) => loading ? '...' : <Download size={15} />}
+                        </PDFDownloadLink>
+                      )}
+                      {activeTab === 'instructivos' && (
+                        <PDFDownloadLink
+                          document={<InstructivoPDF instructivo={doc as any} />}
+                          fileName={`${doc.titulo}.pdf`}
+                          className={`${styles.actionBtn} ${styles.btnDownload}`}
+                          title="Descargar PDF"
+                        >
+                          {/* @ts-ignore */}
+                          {({ loading }) => loading ? '...' : <Download size={15} />}
+                        </PDFDownloadLink>
+                      )}
+
+                      {/* Copiar link */}
+                      <button
+                        className={`${styles.actionBtn} ${styles.btnCopy} ${copiedId === doc.id ? styles.btnCopied : ''}`}
+                        onClick={() => handleCopyLink(doc.public_id, doc.id)}
+                        title="Copiar enlace público"
+                      >
+                        {copiedId === doc.id ? <Check size={15} /> : <Copy size={15} />}
+                      </button>
+
+                      {/* Ver link público */}
+                      <a
+                        href={`/p/${getPublicSlug()}/${doc.public_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`${styles.actionBtn} ${styles.btnLink}`}
+                        title="Ver enlace público"
+                      >
+                        <ExternalLink size={15} />
+                      </a>
+
+                      <div className={styles.actionsDivider} />
+
+                      {/* Editar */}
+                      <button
+                        className={`${styles.actionBtn} ${styles.btnEdit}`}
+                        onClick={() => handleEdit(doc.id)}
+                        title="Editar"
+                      >
+                        <Edit size={15} />
+                      </button>
+
+                      {/* Eliminar */}
+                      <button
+                        className={`${styles.actionBtn} ${styles.btnDelete}`}
+                        onClick={() => setDeletingId(doc.id)}
+                        title="Eliminar"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </motion.div>
                   )}
-                  {activeTab === 'presupuestos' && (
-                    <PDFDownloadLink document={<PresupuestoPDF presupuesto={doc as any} />} fileName={`${doc.titulo}.pdf`} className={styles.actionBtn} title="Descargar PDF">
-                      {/* @ts-ignore */}
-                      {({ loading }) => (loading ? '...' : <Download size={16} />)}
-                    </PDFDownloadLink>
-                  )}
-                  {activeTab === 'instructivos' && (
-                    <PDFDownloadLink document={<InstructivoPDF instructivo={doc as any} />} fileName={`${doc.titulo}.pdf`} className={styles.actionBtn} title="Descargar PDF">
-                      {/* @ts-ignore */}
-                      {({ loading }) => (loading ? '...' : <Download size={16} />)}
-                    </PDFDownloadLink>
-                  )}
-                  <button
-                    className={styles.actionBtn}
-                    onClick={() => copyPublicLink(doc.public_id)}
-                    title="Copiar enlace público"
-                  >
-                    <Copy size={16} />
-                  </button>
-                  <a
-                    href={`/p/${activeTab.slice(0, -1)}/${doc.public_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.actionBtn}
-                    title="Ver enlace público"
-                  >
-                    <ExternalLink size={16} />
-                  </a>
-                  <button
-                    className={styles.actionBtn}
-                    onClick={() => handleEdit(doc.id)}
-                    title="Editar"
-                  >
-                    <Edit size={16} />
-                  </button>
-                </div>
+                </AnimatePresence>
               </Card>
             </motion.div>
           ))}

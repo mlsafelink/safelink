@@ -98,27 +98,125 @@
 .docActions {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
+  padding: 0.25rem;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: var(--shadow-inset);
 }
 
 .actionBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
+  width: 34px;
+  height: 34px;
+  border: 1px solid transparent;
+  background: var(--bg-color);
   border-radius: 8px;
   cursor: pointer;
   color: var(--text-secondary);
   text-decoration: none;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-light);
 }
 
 .actionBtn:hover {
-  background: rgba(49, 130, 206, 0.1);
-  color: var(--primary-color);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Individual button styles */
+.btnDownload:hover {
+  color: #3182ce;
+  background: rgba(49, 130, 206, 0.08);
+  border-color: rgba(49, 130, 206, 0.2);
+}
+
+.btnCopy:hover {
+  color: #38a169;
+  background: rgba(56, 161, 105, 0.08);
+  border-color: rgba(56, 161, 105, 0.2);
+}
+
+.btnCopied {
+  color: white !important;
+  background: #38a169 !important;
+  border-color: #38a169 !important;
+  animation: pulse 0.3s ease-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.btnLink:hover {
+  color: #d69e2e;
+  background: rgba(214, 158, 46, 0.08);
+  border-color: rgba(214, 158, 46, 0.2);
+}
+
+.btnEdit:hover {
+  color: #805ad5;
+  background: rgba(128, 90, 213, 0.08);
+  border-color: rgba(128, 90, 213, 0.2);
+}
+
+.btnDelete:hover {
+  color: #e53e3e;
+  background: rgba(229, 62, 62, 0.08);
+  border-color: rgba(229, 62, 62, 0.2);
+}
+
+.actionsDivider {
+  width: 1px;
+  height: 20px;
+  background: var(--glass-border);
+  margin: 0 0.25rem;
+}
+
+/* Delete confirmation inline layout */
+.deleteConfirm {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-md);
+  background: rgba(254, 242, 242, 0.8);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  backdrop-filter: blur(8px);
+}
+
+.confirmText {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #b91c1c;
+  margin-right: 0.25rem;
+}
+
+.btnConfirmYes {
+  color: white;
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
+.btnConfirmYes:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: white;
+}
+
+.btnConfirmNo {
+  color: var(--text-secondary);
+  background: var(--bg-color);
+  border-color: var(--glass-border);
+}
+
+.btnConfirmNo:hover {
+  background: #f1f5f9;
+  color: var(--text-primary);
 }
 
 .loading, .emptyCard {
