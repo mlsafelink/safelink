@@ -310,7 +310,12 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
             </Button>
           </div>
 
-          {mutation.isError && <p className={styles.errorMsg}>Error al guardar. Verificá que ejecutaste la migración en Supabase.</p>}
+          {mutation.isError && (
+            <p className={styles.errorMsg}>
+              Error al guardar: {(mutation.error as any)?.message || 'Error desconocido'}. 
+              Verificá que ejecutaste la migración en Supabase.
+            </p>
+          )}
         </form>
       </Card>
     </div>
