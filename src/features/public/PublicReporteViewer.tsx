@@ -1,29 +1,11 @@
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { reporteService } from '@/services/documentService';
-import { motion } from 'framer-motion';
-import { Calendar, Building, ClipboardList, Download } from 'lucide-react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { ReportePDF } from '@/components/pdf/DocumentPDFs';
-import styles from './PublicViewer.module.css';
-
-const FIELDS: { key: keyof ReturnType<typeof placeholderReporte>; label: string }[] = [
-  { key: 'motivo', label: 'Motivo' },
-  { key: 'descripcion', label: 'Descripción' },
-  { key: 'diagnostico', label: 'Diagnóstico' },
-  { key: 'trabajo_realizado', label: 'Trabajo Realizado' },
-  { key: 'recomendaciones', label: 'Recomendaciones' },
-  { key: 'conclusiones', label: 'Conclusiones' },
-  { key: 'observaciones', label: 'Observaciones' },
-];
-
-// Solo para inferencia de tipo
-function placeholderReporte() {
-  return {
-    motivo: '', descripcion: '', diagnostico: '',
-    trabajo_realizado: '', recomendaciones: '', conclusiones: '', observaciones: ''
-  };
-}
+import {
+  Calendar, Building, ClipboardList, Clock, HelpCircle, Shield,
+  FileText, Cpu, Eye, AlertTriangle, Phone, Mail, Image,
+} from 'lucide-react';
+import styles from './ReporteViewer.module.css';
 
 export function PublicReporteViewer() {
   const { publicId } = useParams<{ publicId: string }>();
@@ -35,74 +17,293 @@ export function PublicReporteViewer() {
     retry: false,
   });
 
-  if (isLoading) return <div className={styles.loading}>Cargando documento...</div>;
-  if (isError || !reporte) return (
-    <div className={styles.notFound}>
-      <h2>Documento no encontrado</h2>
-      <p>El enlace puede ser incorrecto o el documento fue removido.</p>
-    </div>
-  );
+  if (isLoading) {
+    return (
+      <div className={styles.loadingWrap}>
+        <div className={styles.spinner} />
+        <span>Cargando reporte técnico...</span>
+      </div>
+    );
+  }
+
+  if (isError || !reporte) {
+    return (
+      <div className={styles.notFoundWrap}>
+        <Shield size={48} style={{ color: '#94a3b8' }} />
+        <h2>Documento no encontrado</h2>
+        <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
+          El enlace puede ser incorrecto o el documento fue removido.
+        </p>
+      </div>
+    );
+  }
 
   const adminNombre = (reporte.consorcios as any)?.administraciones?.nombre;
   const consorcioNombre = (reporte.consorcios as any)?.nombre;
+  const urlSitioWeb = reporte.url_sitio_web ?? 'www.safelink.com.ar';
+
+  const formatFecha = (f: string | null) => {
+    if (!f) return '';
+    try {
+      return new Date(f + 'T12:00:00').toLocaleDateString('es-AR', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+      });
+    } catch { return f; }
+  };
+
+  // Convertir recomendaciones separadas por salto de línea en un array
+  const listRecomendaciones = reporte.recomendaciones
+    ? reporte.recomendaciones.split('\n').map(r => r.replace(/^•\s*/, '').trim()).filter(Boolean)
+    : [
+        'Mantener el equipo en un área ventilada y limpia.',
+        'No compartir credenciales con terceros.',
+        'Realizar mantenimientos preventivos trimestrales.',
+      ];
 
   return (
-    <div className={styles.viewer}>
+    <div className={styles.page}>
+      
+      {/* ── HEADER ── */}
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <div className={styles.brandMark}>
-            <div className={styles.brandIcon} />
-            <span className={styles.brandName}>SafeLink</span>
+          <div className={styles.brandSide}>
+            <div className={styles.brandLogo}>SafeLink</div>
+            <div className={styles.brandTagline}>Soluciones inteligentes para tu seguridad</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <PDFDownloadLink document={<ReportePDF reporte={reporte} />} fileName={`${reporte.titulo}.pdf`} className={styles.downloadBtn}>
-              {/* @ts-ignore */}
-              {({ loading }) => (loading ? 'Generando...' : <><Download size={14} /> PDF</>)}
-            </PDFDownloadLink>
-            <span className={`${styles.docTypeBadge} ${styles.badgeReporte}`}>
-              <ClipboardList size={14} /> Reporte Técnico
-            </span>
+          <div className={styles.titleSide}>
+            <div className={styles.reporteBadge}>
+              <ClipboardList size={12} />
+              Reporte Técnico
+            </div>
+            <h1 className={styles.docTitle}>{reporte.titulo}</h1>
+            <p className={styles.docSubtitle}>
+              Informe detallado de relevamiento técnico, equipos y diagnóstico realizado por SafeLink.
+            </p>
           </div>
         </div>
       </header>
 
-      <motion.div
-        className={styles.content}
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-      >
-        <div className={styles.docCard}>
-          {/* Hero */}
-          <div className={styles.docHero}>
-            <div className={styles.docMeta}>
-              <span className={styles.metaChip}><Calendar size={13} /> {reporte.fecha}</span>
-              {consorcioNombre && <span className={styles.metaChip}><Building size={13} /> {consorcioNombre}</span>}
-              {adminNombre && <span className={styles.metaChip}>{adminNombre}</span>}
-              <span className={styles.metaChip}>v{reporte.version}</span>
+      {/* ── BARRA DE INFO ── */}
+      <div className={styles.infoBar}>
+        <div className={styles.infoBarInner}>
+          <div className={styles.infoChip}>
+            <Calendar size={18} className={styles.infoIcon} />
+            <div>
+              <span className={styles.infoLabel}>Fecha de Emisión</span>
+              <span className={styles.infoValue}>{formatFecha(reporte.fecha)}</span>
             </div>
-            <h1 className={styles.docTitle}>{reporte.titulo}</h1>
           </div>
-
-          {/* Campos del reporte */}
-          <div className={styles.sections}>
-            {FIELDS.map(({ key, label }) => {
-              const value = (reporte as Record<string, unknown>)[key];
-              if (!value || String(value).trim() === '') return null;
-              return (
-                <div key={key} className={styles.section}>
-                  <div className={styles.sectionTitle}>{label}</div>
-                  <p className={styles.sectionBody}>{String(value)}</p>
-                </div>
-              );
-            })}
+          <div className={styles.infoChip}>
+            <Building size={18} className={styles.infoIcon} />
+            <div>
+              <span className={styles.infoLabel}>Consorcio</span>
+              <span className={styles.infoValue}>{consorcioNombre || 'N/A'}</span>
+            </div>
+          </div>
+          <div className={styles.infoChip}>
+            <Shield size={18} className={styles.infoIcon} />
+            <div>
+              <span className={styles.infoLabel}>Administración</span>
+              <span className={styles.infoValue}>{adminNombre || 'N/A'}</span>
+            </div>
+          </div>
+          <div className={styles.infoChip}>
+            <HelpCircle size={18} className={styles.infoIcon} />
+            <div>
+              <span className={styles.infoLabel}>Estado</span>
+              <span className={styles.infoValue}>v{reporte.version} (Vigente)</span>
+            </div>
           </div>
         </div>
+      </div>
 
-        <footer className={styles.footer}>
-          <p>Documento generado por <strong>SafeLink</strong> · Plataforma Técnica de Administraciones</p>
-        </footer>
-      </motion.div>
+      {/* ── CONTENIDO PRINCIPAL (CARDS) ── */}
+      <main className={styles.main}>
+
+        {/* Card 1: Descripción de la situación */}
+        {reporte.descripcion && (
+          <div className={styles.card}>
+            <div className={styles.cardLeft}>
+              <span className={styles.stepNum}>Sección</span>
+              <span className={styles.stepNumber}>1</span>
+              <div className={styles.stepIcon}><FileText size={18} /></div>
+              <span className={styles.stepLabel}>Situación</span>
+            </div>
+            <div className={styles.cardRight}>
+              <h2 className={styles.cardHeading}>Descripción de la situación</h2>
+              <p className={styles.cardText}>{reporte.descripcion}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Card 2: Equipo relevado */}
+        {reporte.equipo_relevado && (
+          <div className={styles.card}>
+            <div className={styles.cardLeft}>
+              <span className={styles.stepNum}>Sección</span>
+              <span className={styles.stepNumber}>2</span>
+              <div className={styles.stepIcon}><Cpu size={18} /></div>
+              <span className={styles.stepLabel}>Equipos</span>
+            </div>
+            <div className={styles.cardRight}>
+              <h2 className={styles.cardHeading}>Equipo relevado</h2>
+              <p className={styles.cardText}>{reporte.equipo_relevado}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Card 3: Inspección realizada */}
+        {reporte.inspeccion_realizada && (
+          <div className={styles.card}>
+            <div className={styles.cardLeft}>
+              <span className={styles.stepNum}>Sección</span>
+              <span className={styles.stepNumber}>3</span>
+              <div className={styles.stepIcon}><Eye size={18} /></div>
+              <span className={styles.stepLabel}>Inspección</span>
+            </div>
+            <div className={styles.cardRight}>
+              <h2 className={styles.cardHeading}>Inspección realizada</h2>
+              <p className={styles.cardText}>{reporte.inspeccion_realizada}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Card 4: Diagnóstico */}
+        {reporte.diagnostico && (
+          <div className={styles.card}>
+            <div className={styles.cardLeft}>
+              <span className={styles.stepNum}>Sección</span>
+              <span className={styles.stepNumber}>4</span>
+              <div className={styles.stepIcon}><AlertTriangle size={18} /></div>
+              <span className={styles.stepLabel}>Diagnóstico</span>
+            </div>
+            <div className={styles.cardRight}>
+              <h2 className={styles.cardHeading}>Diagnóstico Técnico</h2>
+              <p className={styles.cardText}>{reporte.diagnostico}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Fotografías */}
+        {reporte.fotografias && reporte.fotografias.length > 0 && (
+          <div className={styles.galleryCard}>
+            <div className={styles.galleryHeader}>
+              <Image size={18} />
+              <span>Registro Fotográfico</span>
+            </div>
+            <div className={styles.galleryGrid}>
+              {reporte.fotografias.map((url, i) => (
+                <a
+                  key={i}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.galleryItem}
+                >
+                  <img src={url} alt={`Evidencia ${i + 1}`} className={styles.galleryImg} />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      {/* ── FOOTER 3 COLUMNAS (Igual al Instructivo) ── */}
+      <footer className={styles.footer}>
+        <div className={styles.footerInner}>
+          
+          {/* Recomendaciones */}
+          <div className={styles.footerCol}>
+            <div className={styles.footerColTitle}>
+              <Shield size={14} />
+              Recomendaciones
+            </div>
+            <ul className={styles.footerBullets}>
+              {listRecomendaciones.map((rec, i) => (
+                <li key={i}>{rec}</li>
+              ))}
+            </ul>
+          </div>
+
+          {/* ¿Necesita ayuda? */}
+          <div className={styles.footerCol}>
+            <div className={styles.footerColTitle}>
+              <HelpCircle size={14} />
+              ¿Necesita ayuda?
+            </div>
+            <div className={styles.footerContact}>
+              <p style={{ fontSize: '0.78rem', color: '#475569', marginBottom: '0.5rem' }}>
+                Si tiene dudas sobre este informe técnico o requiere asistencia adicional, comuníquese con soporte.
+              </p>
+              {reporte.telefono_soporte && (
+                <div className={styles.contactRow}>
+                  <Phone size={13} className={styles.contactIcon} />
+                  <span>{reporte.telefono_soporte}</span>
+                </div>
+              )}
+              {reporte.email_soporte && (
+                <div className={styles.contactRow}>
+                  <Mail size={13} className={styles.contactIcon} />
+                  <span>{reporte.email_soporte}</span>
+                </div>
+              )}
+              {reporte.horario_soporte && (
+                <div className={styles.contactRow}>
+                  <Clock size={13} className={styles.contactIcon} />
+                  <span>{reporte.horario_soporte}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Datos de la instalación */}
+          <div className={styles.footerCol}>
+            <div className={styles.footerColTitle}>
+              <Building size={14} />
+              Datos de su instalación
+            </div>
+            <div className={styles.installData}>
+              <div className={styles.dataRow}>
+                <span className={styles.dataLabel}>Cliente</span>
+                <span className={styles.dataValue}>{reporte.cliente_nombre ?? ''}</span>
+              </div>
+              <div className={styles.dataRow}>
+                <span className={styles.dataLabel}>Dirección</span>
+                <span className={styles.dataValue}>{reporte.cliente_direccion ?? ''}</span>
+              </div>
+              <div className={styles.dataRow}>
+                <span className={styles.dataLabel}>Fecha de instalación</span>
+                <span className={styles.dataValue}>{formatFecha(reporte.fecha_instalacion)}</span>
+              </div>
+              <div className={styles.dataRow}>
+                <span className={styles.dataLabel}>Técnico</span>
+                <span className={styles.dataValue}>{reporte.tecnico_nombre ?? ''}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Barra final */}
+        <div className={styles.bottomBar}>
+          <div className={styles.bottomBarInner}>
+            <div className={styles.bottomBrand}>
+              <span className={styles.bottomBrandName}>SafeLink</span>
+              <span className={styles.bottomTagline}>Soluciones inteligentes para tu seguridad</span>
+            </div>
+            <a
+              href={urlSitioWeb.startsWith('http') ? urlSitioWeb : `https://${urlSitioWeb}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.bottomUrl}
+            >
+              {urlSitioWeb}
+            </a>
+          </div>
+        </div>
+      </footer>
+
     </div>
   );
 }

@@ -226,6 +226,8 @@ export function ReportePDF({ reporte }: { reporte: Reporte }) {
         {[
           { key: 'motivo', label: 'Motivo de la Visita' },
           { key: 'descripcion', label: 'Descripción de la Situación' },
+          { key: 'equipo_relevado', label: 'Equipo Relevado' },
+          { key: 'inspeccion_realizada', label: 'Inspección Realizada' },
           { key: 'diagnostico', label: 'Diagnóstico Técnico' },
           { key: 'trabajo_realizado', label: 'Trabajos Realizados' },
           { key: 'recomendaciones', label: 'Recomendaciones' },

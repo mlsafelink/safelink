@@ -44,14 +44,27 @@ CREATE TABLE reportes (
     fecha DATE NOT NULL,
     titulo VARCHAR(255) NOT NULL,
     motivo TEXT,
-    descripcion TEXT,
-    diagnostico TEXT,
-    trabajo_realizado TEXT,
+    descripcion TEXT, -- Descripción de la situación
+    diagnostico TEXT, -- Diagnóstico
+    trabajo_realizado TEXT, -- Inspección realizada (nombre original para compatibilidad)
     recomendaciones TEXT,
     conclusiones TEXT,
     fotografias JSONB DEFAULT '[]'::JSONB, -- Array de URLs
     firmas JSONB DEFAULT '[]'::JSONB,
     observaciones TEXT,
+
+    -- Nuevas columnas de plantilla y soporte
+    equipo_relevado TEXT,
+    inspeccion_realizada TEXT,
+    cliente_nombre TEXT,
+    cliente_direccion TEXT,
+    fecha_instalacion DATE,
+    tecnico_nombre TEXT,
+    url_sitio_web TEXT DEFAULT 'www.safelink.com.ar',
+    telefono_soporte TEXT,
+    email_soporte TEXT,
+    horario_soporte TEXT DEFAULT 'Lunes a Viernes de 9:00 a 18:00 hs.',
+
     version INTEGER DEFAULT 1,
     previous_version_id UUID REFERENCES reportes(id), -- Para versionado estricto
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -140,9 +153,23 @@ CREATE TABLE instructivos (
 --   ADD COLUMN IF NOT EXISTS horario_soporte TEXT DEFAULT 'Lunes a Viernes de 9:00 a 18:00 hs.',
 --   ADD COLUMN IF NOT EXISTS numero_serie TEXT;
 
+-- MIGRACIÓN DE REPORTES TÉCNICOS: Ejecutar en Supabase SQL Editor si la tabla ya existe
+-- ALTER TABLE reportes
+--   ADD COLUMN IF NOT EXISTS equipo_relevado TEXT,
+--   ADD COLUMN IF NOT EXISTS inspeccion_realizada TEXT,
+--   ADD COLUMN IF NOT EXISTS cliente_nombre TEXT,
+--   ADD COLUMN IF NOT EXISTS cliente_direccion TEXT,
+--   ADD COLUMN IF NOT EXISTS fecha_instalacion DATE,
+--   ADD COLUMN IF NOT EXISTS tecnico_nombre TEXT,
+--   ADD COLUMN IF NOT EXISTS url_sitio_web TEXT DEFAULT 'www.safelink.com.ar',
+--   ADD COLUMN IF NOT EXISTS telefono_soporte TEXT,
+--   ADD COLUMN IF NOT EXISTS email_soporte TEXT,
+--   ADD COLUMN IF NOT EXISTS horario_soporte TEXT DEFAULT 'Lunes a Viernes de 9:00 a 18:00 hs.';
+
 -- BUCKET de Storage (ejecutar UNA SOLA VEZ en Supabase SQL Editor):
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('documents', 'documents', true)
 --   ON CONFLICT (id) DO NOTHING;
+
 
 ------------------------------------------------------
 -- SEGURIDAD: ROW LEVEL SECURITY (RLS)

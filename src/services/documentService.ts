@@ -17,6 +17,19 @@ export type Reporte = {
   conclusiones: string | null;
   fotografias: string[];
   observaciones: string | null;
+
+  // Nuevos campos de plantilla y soporte
+  equipo_relevado: string | null;
+  inspeccion_realizada: string | null;
+  cliente_nombre: string | null;
+  cliente_direccion: string | null;
+  fecha_instalacion: string | null;
+  tecnico_nombre: string | null;
+  url_sitio_web: string | null;
+  telefono_soporte: string | null;
+  email_soporte: string | null;
+  horario_soporte: string | null;
+
   version: number;
   created_at: string;
   // JOIN
