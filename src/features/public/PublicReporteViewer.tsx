@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { reporteService } from '@/services/documentService';
 import {
   Calendar, Building, ClipboardList, Clock, HelpCircle, Shield,
-  FileText, Cpu, Eye, AlertTriangle, Phone, Mail, Image,
+  FileText, Cpu, Eye, AlertTriangle, CheckSquare, Phone, Mail, Image,
 } from 'lucide-react';
 import styles from './ReporteViewer.module.css';
 
@@ -206,83 +206,55 @@ export function PublicReporteViewer() {
             </div>
           </div>
         )}
+        {/* Card 5: Recomendaciones */}
+        {listRecomendaciones.length > 0 && (
+          <div className={styles.card}>
+            <div className={styles.cardLeft}>
+              <span className={styles.stepNum}>Sección</span>
+              <span className={styles.stepNumber}>5</span>
+              <div className={styles.stepIcon}><CheckSquare size={18} /></div>
+              <span className={styles.stepLabel}>Recomend.</span>
+            </div>
+            <div className={styles.cardRight}>
+              <h2 className={styles.cardHeading}>Recomendaciones</h2>
+              <ul className={styles.footerBullets} style={{ marginTop: '0.25rem' }}>
+                {listRecomendaciones.map((rec, i) => (
+                  <li key={i} style={{ fontSize: '0.88rem', color: 'var(--rv-text)', lineHeight: 1.6 }}>{rec}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
 
       </main>
 
-      {/* ── FOOTER 3 COLUMNAS (Igual al Instructivo) ── */}
+      {/* ── FOOTER — solo ¿Necesita ayuda? ── */}
       <footer className={styles.footer}>
-        <div className={styles.footerInner}>
-          
-          {/* Recomendaciones */}
-          <div className={styles.footerCol}>
-            <div className={styles.footerColTitle}>
-              <Shield size={14} />
-              Recomendaciones
-            </div>
-            <ul className={styles.footerBullets}>
-              {listRecomendaciones.map((rec, i) => (
-                <li key={i}>{rec}</li>
-              ))}
-            </ul>
+        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1.5rem', borderBottom: `1px solid var(--rv-border)` }}>
+          <div className={styles.footerColTitle} style={{ marginBottom: '1rem' }}>
+            <HelpCircle size={14} />
+            ¿Necesita ayuda?
           </div>
-
-          {/* ¿Necesita ayuda? */}
-          <div className={styles.footerCol}>
-            <div className={styles.footerColTitle}>
-              <HelpCircle size={14} />
-              ¿Necesita ayuda?
-            </div>
-            <div className={styles.footerContact}>
-              <p style={{ fontSize: '0.78rem', color: '#475569', marginBottom: '0.5rem' }}>
-                Si tiene dudas sobre este informe técnico o requiere asistencia adicional, comuníquese con soporte.
-              </p>
-              {reporte.telefono_soporte && (
-                <div className={styles.contactRow}>
-                  <Phone size={13} className={styles.contactIcon} />
-                  <span>{reporte.telefono_soporte}</span>
-                </div>
-              )}
-              {reporte.email_soporte && (
-                <div className={styles.contactRow}>
-                  <Mail size={13} className={styles.contactIcon} />
-                  <span>{reporte.email_soporte}</span>
-                </div>
-              )}
-              {reporte.horario_soporte && (
-                <div className={styles.contactRow}>
-                  <Clock size={13} className={styles.contactIcon} />
-                  <span>{reporte.horario_soporte}</span>
-                </div>
-              )}
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+            {reporte.telefono_soporte && (
+              <div className={styles.contactRow}>
+                <Phone size={14} className={styles.contactIcon} />
+                <span>{reporte.telefono_soporte}</span>
+              </div>
+            )}
+            {reporte.email_soporte && (
+              <div className={styles.contactRow}>
+                <Mail size={14} className={styles.contactIcon} />
+                <span>{reporte.email_soporte}</span>
+              </div>
+            )}
+            {reporte.horario_soporte && (
+              <div className={styles.contactRow}>
+                <Clock size={14} className={styles.contactIcon} />
+                <span>{reporte.horario_soporte}</span>
+              </div>
+            )}
           </div>
-
-          {/* Datos de la instalación */}
-          <div className={styles.footerCol}>
-            <div className={styles.footerColTitle}>
-              <Building size={14} />
-              Datos de su instalación
-            </div>
-            <div className={styles.installData}>
-              <div className={styles.dataRow}>
-                <span className={styles.dataLabel}>Cliente</span>
-                <span className={styles.dataValue}>{reporte.cliente_nombre ?? ''}</span>
-              </div>
-              <div className={styles.dataRow}>
-                <span className={styles.dataLabel}>Dirección</span>
-                <span className={styles.dataValue}>{reporte.cliente_direccion ?? ''}</span>
-              </div>
-              <div className={styles.dataRow}>
-                <span className={styles.dataLabel}>Fecha de instalación</span>
-                <span className={styles.dataValue}>{formatFecha(reporte.fecha_instalacion)}</span>
-              </div>
-              <div className={styles.dataRow}>
-                <span className={styles.dataLabel}>Técnico</span>
-                <span className={styles.dataValue}>{reporte.tecnico_nombre ?? ''}</span>
-              </div>
-            </div>
-          </div>
-
         </div>
 
         {/* Barra final */}

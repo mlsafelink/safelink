@@ -9,23 +9,32 @@ import { Button } from '@/components/ui/Button/Button';
 import { Input } from '@/components/ui/Input/Input';
 import { Select } from '@/components/ui/Select/Select';
 import { Card } from '@/components/ui/Card/Card';
-import { ArrowLeft, Save, Trash2, ClipboardList, Info, Shield, Globe } from 'lucide-react';
+import {
+  ArrowLeft, Save, Trash2, ClipboardList, FileText,
+  Cpu, Eye, AlertTriangle, CheckSquare, Camera, Globe,
+} from 'lucide-react';
 import { ImageUploader } from '@/components/ui/ImageUploader/ImageUploader';
 import styles from './DocForm.module.css';
+
+const STEPS = [
+  { id: 'descripcion',         label: 'Situación',     icon: FileText },
+  { id: 'equipo',              label: 'Equipo',        icon: Cpu },
+  { id: 'inspeccion',         label: 'Inspección',    icon: Eye },
+  { id: 'diagnostico',        label: 'Diagnóstico',   icon: AlertTriangle },
+  { id: 'recomendaciones',    label: 'Recomend.',     icon: CheckSquare },
+  { id: 'fotos',              label: 'Fotos',         icon: Camera },
+  { id: 'soporte',            label: 'Soporte',       icon: Globe },
+];
 
 const reporteSchema = z.object({
   consorcio_id: z.string().min(1, 'Seleccione un consorcio'),
   fecha: z.string().min(1, 'La fecha es requerida'),
   titulo: z.string().min(1, 'El título es requerido'),
-  descripcion: z.string().optional(), // Descripción de la situación
+  descripcion: z.string().optional(),
   equipo_relevado: z.string().optional(),
   inspeccion_realizada: z.string().optional(),
   diagnostico: z.string().optional(),
   recomendaciones: z.string().optional(),
-  cliente_nombre: z.string().optional(),
-  cliente_direccion: z.string().optional(),
-  fecha_instalacion: z.string().optional(),
-  tecnico_nombre: z.string().optional(),
   url_sitio_web: z.string().optional(),
   telefono_soporte: z.string().optional(),
   email_soporte: z.string().optional(),
@@ -44,6 +53,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
   const isEditing = !!editingId;
   const [isDataLoaded, setIsDataLoaded] = useState(!isEditing);
   const [fotografias, setFotografias] = useState<string[]>([]);
+  const [activeStep, setActiveStep] = useState('descripcion');
 
   const { data: consorcios = [] } = useQuery({
     queryKey: ['consorcios'],
@@ -63,10 +73,6 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
       inspeccion_realizada: '',
       diagnostico: '',
       recomendaciones: '• Mantener el equipo en un área ventilada y limpia.\n• No compartir credenciales con terceros.\n• Realizar mantenimientos preventivos trimestrales.',
-      cliente_nombre: '',
-      cliente_direccion: '',
-      fecha_instalacion: '',
-      tecnico_nombre: '',
       url_sitio_web: 'www.safelink.com.ar',
       telefono_soporte: '',
       email_soporte: '',
@@ -74,7 +80,6 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
     },
   });
 
-  // Cargar datos para edición
   const { data: reportes } = useQuery({
     queryKey: ['reportes'],
     queryFn: reporteService.getAll,
@@ -94,10 +99,6 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
           inspeccion_realizada: reporte.inspeccion_realizada || '',
           diagnostico: reporte.diagnostico || '',
           recomendaciones: reporte.recomendaciones || '',
-          cliente_nombre: reporte.cliente_nombre || '',
-          cliente_direccion: reporte.cliente_direccion || '',
-          fecha_instalacion: reporte.fecha_instalacion || '',
-          tecnico_nombre: reporte.tecnico_nombre || '',
           url_sitio_web: reporte.url_sitio_web || 'www.safelink.com.ar',
           telefono_soporte: reporte.telefono_soporte || '',
           email_soporte: reporte.email_soporte || '',
@@ -110,7 +111,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
   }, [isEditing, reportes, editingId, reset]);
 
   const mutation = useMutation({
-    mutationFn: (data: ReporteFormData & { fotografias?: string[] }) => {
+    mutationFn: (data: ReporteFormData) => {
       const payload = { ...data, fotografias };
       return isEditing
         ? reporteService.update(editingId!, payload)
@@ -133,7 +134,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
 
       <Card variant="neumorphic" className={styles.formCard}>
         <form onSubmit={handleSubmit(d => mutation.mutate(d))} className={styles.form}>
-          
+
           {/* ── Datos Generales ── */}
           <div className={styles.sectionBlock}>
             <div className={styles.sectionTitle}>
@@ -164,20 +165,44 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
             </div>
           </div>
 
-          {/* ── Desarrollo del Reporte (Cards) ── */}
+          {/* ── MARCADOR DE SECCIONES ── */}
+          <div>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', marginLeft: '0.25rem' }}>
+              Estás completando:
+            </p>
+            <div className={styles.stepIndicator}>
+              {STEPS.map(step => {
+                const Icon = step.icon;
+                const isActive = activeStep === step.id;
+                return (
+                  <div
+                    key={step.id}
+                    className={`${styles.stepItem} ${isActive ? styles.stepItemActive : ''}`}
+                    title={step.label}
+                  >
+                    <Icon size={14} className={styles.stepItemIcon} />
+                    <span className={styles.stepItemLabel}>{step.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Desarrollo del Reporte ── */}
           <div className={styles.sectionBlock}>
             <div className={styles.sectionTitle}>
-              <Info size={16} />
+              <FileText size={16} />
               <span>Desarrollo del Reporte</span>
             </div>
 
-            <div style={{ marginTop: '0.5rem' }}>
+            <div>
               <label className={styles.textareaLabel}>1. Descripción de la situación</label>
               <textarea
                 className={styles.textArea}
                 rows={4}
-                placeholder="Escriba la descripción..."
+                placeholder="Escriba la descripción de la situación encontrada..."
                 {...register('descripcion')}
+                onFocus={() => setActiveStep('descripcion')}
               />
             </div>
 
@@ -186,8 +211,9 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
               <textarea
                 className={styles.textArea}
                 rows={3}
-                placeholder="Detalle de los equipos encontrados..."
+                placeholder="Detalle los equipos encontrados (marca, modelo, estado)..."
                 {...register('equipo_relevado')}
+                onFocus={() => setActiveStep('equipo')}
               />
             </div>
 
@@ -196,8 +222,9 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
               <textarea
                 className={styles.textArea}
                 rows={4}
-                placeholder="Detalle de las pruebas e inspecciones hechas..."
+                placeholder="Detalle las pruebas e inspecciones llevadas a cabo..."
                 {...register('inspeccion_realizada')}
+                onFocus={() => setActiveStep('inspeccion')}
               />
             </div>
 
@@ -206,17 +233,32 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
               <textarea
                 className={styles.textArea}
                 rows={4}
-                placeholder="Diagnóstico de la situación/problema..."
+                placeholder="Conclusión técnica sobre la situación encontrada..."
                 {...register('diagnostico')}
+                onFocus={() => setActiveStep('diagnostico')}
               />
+            </div>
+
+            <div style={{ marginTop: '1rem' }}>
+              <label className={styles.textareaLabel}>5. Recomendaciones</label>
+              <textarea
+                className={styles.textArea}
+                rows={4}
+                placeholder="• Una recomendación por línea&#10;• Agregar bullet • al inicio de cada una"
+                {...register('recomendaciones')}
+                onFocus={() => setActiveStep('recomendaciones')}
+              />
+              <p className={styles.sectionHint} style={{ marginTop: '0.4rem' }}>
+                Usá "•" al inicio de cada línea para mostrarlas como viñetas en el reporte.
+              </p>
             </div>
           </div>
 
           {/* ── Fotografías ── */}
-          <div className={styles.sectionBlock}>
+          <div className={styles.sectionBlock} onFocus={() => setActiveStep('fotos')}>
             <div className={styles.sectionTitle}>
-              <Shield size={16} />
-              <span>Fotografías del Reporte</span>
+              <Camera size={16} />
+              <span>Registro Fotográfico</span>
             </div>
             {fotografias.length > 0 && (
               <div className={styles.imageGrid}>
@@ -235,62 +277,21 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
                 ))}
               </div>
             )}
-            <div style={{ maxWidth: '400px', marginTop: '1rem' }}>
+            <div style={{ maxWidth: '400px', marginTop: '0.5rem' }}>
               <ImageUploader
                 onChange={(url) => url && setFotografias(prev => [...prev, url])}
-                label="Agregar fotografía"
+                label="Agregar fotografía de evidencia"
               />
             </div>
           </div>
 
-          {/* ── Datos de la instalación y Recomendaciones ── */}
-          <div className={styles.sectionBlock}>
+          {/* ── Datos de Soporte (¿Necesita ayuda?) ── */}
+          <div className={styles.sectionBlock} onFocus={() => setActiveStep('soporte')}>
             <div className={styles.sectionTitle}>
               <Globe size={16} />
-              <span>Datos del Footer y Recomendaciones</span>
+              <span>Datos de contacto — ¿Necesita ayuda? (aparece en el pie del reporte)</span>
             </div>
-            
-            <div style={{ marginBottom: '1.25rem' }}>
-              <label className={styles.textareaLabel}>Recomendaciones (se mostrarán como viñetas en el pie)</label>
-              <textarea
-                className={styles.textArea}
-                rows={4}
-                placeholder="Ingrese una recomendación por línea..."
-                {...register('recomendaciones')}
-              />
-            </div>
-
-            <div className={styles.grid2}>
-              <Input
-                label="Nombre del cliente"
-                placeholder="ej: Consorcio Edificio Libertad"
-                {...register('cliente_nombre')}
-              />
-              <Input
-                label="Dirección"
-                placeholder="ej: Av. Corrientes 1234, CABA"
-                {...register('cliente_direccion')}
-              />
-              <Input
-                label="Fecha de instalación"
-                type="date"
-                {...register('fecha_instalacion')}
-              />
-              <Input
-                label="Técnico responsable"
-                placeholder="ej: Juan Pérez"
-                {...register('tecnico_nombre')}
-              />
-              <Input
-                label="Sitio web (enlace en el pie)"
-                placeholder="ej: www.safelink.com.ar"
-                {...register('url_sitio_web')}
-                className={styles.fullWidth}
-              />
-            </div>
-
-            {/* Datos de soporte */}
-            <div className={styles.grid3} style={{ marginTop: '0.75rem' }}>
+            <div className={styles.grid3}>
               <Input
                 label="Teléfono soporte"
                 placeholder="ej: 11 1234 5678"
@@ -307,6 +308,11 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
                 {...register('horario_soporte')}
               />
             </div>
+            <Input
+              label="Sitio web (enlace en el pie)"
+              placeholder="ej: www.safelink.com.ar"
+              {...register('url_sitio_web')}
+            />
           </div>
 
           {/* Acciones */}
@@ -323,7 +329,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
           </div>
           {mutation.isError && (
             <p className={styles.errorMsg}>
-              Error al guardar: {(mutation.error as any)?.message || 'Error desconocido'}. 
+              Error al guardar: {(mutation.error as any)?.message || 'Error desconocido'}.
               Verifique los datos e intente de nuevo.
             </p>
           )}
