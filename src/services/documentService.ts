@@ -74,6 +74,7 @@ export type Instructivo = {
   telefono_soporte: string | null;
   email_soporte: string | null;
   horario_soporte: string | null;
+  numero_serie: string | null;
 
   version: number;
   created_at: string;

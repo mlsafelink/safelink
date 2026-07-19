@@ -107,6 +107,7 @@ CREATE TABLE instructivos (
     telefono_soporte TEXT,
     email_soporte TEXT,
     horario_soporte TEXT DEFAULT 'Lunes a Viernes de 9:00 a 18:00 hs.',
+    numero_serie TEXT,
 
     version INTEGER DEFAULT 1,
     previous_version_id UUID REFERENCES instructivos(id),
@@ -136,7 +137,8 @@ CREATE TABLE instructivos (
 --   ADD COLUMN IF NOT EXISTS url_sitio_web TEXT DEFAULT 'www.safelink.com.ar',
 --   ADD COLUMN IF NOT EXISTS telefono_soporte TEXT,
 --   ADD COLUMN IF NOT EXISTS email_soporte TEXT,
---   ADD COLUMN IF NOT EXISTS horario_soporte TEXT DEFAULT 'Lunes a Viernes de 9:00 a 18:00 hs.';
+--   ADD COLUMN IF NOT EXISTS horario_soporte TEXT DEFAULT 'Lunes a Viernes de 9:00 a 18:00 hs.',
+--   ADD COLUMN IF NOT EXISTS numero_serie TEXT;
 
 -- BUCKET de Storage (ejecutar UNA SOLA VEZ en Supabase SQL Editor):
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('documents', 'documents', true)

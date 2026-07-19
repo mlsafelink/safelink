@@ -219,6 +219,19 @@ export function PublicInstructivoViewer() {
                     <span className={styles.numBullet}>3</span>
                     <span>Escanee el código QR proporcionado por el instalador.</span>
                   </li>
+                  {instructivo.numero_serie && (
+                    <li>
+                      <span className={styles.numBullet}>4</span>
+                      <span>
+                        o ingrese manualmente el siguiente Número de Serie:
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <span className={styles.credCode} style={{ fontSize: '0.9rem', padding: '0.2rem 0.5rem' }}>
+                            {instructivo.numero_serie}
+                          </span>
+                        </div>
+                      </span>
+                    </li>
+                  )}
                 </ul>
               </div>
               <div className={styles.qrImageBox}>

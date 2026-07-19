@@ -32,6 +32,7 @@ const instructivoSchema = z.object({
   telefono_soporte: z.string().optional(),
   email_soporte: z.string().optional(),
   horario_soporte: z.string().optional(),
+  numero_serie: z.string().optional(),
 });
 
 type InstructivoFormData = z.infer<typeof instructivoSchema>;
@@ -71,6 +72,7 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
       telefono_soporte: '',
       email_soporte: '',
       horario_soporte: 'Lunes a Viernes de 9:00 a 18:00 hs.',
+      numero_serie: '',
     },
   });
 
@@ -103,6 +105,7 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
           telefono_soporte: instr.telefono_soporte ?? '',
           email_soporte: instr.email_soporte ?? '',
           horario_soporte: instr.horario_soporte ?? 'Lunes a Viernes de 9:00 a 18:00 hs.',
+          numero_serie: instr.numero_serie ?? '',
         });
         setQrImageUrl(instr.qr_image_url ?? '');
         setIsDataLoaded(true);
@@ -215,6 +218,13 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
               value={qrImageUrl}
               onChange={url => setQrImageUrl(url)}
             />
+            <div style={{ marginTop: '1.25rem' }}>
+              <Input
+                label="Número de Serie (Opcional - para ingreso manual)"
+                placeholder="ej: SN: 1234567890ABC"
+                {...register('numero_serie')}
+              />
+            </div>
           </div>
 
           {/* ── PASO 4 — Credenciales del equipo ── */}
