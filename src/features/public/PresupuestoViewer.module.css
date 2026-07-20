@@ -6,10 +6,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  --pv-purple: #4c1d95;
-  --pv-purple-mid: #5c3a21;
-  --pv-purple-brand: #6d28d9;
-  --pv-bg: #f8fafc;
+  --pv-purple: #1a2744;
+  --pv-purple-mid: #1e3a6e;
+  --pv-purple-brand: #2563eb;
+  --pv-bg: #f0f4f8;
   --pv-white: #ffffff;
   --pv-text: #1e293b;
   --pv-muted: #64748b;
@@ -26,7 +26,7 @@
 
 /* ── HEADER ── */
 .header {
-  background: linear-gradient(135deg, #2e1065 0%, #4c1d95 60%, #6d28d9 100%);
+  background: linear-gradient(135deg, var(--pv-purple) 0%, var(--pv-purple-mid) 60%, #1e4d8c 100%);
   color: white;
   position: relative;
   overflow: hidden;
@@ -134,7 +134,7 @@
 }
 
 .infoIcon {
-  color: var(--pv-purple-brand);
+  color: var(--pv-purple-mid);
   opacity: 0.8;
   flex-shrink: 0;
 }
@@ -179,7 +179,7 @@
 }
 
 .cardLeft {
-  background: linear-gradient(180deg, #3b0764 0%, #5b21b6 100%);
+  background: linear-gradient(180deg, var(--pv-purple) 0%, var(--pv-purple-mid) 100%);
   color: white;
   display: flex;
   flex-direction: column;
@@ -237,7 +237,7 @@
 .cardHeading {
   font-size: 1.05rem;
   font-weight: 800;
-  color: var(--pv-purple-brand);
+  color: var(--pv-purple-mid);
   line-height: 1.3;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -255,8 +255,8 @@
 
 /* ── PRECIO TOTAL BANNER ── */
 .priceBox {
-  background: #faf5ff;
-  border: 1px solid rgba(109, 40, 217, 0.15);
+  background: #f0f7ff;
+  border: 1px solid rgba(37, 99, 235, 0.15);
   border-radius: 8px;
   padding: 1rem 1.5rem;
   display: flex;
@@ -269,13 +269,13 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--pv-purple-brand);
+  color: var(--pv-purple-mid);
 }
 
 .priceValue {
   font-size: 1.8rem;
   font-weight: 900;
-  color: #5b21b6;
+  color: #1d4ed8;
   letter-spacing: -0.02em;
 }
 
