@@ -12,12 +12,11 @@
   padding: 0 0.5rem;
 }
 
-.logoIcon {
+.logoImage {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-  border-radius: 8px;
-  box-shadow: 2px 2px 8px rgba(49, 130, 206, 0.4);
+  object-fit: contain;
+  border-radius: 6px;
 }
 
 .logo h2 {

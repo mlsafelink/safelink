@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Building2, Building, FileText, LogOut } from 'lucide-react';
+import logoImg from '@/assets/logo.png';
 import { useAuth } from '@/features/auth/AuthContext';
 import styles from './Sidebar.module.css';
 import { clsx } from 'clsx';
@@ -10,7 +11,7 @@ export function Sidebar() {
   return (
     <div className={styles.sidebarContent}>
       <div className={styles.logo}>
-        <div className={styles.logoIcon}></div>
+        <img src={logoImg} alt="SafeLink Logo" className={styles.logoImage} />
         <h2>SafeLink</h2>
       </div>
 
