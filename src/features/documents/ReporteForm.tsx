@@ -73,9 +73,9 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
       inspeccion_realizada: '',
       diagnostico: '',
       recomendaciones: '• Mantener el equipo en un área ventilada y limpia.\n• No compartir credenciales con terceros.\n• Realizar mantenimientos preventivos trimestrales.',
-      url_sitio_web: 'www.safelink.com.ar',
-      telefono_soporte: '',
-      email_soporte: '',
+      url_sitio_web: 'instagram.com/ml.safelink',
+      telefono_soporte: '11 1234 5678',
+      email_soporte: 'soporte@safelink.com.ar',
       horario_soporte: 'Lunes a Viernes de 9:00 a 18:00 hs.',
     },
   });
@@ -99,9 +99,9 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
           inspeccion_realizada: reporte.inspeccion_realizada || '',
           diagnostico: reporte.diagnostico || '',
           recomendaciones: reporte.recomendaciones || '',
-          url_sitio_web: reporte.url_sitio_web || 'www.safelink.com.ar',
-          telefono_soporte: reporte.telefono_soporte || '',
-          email_soporte: reporte.email_soporte || '',
+          url_sitio_web: reporte.url_sitio_web || 'instagram.com/ml.safelink',
+          telefono_soporte: reporte.telefono_soporte || '11 1234 5678',
+          email_soporte: reporte.email_soporte || 'soporte@safelink.com.ar',
           horario_soporte: reporte.horario_soporte || 'Lunes a Viernes de 9:00 a 18:00 hs.',
         });
         setFotografias(reporte.fotografias || []);
@@ -196,7 +196,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
             </div>
 
             <div>
-              <label className={styles.textareaLabel}>1. Descripción de la situación</label>
+              <label className={styles.textareaLabel}>SECCIÓN 1 — Descripción de la situación</label>
               <textarea
                 className={styles.textArea}
                 rows={4}
@@ -207,7 +207,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
             </div>
 
             <div style={{ marginTop: '1rem' }}>
-              <label className={styles.textareaLabel}>2. Equipo relevado</label>
+              <label className={styles.textareaLabel}>SECCIÓN 2 — Equipo relevado</label>
               <textarea
                 className={styles.textArea}
                 rows={3}
@@ -218,7 +218,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
             </div>
 
             <div style={{ marginTop: '1rem' }}>
-              <label className={styles.textareaLabel}>3. Inspección realizada</label>
+              <label className={styles.textareaLabel}>SECCIÓN 3 — Inspección realizada</label>
               <textarea
                 className={styles.textArea}
                 rows={4}
@@ -229,7 +229,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
             </div>
 
             <div style={{ marginTop: '1rem' }}>
-              <label className={styles.textareaLabel}>4. Diagnóstico</label>
+              <label className={styles.textareaLabel}>SECCIÓN 4 — Diagnóstico</label>
               <textarea
                 className={styles.textArea}
                 rows={4}
@@ -240,7 +240,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
             </div>
 
             <div style={{ marginTop: '1rem' }}>
-              <label className={styles.textareaLabel}>5. Recomendaciones</label>
+              <label className={styles.textareaLabel}>SECCIÓN 5 — Recomendaciones</label>
               <textarea
                 className={styles.textArea}
                 rows={4}
