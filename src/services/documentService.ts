@@ -50,6 +50,11 @@ export type Presupuesto = {
   garantia: string | null;
   condiciones: string | null;
   observaciones: string | null;
+  descripcion: string | null;
+  telefono_soporte: string | null;
+  email_soporte: string | null;
+  horario_soporte: string | null;
+  url_sitio_web: string | null;
   version: number;
   created_at: string;
   consorcios?: { nombre: string; administraciones?: { nombre: string } };

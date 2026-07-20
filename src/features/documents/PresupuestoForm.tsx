@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm, useFieldArray, type SubmitHandler } from 'react-hook-form';
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
@@ -9,26 +9,34 @@ import { Button } from '@/components/ui/Button/Button';
 import { Input } from '@/components/ui/Input/Input';
 import { Select } from '@/components/ui/Select/Select';
 import { Card } from '@/components/ui/Card/Card';
-import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
+import {
+  ArrowLeft, Save, FileText, DollarSign,
+  AlertCircle, Info, FileSpreadsheet, Globe, ClipboardList
+} from 'lucide-react';
 import styles from './DocForm.module.css';
 
-// Todos los números se manejan como strings en el form para evitar
-// conflictos de tipo con zodResolver + verbatimModuleSyntax
+const STEPS = [
+  { id: 'descripcion', label: 'Descripción', icon: FileText },
+  { id: 'monto', label: 'Monto', icon: DollarSign },
+  { id: 'condiciones', label: 'Condiciones', icon: AlertCircle },
+  { id: 'observaciones', label: 'Observaciones', icon: Info },
+  { id: 'soporte', label: 'Soporte', icon: Globe },
+];
+
 const presupuestoSchema = z.object({
   consorcio_id: z.string().min(1, 'Seleccione un consorcio'),
   titulo: z.string().min(1, 'El título es requerido'),
   fecha: z.string().min(1, 'La fecha es requerida'),
-  materiales: z.array(z.object({
-    nombre: z.string(),
-    cantidad: z.string(),
-    precio_unitario: z.string(),
-  })),
-  mano_obra: z.string(),
-  descuentos: z.string(),
   validez: z.string().optional(),
   garantia: z.string().optional(),
+  descripcion: z.string().optional(),
+  total: z.string().min(1, 'El monto total es requerido'),
   condiciones: z.string().optional(),
   observaciones: z.string().optional(),
+  url_sitio_web: z.string().optional(),
+  telefono_soporte: z.string().optional(),
+  email_soporte: z.string().optional(),
+  horario_soporte: z.string().optional(),
 });
 
 type PresupuestoFormData = z.infer<typeof presupuestoSchema>;
@@ -42,30 +50,35 @@ export function PresupuestoForm({ onBack, editingId }: PresupuestoFormProps) {
   const queryClient = useQueryClient();
   const isEditing = !!editingId;
   const [isDataLoaded, setIsDataLoaded] = useState(!isEditing);
+  const [activeStep, setActiveStep] = useState('descripcion');
 
   const { data: consorcios = [] } = useQuery({ queryKey: ['consorcios'], queryFn: consorcioService.getAll });
   const consorcioOptions = consorcios.map(c => ({ label: c.nombre, value: c.id }));
 
-  const { register, handleSubmit, watch, reset, control, formState: { errors } } = useForm<PresupuestoFormData>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<PresupuestoFormData>({
     resolver: zodResolver(presupuestoSchema),
     defaultValues: {
-      consorcio_id: '', titulo: '', fecha: new Date().toISOString().split('T')[0],
-      materiales: [], mano_obra: '0', descuentos: '0',
-      validez: '', garantia: '', condiciones: '', observaciones: '',
+      consorcio_id: '',
+      titulo: '',
+      fecha: new Date().toISOString().split('T')[0],
+      validez: '30 días',
+      garantia: '6 meses',
+      descripcion: '',
+      total: '0',
+      condiciones: '• Forma de pago: 50% de anticipo y 50% al finalizar la instalación.\n• Plazo de ejecución estimado: 3 a 5 días hábiles.',
+      observaciones: '',
+      url_sitio_web: 'instagram.com/ml.safelink',
+      telefono_soporte: '11 1234 5678',
+      email_soporte: 'soporte@safelink.com.ar',
+      horario_soporte: 'Lunes a Viernes de 9:00 a 18:00 hs.',
     },
   });
 
-  const { fields, append, remove } = useFieldArray({ control, name: 'materiales' });
-  const materiales = watch('materiales');
-  const manoObraStr = watch('mano_obra');
-  const descuentosStr = watch('descuentos');
-
-  const subtotales = materiales.reduce((acc, m) => {
-    return acc + (parseFloat(m.cantidad) || 0) * (parseFloat(m.precio_unitario) || 0);
-  }, 0);
-  const total = subtotales + (parseFloat(manoObraStr) || 0) - (parseFloat(descuentosStr) || 0);
-
-  const { data: presupuestos } = useQuery({ queryKey: ['presupuestos'], queryFn: presupuestoService.getAll, enabled: isEditing });
+  const { data: presupuestos } = useQuery({
+    queryKey: ['presupuestos'],
+    queryFn: presupuestoService.getAll,
+    enabled: isEditing
+  });
 
   useEffect(() => {
     if (isEditing && presupuestos) {
@@ -75,17 +88,16 @@ export function PresupuestoForm({ onBack, editingId }: PresupuestoFormProps) {
           consorcio_id: p.consorcio_id,
           titulo: p.titulo,
           fecha: p.fecha,
-          materiales: p.materiales.map(m => ({
-            nombre: m.nombre,
-            cantidad: String(m.cantidad),
-            precio_unitario: String(m.precio_unitario),
-          })),
-          mano_obra: String(p.mano_obra),
-          descuentos: String(p.descuentos),
           validez: p.validez || '',
           garantia: p.garantia || '',
+          descripcion: p.descripcion || '',
+          total: String(p.total),
           condiciones: p.condiciones || '',
           observaciones: p.observaciones || '',
+          url_sitio_web: p.url_sitio_web || 'instagram.com/ml.safelink',
+          telefono_soporte: p.telefono_soporte || '11 1234 5678',
+          email_soporte: p.email_soporte || 'soporte@safelink.com.ar',
+          horario_soporte: p.horario_soporte || 'Lunes a Viernes de 9:00 a 18:00 hs.',
         });
         setIsDataLoaded(true);
       }
@@ -95,7 +107,10 @@ export function PresupuestoForm({ onBack, editingId }: PresupuestoFormProps) {
   const mutation = useMutation({
     mutationFn: (payload: object) =>
       isEditing ? presupuestoService.update(editingId!, payload) : presupuestoService.create(payload),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['presupuestos'] }); onBack(); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['presupuestos'] });
+      onBack();
+    },
   });
 
   const onSubmit: SubmitHandler<PresupuestoFormData> = (data) => {
@@ -105,23 +120,20 @@ export function PresupuestoForm({ onBack, editingId }: PresupuestoFormProps) {
       fecha: data.fecha,
       validez: data.validez || null,
       garantia: data.garantia || null,
+      descripcion: data.descripcion || null,
+      total: parseFloat(data.total) || 0,
       condiciones: data.condiciones || null,
       observaciones: data.observaciones || null,
-      mano_obra: parseFloat(data.mano_obra) || 0,
-      descuentos: parseFloat(data.descuentos) || 0,
-      total,
-      materiales: data.materiales.map(m => ({
-        nombre: m.nombre,
-        cantidad: parseFloat(m.cantidad) || 0,
-        precio_unitario: parseFloat(m.precio_unitario) || 0,
-        subtotal: (parseFloat(m.cantidad) || 0) * (parseFloat(m.precio_unitario) || 0),
-      })),
+      url_sitio_web: data.url_sitio_web || null,
+      telefono_soporte: data.telefono_soporte || null,
+      email_soporte: data.email_soporte || null,
+      horario_soporte: data.horario_soporte || null,
+      materiales: [], // Empty array for backwards compatibility
+      mano_obra: 0,
+      descuentos: 0,
     };
     mutation.mutate(payload);
   };
-
-  const addMaterial = () => append({ nombre: '', cantidad: '1', precio_unitario: '0' });
-  const fmt = (n: number) => n.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
 
   if (!isDataLoaded) return <p className={styles.loading}>Cargando datos...</p>;
 
@@ -134,73 +146,161 @@ export function PresupuestoForm({ onBack, editingId }: PresupuestoFormProps) {
 
       <Card variant="neumorphic" className={styles.formCard}>
         <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-          <div className={styles.grid2}>
-            <Select label="Consorcio *" options={consorcioOptions} error={errors.consorcio_id?.message} {...register('consorcio_id')} className={styles.fullWidth} />
-            <Input label="Título *" placeholder="Título del presupuesto" error={errors.titulo?.message} {...register('titulo')} className={styles.fullWidth} />
-            <Input label="Fecha *" type="date" error={errors.fecha?.message} {...register('fecha')} />
-            <Input label="Validez" placeholder="Ej: 30 días" {...register('validez')} />
-            <Input label="Garantía" placeholder="Ej: 6 meses en mano de obra" {...register('garantia')} className={styles.fullWidth} />
+          
+          {/* ── Datos Generales ── */}
+          <div className={styles.sectionBlock}>
+            <div className={styles.sectionTitle}>
+              <ClipboardList size={16} />
+              <span>Datos Generales</span>
+            </div>
+            <div className={styles.grid2}>
+              <Select
+                label="Consorcio *"
+                options={consorcioOptions}
+                error={errors.consorcio_id?.message}
+                {...register('consorcio_id')}
+                className={styles.fullWidth}
+              />
+              <Input
+                label="Título del Presupuesto *"
+                placeholder="ej: PROVISIÓN E INSTALACIÓN DE SISTEMA DE CÁMARAS"
+                error={errors.titulo?.message}
+                {...register('titulo')}
+                className={styles.fullWidth}
+              />
+              <Input
+                label="Fecha *"
+                type="date"
+                error={errors.fecha?.message}
+                {...register('fecha')}
+              />
+              <Input
+                label="Validez"
+                placeholder="ej: 30 días"
+                {...register('validez')}
+              />
+              <Input
+                label="Garantía"
+                placeholder="ej: 6 meses"
+                {...register('garantia')}
+                className={styles.fullWidth}
+              />
+            </div>
           </div>
 
-          {/* Materiales */}
-          <div className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h3>Materiales</h3>
-              <Button type="button" variant="secondary" size="sm" leftIcon={<Plus size={14} />} onClick={addMaterial}>
-                Agregar ítem
-              </Button>
-            </div>
-
-            {fields.length > 0 && (
-              <div className={styles.materialsTable}>
-                <div className={styles.tableHeader}>
-                  <span>Descripción</span><span>Cantidad</span><span>Precio Unit.</span><span>Subtotal</span><span></span>
-                </div>
-                {fields.map((field, i) => (
-                  <div key={field.id} className={styles.tableRow}>
-                    <Input placeholder="Descripción" {...register(`materiales.${i}.nombre`)} />
-                    <Input type="number" placeholder="0" {...register(`materiales.${i}.cantidad`)} />
-                    <Input type="number" placeholder="0.00" {...register(`materiales.${i}.precio_unitario`)} />
-                    <div className={styles.subtotalCell}>
-                      {fmt((parseFloat(materiales[i]?.cantidad) || 0) * (parseFloat(materiales[i]?.precio_unitario) || 0))}
-                    </div>
-                    <button type="button" className={styles.removeBtn} onClick={() => remove(i)}><Trash2 size={16} /></button>
+          {/* ── MARCADOR DE SECCIONES ── */}
+          <div>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', marginLeft: '0.25rem' }}>
+              Estás completando:
+            </p>
+            <div className={styles.stepIndicator}>
+              {STEPS.map(step => {
+                const Icon = step.icon;
+                const isActive = activeStep === step.id;
+                return (
+                  <div
+                    key={step.id}
+                    className={`${styles.stepItem} ${isActive ? styles.stepItemActive : ''}`}
+                    title={step.label}
+                  >
+                    <Icon size={14} className={styles.stepItemIcon} />
+                    <span className={styles.stepItemLabel}>{step.label}</span>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Totales */}
-          <div className={styles.totalsSection}>
-            <div className={styles.totalsGrid}>
-              <Input label="Mano de Obra ($)" type="number" {...register('mano_obra')} />
-              <Input label="Descuentos ($)" type="number" {...register('descuentos')} />
-            </div>
-            <div className={styles.totalBox}>
-              <span>TOTAL</span>
-              <strong>{fmt(total)}</strong>
+                );
+              })}
             </div>
           </div>
 
-          <div className={styles.fieldList}>
-            <div className={styles.fieldGroup}>
-              <label className={styles.label}>Condiciones</label>
-              <textarea className={styles.textArea} rows={3} placeholder="Condiciones del presupuesto..." {...register('condiciones')} />
+          {/* ── Desarrollo del Presupuesto ── */}
+          <div className={styles.sectionBlock}>
+            <div className={styles.sectionTitle}>
+              <FileSpreadsheet size={16} />
+              <span>Desarrollo del Presupuesto</span>
             </div>
-            <div className={styles.fieldGroup}>
-              <label className={styles.label}>Observaciones</label>
-              <textarea className={styles.textArea} rows={3} placeholder="Observaciones..." {...register('observaciones')} />
+
+            <div>
+              <label className={styles.textareaLabel}>SECCIÓN 1 — Descripción de los trabajos a realizar</label>
+              <textarea
+                className={styles.textArea}
+                rows={8}
+                placeholder="Detalle los trabajos, materiales y mano de obra a realizar de forma descriptiva..."
+                {...register('descripcion')}
+                onFocus={() => setActiveStep('descripcion')}
+              />
+            </div>
+
+            <div style={{ marginTop: '1.25rem' }} onFocus={() => setActiveStep('monto')}>
+              <Input
+                label="SECCIÓN 2 — Monto Total ($) *"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                error={errors.total?.message}
+                {...register('total')}
+              />
+            </div>
+
+            <div style={{ marginTop: '1.25rem' }}>
+              <label className={styles.textareaLabel}>SECCIÓN 3 — Condiciones</label>
+              <textarea
+                className={styles.textArea}
+                rows={4}
+                placeholder="Condiciones del servicio (forma de pago, plazos)..."
+                {...register('condiciones')}
+                onFocus={() => setActiveStep('condiciones')}
+              />
+            </div>
+
+            <div style={{ marginTop: '1.25rem' }}>
+              <label className={styles.textareaLabel}>SECCIÓN 4 — Observaciones</label>
+              <textarea
+                className={styles.textArea}
+                rows={4}
+                placeholder="Observaciones adicionales..."
+                {...register('observaciones')}
+                onFocus={() => setActiveStep('observaciones')}
+              />
             </div>
           </div>
 
+          {/* ── Datos de Soporte ── */}
+          <div className={styles.sectionBlock} onFocus={() => setActiveStep('soporte')}>
+            <div className={styles.sectionTitle}>
+              <Globe size={16} />
+              <span>Datos de contacto — ¿Necesita ayuda? (aparece en el pie del presupuesto)</span>
+            </div>
+            <div className={styles.grid3}>
+              <Input
+                label="Teléfono soporte"
+                placeholder="ej: 11 1234 5678"
+                {...register('telefono_soporte')}
+              />
+              <Input
+                label="Email soporte"
+                placeholder="ej: soporte@safelink.com.ar"
+                {...register('email_soporte')}
+              />
+              <Input
+                label="Horario de atención"
+                placeholder="ej: Lunes a Viernes de 9:00 a 18:00 hs."
+                {...register('horario_soporte')}
+              />
+            </div>
+            <Input
+              label="Enlace a Instagram"
+              placeholder="ej: instagram.com/ml.safelink"
+              {...register('url_sitio_web')}
+            />
+          </div>
+
+          {/* Acciones */}
           <div className={styles.actions}>
             <Button type="button" variant="ghost" onClick={onBack}>Cancelar</Button>
             <Button type="submit" variant="primary" leftIcon={<Save size={18} />} isLoading={mutation.isPending}>
               {isEditing ? 'Guardar Cambios' : 'Crear Presupuesto'}
             </Button>
           </div>
-          {mutation.isError && <p className={styles.errorMsg}>Error al guardar.</p>}
+          {mutation.isError && <p className={styles.errorMsg}>Error al guardar el presupuesto.</p>}
         </form>
       </Card>
     </div>

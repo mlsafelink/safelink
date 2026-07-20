@@ -1,11 +1,11 @@
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { presupuestoService } from '@/services/documentService';
-import { motion } from 'framer-motion';
-import { Calendar, Building, FileText, Download } from 'lucide-react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { PresupuestoPDF } from '@/components/pdf/DocumentPDFs';
-import styles from './PublicViewer.module.css';
+import {
+  Calendar, Building, FileText, Clock, HelpCircle, Shield,
+  DollarSign, AlertCircle, Info, Phone, Mail, FileCheck,
+} from 'lucide-react';
+import styles from './PresupuestoViewer.module.css';
 
 export function PublicPresupuestoViewer() {
   const { publicId } = useParams<{ publicId: string }>();
@@ -17,151 +17,222 @@ export function PublicPresupuestoViewer() {
     retry: false,
   });
 
-  if (isLoading) return <div className={styles.loading}>Cargando documento...</div>;
-  if (isError || !presupuesto) return (
-    <div className={styles.notFound}>
-      <h2>Documento no encontrado</h2>
-      <p>El enlace puede ser incorrecto o el documento fue removido.</p>
-    </div>
-  );
+  if (isLoading) {
+    return (
+      <div className={styles.loadingWrap}>
+        <div className={styles.spinner} />
+        <span>Cargando presupuesto...</span>
+      </div>
+    );
+  }
 
-  const adminNombre = (presupuesto.consorcios as any)?.administraciones?.nombre;
+  if (isError || !presupuesto) {
+    return (
+      <div className={styles.notFoundWrap}>
+        <Shield size={48} style={{ color: '#94a3b8' }} />
+        <h2>Presupuesto no encontrado</h2>
+        <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
+          El enlace puede ser incorrecto o el documento fue removido.
+        </p>
+      </div>
+    );
+  }
+
   const consorcioNombre = (presupuesto.consorcios as any)?.nombre;
-  const fmt = (n: number) => n.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+  const urlSitioWeb = presupuesto.url_sitio_web ?? 'instagram.com/ml.safelink';
 
-  const subtotal = (presupuesto.materiales || []).reduce((acc, m) => acc + (m.subtotal || 0), 0);
+  const formatFecha = (f: string | null) => {
+    if (!f) return '';
+    try {
+      return new Date(f + 'T12:00:00').toLocaleDateString('es-AR', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+      });
+    } catch { return f; }
+  };
+
+  const fmtPrice = (n: number) => n.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
 
   return (
-    <div className={styles.viewer}>
+    <div className={styles.page}>
+      
+      {/* ── HEADER ── */}
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <div className={styles.brandMark}>
-            <div className={styles.brandIcon} />
-            <span className={styles.brandName}>SafeLink</span>
+          <div className={styles.brandSide}>
+            <div className={styles.brandLogo}>SafeLink</div>
+            <div className={styles.brandTagline}>Soluciones inteligentes para tu seguridad</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <PDFDownloadLink document={<PresupuestoPDF presupuesto={presupuesto} />} fileName={`${presupuesto.titulo}.pdf`} className={styles.downloadBtn}>
-              {/* @ts-ignore */}
-              {({ loading }) => (loading ? 'Generando...' : <><Download size={14} /> PDF</>)}
-            </PDFDownloadLink>
-            <span className={`${styles.docTypeBadge} ${styles.badgePresupuesto}`}>
-              <FileText size={14} /> Presupuesto
-            </span>
+          <div className={styles.titleSide}>
+            <div className={styles.reporteBadge}>
+              <FileCheck size={12} />
+              Presupuesto Comercial
+            </div>
+            <h1 className={styles.docTitle}>{presupuesto.titulo}</h1>
+            <p className={styles.docSubtitle}>
+              Presupuesto detallado para la provisión e instalación de sistemas de seguridad técnica.
+            </p>
           </div>
         </div>
       </header>
 
-      <motion.div
-        className={styles.content}
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-      >
-        <div className={styles.docCard}>
-          {/* Hero */}
-          <div className={styles.docHero}>
-            <div className={styles.docMeta}>
-              <span className={styles.metaChip}><Calendar size={13} /> {presupuesto.fecha}</span>
-              {consorcioNombre && <span className={styles.metaChip}><Building size={13} /> {consorcioNombre}</span>}
-              {adminNombre && <span className={styles.metaChip}>{adminNombre}</span>}
-              <span className={styles.metaChip}>v{presupuesto.version}</span>
-            </div>
-            <h1 className={styles.docTitle}>{presupuesto.titulo}</h1>
-          </div>
-
-          {/* Materiales */}
-          {presupuesto.materiales?.length > 0 && (
-            <div className={styles.sections}>
-              <div className={styles.section}>
-                <div className={styles.sectionTitle}>Materiales y Trabajos</div>
-                <div style={{ overflowX: 'auto' }}>
-                  <table className={styles.table}>
-                    <thead>
-                      <tr>
-                        <th>Descripción</th>
-                        <th className={styles.numCol}>Cant.</th>
-                        <th className={styles.numCol}>Precio Unit.</th>
-                        <th className={styles.numCol}>Subtotal</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {presupuesto.materiales.map((m, i) => (
-                        <tr key={i}>
-                          <td>{m.nombre}</td>
-                          <td className={styles.numCol}>{m.cantidad}</td>
-                          <td className={styles.numCol}>{fmt(m.precio_unitario)}</td>
-                          <td className={styles.numCol}>{fmt(m.subtotal)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Totales */}
-          <div className={styles.totalsBlock}>
-            <div className={styles.totalRow}>
-              <span className={styles.totalLabel}>Subtotal materiales</span>
-              <span className={styles.totalValue}>{fmt(subtotal)}</span>
-            </div>
-            {presupuesto.mano_obra > 0 && (
-              <div className={styles.totalRow}>
-                <span className={styles.totalLabel}>Mano de obra</span>
-                <span className={styles.totalValue}>{fmt(presupuesto.mano_obra)}</span>
-              </div>
-            )}
-            {presupuesto.descuentos > 0 && (
-              <div className={styles.totalRow}>
-                <span className={styles.totalLabel}>Descuentos</span>
-                <span className={styles.totalValue}>- {fmt(presupuesto.descuentos)}</span>
-              </div>
-            )}
-            <div className={styles.totalRowFinal}>
-              <span className={styles.totalFinalLabel}>Total</span>
-              <span className={styles.totalFinalValue}>{fmt(presupuesto.total)}</span>
+      {/* ── BARRA DE INFO ── */}
+      <div className={styles.infoBar}>
+        <div className={styles.infoBarInner}>
+          <div className={styles.infoChip}>
+            <Calendar size={18} className={styles.infoIcon} />
+            <div>
+              <span className={styles.infoLabel}>Fecha de Emisión</span>
+              <span className={styles.infoValue}>{formatFecha(presupuesto.fecha)}</span>
             </div>
           </div>
+          <div className={styles.infoChip}>
+            <Building size={18} className={styles.infoIcon} />
+            <div>
+              <span className={styles.infoLabel}>Consorcio</span>
+              <span className={styles.infoValue}>{consorcioNombre || 'N/A'}</span>
+            </div>
+          </div>
+          <div className={styles.infoChip}>
+            <Clock size={18} className={styles.infoIcon} />
+            <div>
+              <span className={styles.infoLabel}>Validez</span>
+              <span className={styles.infoValue}>{presupuesto.validez || 'N/A'}</span>
+            </div>
+          </div>
+          <div className={styles.infoChip}>
+            <Shield size={18} className={styles.infoIcon} />
+            <div>
+              <span className={styles.infoLabel}>Garantía</span>
+              <span className={styles.infoValue}>{presupuesto.garantia || 'N/A'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-          {/* Info extra */}
-          <div className={styles.sections} style={{ paddingTop: 0 }}>
-            {(presupuesto.validez || presupuesto.garantia) && (
-              <div className={styles.infoGrid}>
-                {presupuesto.validez && (
-                  <div className={styles.infoItem}>
-                    <div className={styles.infoItemLabel}>Validez</div>
-                    <div className={styles.infoItemValue}>{presupuesto.validez}</div>
-                  </div>
-                )}
-                {presupuesto.garantia && (
-                  <div className={styles.infoItem}>
-                    <div className={styles.infoItemLabel}>Garantía</div>
-                    <div className={styles.infoItemValue}>{presupuesto.garantia}</div>
-                  </div>
-                )}
+      {/* ── CONTENIDO PRINCIPAL (CARDS) ── */}
+      <main className={styles.main}>
+
+        {/* Card 1: Descripción de los trabajos */}
+        {presupuesto.descripcion && (
+          <div className={styles.card}>
+            <div className={styles.cardLeft}>
+              <span className={styles.stepNum}>Sección</span>
+              <span className={styles.stepNumber}>1</span>
+              <div className={styles.stepIcon}><FileText size={18} /></div>
+              <span className={styles.stepLabel}>Trabajos</span>
+            </div>
+            <div className={styles.cardRight}>
+              <h2 className={styles.cardHeading}>Trabajos a realizar</h2>
+              <p className={styles.cardText}>{presupuesto.descripcion}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Card 2: Monto Total */}
+        <div className={styles.card}>
+          <div className={styles.cardLeft}>
+            <span className={styles.stepNum}>Sección</span>
+            <span className={styles.stepNumber}>2</span>
+            <div className={styles.stepIcon}><DollarSign size={18} /></div>
+            <span className={styles.stepLabel}>Inversión</span>
+          </div>
+          <div className={styles.cardRight}>
+            <h2 className={styles.cardHeading}>Propuesta Económica</h2>
+            <div className={styles.priceBox}>
+              <span className={styles.priceLabel}>Monto total del presupuesto</span>
+              <span className={styles.priceValue}>{fmtPrice(presupuesto.total)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Condiciones */}
+        {presupuesto.condiciones && (
+          <div className={styles.card}>
+            <div className={styles.cardLeft}>
+              <span className={styles.stepNum}>Sección</span>
+              <span className={styles.stepNumber}>3</span>
+              <div className={styles.stepIcon}><AlertCircle size={18} /></div>
+              <span className={styles.stepLabel}>Condiciones</span>
+            </div>
+            <div className={styles.cardRight}>
+              <h2 className={styles.cardHeading}>Condiciones comerciales</h2>
+              <p className={styles.cardText}>{presupuesto.condiciones}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Card 4: Observaciones */}
+        {presupuesto.observaciones && (
+          <div className={styles.card}>
+            <div className={styles.cardLeft}>
+              <span className={styles.stepNum}>Sección</span>
+              <span className={styles.stepNumber}>4</span>
+              <div className={styles.stepIcon}><Info size={18} /></div>
+              <span className={styles.stepLabel}>Observ.</span>
+            </div>
+            <div className={styles.cardRight}>
+              <h2 className={styles.cardHeading}>Observaciones adicionales</h2>
+              <p className={styles.cardText}>{presupuesto.observaciones}</p>
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      {/* ── FOOTER — solo ¿Necesita ayuda? ── */}
+      <footer className={styles.footer}>
+        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1.5rem', borderBottom: `1px solid var(--pv-border)` }}>
+          <div className={styles.footerColTitle} style={{ marginBottom: '1rem' }}>
+            <HelpCircle size={14} />
+            ¿Necesita ayuda?
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+            {presupuesto.telefono_soporte && (
+              <div className={styles.contactRow}>
+                <Phone size={14} className={styles.contactIcon} strokeWidth={2} />
+                <span>{presupuesto.telefono_soporte}</span>
               </div>
             )}
-
-            {presupuesto.condiciones && (
-              <div className={styles.section}>
-                <div className={styles.sectionTitle}>Condiciones</div>
-                <p className={styles.sectionBody}>{presupuesto.condiciones}</p>
+            {presupuesto.email_soporte && (
+              <div className={styles.contactRow}>
+                <Mail size={14} className={styles.contactIcon} strokeWidth={2} />
+                <span>{presupuesto.email_soporte}</span>
               </div>
             )}
-            {presupuesto.observaciones && (
-              <div className={styles.section}>
-                <div className={styles.sectionTitle}>Observaciones</div>
-                <p className={styles.sectionBody}>{presupuesto.observaciones}</p>
+            {presupuesto.horario_soporte && (
+              <div className={styles.contactRow}>
+                <Clock size={14} className={styles.contactIcon} strokeWidth={2} />
+                <span>{presupuesto.horario_soporte}</span>
               </div>
             )}
           </div>
         </div>
 
-        <footer className={styles.footer}>
-          <p>Documento generado por <strong>SafeLink</strong> · Plataforma Técnica de Administraciones</p>
-        </footer>
-      </motion.div>
+        {/* Barra final */}
+        <div className={styles.bottomBar}>
+          <div className={styles.bottomBarInner}>
+            <div className={styles.bottomBrand}>
+              <span className={styles.bottomBrandName}>SafeLink</span>
+              <span className={styles.bottomTagline}>Soluciones inteligentes para tu seguridad</span>
+            </div>
+            <a
+              href={urlSitioWeb.includes('instagram.com') ? `https://${urlSitioWeb.replace(/^https?:\/\//, '')}` : `https://www.instagram.com/${urlSitioWeb.replace(/^@/, '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.bottomUrl}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+              <span>{urlSitioWeb.includes('instagram.com') ? urlSitioWeb.split('/').pop() : urlSitioWeb}</span>
+            </a>
+          </div>
+        </div>
+      </footer>
+
     </div>
   );
 }

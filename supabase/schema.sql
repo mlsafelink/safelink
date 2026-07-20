@@ -87,6 +87,11 @@ CREATE TABLE presupuestos (
     garantia VARCHAR(255),
     condiciones TEXT,
     observaciones TEXT,
+    descripcion TEXT,
+    telefono_soporte TEXT,
+    email_soporte TEXT,
+    horario_soporte TEXT DEFAULT 'Lunes a Viernes de 9:00 a 18:00 hs.',
+    url_sitio_web TEXT DEFAULT 'instagram.com/ml.safelink',
     version INTEGER DEFAULT 1,
     previous_version_id UUID REFERENCES presupuestos(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -165,6 +170,15 @@ CREATE TABLE instructivos (
 --   ADD COLUMN IF NOT EXISTS telefono_soporte TEXT,
 --   ADD COLUMN IF NOT EXISTS email_soporte TEXT,
 --   ADD COLUMN IF NOT EXISTS horario_soporte TEXT DEFAULT 'Lunes a Viernes de 9:00 a 18:00 hs.';
+
+-- MIGRACIÓN DE PRESUPUESTOS: Ejecutar en Supabase SQL Editor si la tabla ya existe
+-- ALTER TABLE presupuestos
+--   ADD COLUMN IF NOT EXISTS descripcion TEXT,
+--   ADD COLUMN IF NOT EXISTS telefono_soporte TEXT,
+--   ADD COLUMN IF NOT EXISTS email_soporte TEXT,
+--   ADD COLUMN IF NOT EXISTS horario_soporte TEXT DEFAULT 'Lunes a Viernes de 9:00 a 18:00 hs.',
+--   ADD COLUMN IF NOT EXISTS url_sitio_web TEXT DEFAULT 'instagram.com/ml.safelink';
+
 
 -- BUCKET de Storage (ejecutar UNA SOLA VEZ en Supabase SQL Editor):
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('documents', 'documents', true)

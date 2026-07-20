@@ -256,7 +256,7 @@ export function ReportePDF({ reporte }: { reporte: Reporte }) {
 export function PresupuestoPDF({ presupuesto }: { presupuesto: Presupuesto }) {
   const consorcioNombre = presupuesto.consorcios?.nombre || 'N/A';
   const adminNombre = presupuesto.consorcios?.administraciones?.nombre || 'N/A';
-  const subtotal = (presupuesto.materiales || []).reduce((acc, m) => acc + (m.subtotal || 0), 0);
+
 
   return (
     <Document>
@@ -281,54 +281,22 @@ export function PresupuestoPDF({ presupuesto }: { presupuesto: Presupuesto }) {
             <Text style={styles.metaLabel}>Administración:</Text>
             <Text style={styles.metaValue}>{adminNombre}</Text>
           </View>
-        </View>
-
-        <Text style={styles.title}>{presupuesto.titulo}</Text>
-
-        {presupuesto.materiales?.length > 0 && (
+          <Text style={styles.title}>{presupuesto.titulo}</Text>
+        
+        {presupuesto.descripcion && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Materiales y Trabajos Detallados</Text>
-            <View style={styles.table}>
-              <View style={[styles.tableRow, styles.tableHeaderRow]}>
-                <Text style={styles.tableCellDesc}>Descripción</Text>
-                <Text style={styles.tableCellQty}>Cant.</Text>
-                <Text style={styles.tableCellPrice}>Precio Unit.</Text>
-                <Text style={styles.tableCellSubtotal}>Subtotal</Text>
-              </View>
-              {presupuesto.materiales.map((m, i) => (
-                <View key={i} style={styles.tableRow}>
-                  <Text style={styles.tableCellDesc}>{m.nombre}</Text>
-                  <Text style={styles.tableCellQty}>{m.cantidad}</Text>
-                  <Text style={styles.tableCellPrice}>{fmt(m.precio_unitario)}</Text>
-                  <Text style={styles.tableCellSubtotal}>{fmt(m.subtotal)}</Text>
-                </View>
-              ))}
-            </View>
+            <Text style={styles.sectionTitle}>Descripción de los Trabajos</Text>
+            <Text style={styles.sectionBody}>{presupuesto.descripcion}</Text>
           </View>
         )}
 
-        <View style={styles.totalsBlock}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Subtotal materiales:</Text>
-            <Text style={styles.totalValue}>{fmt(subtotal)}</Text>
-          </View>
-          {presupuesto.mano_obra > 0 && (
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Mano de obra:</Text>
-              <Text style={styles.totalValue}>{fmt(presupuesto.mano_obra)}</Text>
-            </View>
-          )}
-          {presupuesto.descuentos > 0 && (
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Descuentos:</Text>
-              <Text style={styles.totalValue}>- {fmt(presupuesto.descuentos)}</Text>
-            </View>
-          )}
+        <View style={[styles.totalsBlock, { borderTopWidth: 1, borderTopColor: '#e2e8f0', paddingTop: 10, marginTop: 15 }]}>
           <View style={styles.grandTotalRow}>
-            <Text style={styles.grandTotalLabel}>TOTAL:</Text>
+            <Text style={styles.grandTotalLabel}>TOTAL DE LA PROPUESTA:</Text>
             <Text style={styles.grandTotalValue}>{fmt(presupuesto.total)}</Text>
           </View>
         </View>
+      </View>
 
         <View style={{ marginTop: 20 }}>
           {presupuesto.validez && (
