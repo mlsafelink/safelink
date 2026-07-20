@@ -54,7 +54,7 @@ export function PublicPresupuestoViewer() {
 
   return (
     <div className={styles.page}>
-      
+
       {/* ── HEADER ── */}
       <header className={styles.header}>
         <div className={styles.headerInner}>
@@ -137,7 +137,7 @@ export function PublicPresupuestoViewer() {
             <span className={styles.stepLabel}>Inversión</span>
           </div>
           <div className={styles.cardRight}>
-            <h2 className={styles.cardHeading}>Propuesta Económica</h2>
+            <h2 className={styles.cardHeading}>Propuesta de Inversión</h2>
             <div className={styles.priceBox}>
               <span className={styles.priceLabel}>Monto total del presupuesto</span>
               <span className={styles.priceValue}>{fmtPrice(presupuesto.total)}</span>
