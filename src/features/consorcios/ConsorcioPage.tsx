@@ -26,7 +26,7 @@ export function ConsorcioPage() {
     const initialData = editingConsorcio
       ? {
           id: editingConsorcio.id,
-          administracion_id: editingConsorcio.administracion_id,
+          administracion_id: editingConsorcio.administracion_id ?? '',
           nombre: editingConsorcio.nombre,
           direccion: editingConsorcio.direccion || '',
           localidad: editingConsorcio.localidad || '',

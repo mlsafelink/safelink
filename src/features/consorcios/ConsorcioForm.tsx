@@ -82,6 +82,7 @@ export function ConsorcioForm({ onBack, initialData }: ConsorcioFormProps) {
   const onSubmit = (formData: ConsorcioFormData) => {
     const dataToSubmit: ConsorcioInsert = {
       ...formData,
+      tipo: 'consorcio',
       cantidad_pisos: formData.cantidad_pisos ? Number(formData.cantidad_pisos) : null,
       cantidad_unidades: formData.cantidad_unidades ? Number(formData.cantidad_unidades) : null,
       direccion: formData.direccion || null,
