@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Building, FileText, LogOut } from 'lucide-react';
+import { LayoutDashboard, Building2, Building, FileText, LogOut, UserCheck } from 'lucide-react';
 import logoImg from '@/assets/logo.png';
 import { useAuth } from '@/features/auth/AuthContext';
 import styles from './Sidebar.module.css';
@@ -38,6 +38,14 @@ export function Sidebar() {
         >
           <Building size={20} />
           <span>Consorcios</span>
+        </NavLink>
+
+        <NavLink 
+          to="/clientes" 
+          className={({ isActive }) => clsx(styles.navItem, isActive && styles.active)}
+        >
+          <UserCheck size={20} />
+          <span>Clientes Privados</span>
         </NavLink>
 
         <NavLink 

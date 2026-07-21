@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { reporteService } from '@/services/documentService';
 import { consorcioService } from '@/services/consorcioService';
+import { particularService } from '@/services/particularService';
 import { Button } from '@/components/ui/Button/Button';
 import { Input } from '@/components/ui/Input/Input';
 import { Select } from '@/components/ui/Select/Select';
@@ -60,7 +61,21 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
     queryFn: consorcioService.getAll,
   });
 
-  const consorcioOptions = consorcios.map(c => ({ label: c.nombre, value: c.id }));
+  const { data: particulares = [] } = useQuery({
+    queryKey: ['particulares'],
+    queryFn: particularService.getAll,
+  });
+
+  const clienteOptions = [
+    {
+      groupLabel: 'Consorcios',
+      options: consorcios.map(c => ({ label: c.nombre, value: c.id })),
+    },
+    {
+      groupLabel: 'Clientes Privados',
+      options: particulares.map(p => ({ label: p.nombre, value: p.id })),
+    },
+  ];
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ReporteFormData>({
     resolver: zodResolver(reporteSchema),
@@ -143,8 +158,8 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
             </div>
             <div className={styles.grid2}>
               <Select
-                label="Consorcio *"
-                options={consorcioOptions}
+                label="Cliente / Consorcio *"
+                options={clienteOptions}
                 error={errors.consorcio_id?.message}
                 {...register('consorcio_id')}
                 className={styles.fullWidth}

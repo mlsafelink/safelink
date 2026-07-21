@@ -2,7 +2,8 @@ import { supabase } from '@/lib/supabase';
 
 export type Consorcio = {
   id: string;
-  administracion_id: string;
+  administracion_id: string | null;
+  tipo: 'consorcio' | 'particular';
   nombre: string;
   direccion: string | null;
   localidad: string | null;
@@ -16,7 +17,7 @@ export type Consorcio = {
   observaciones: string | null;
   created_at: string;
   // Propiedad extendida (JOIN)
-  administraciones?: { nombre: string };
+  administraciones?: { nombre: string } | null;
 };
 
 export type ConsorcioInsert = Omit<Consorcio, 'id' | 'created_at' | 'administraciones'>;
@@ -29,6 +30,7 @@ export const consorcioService = {
         *,
         administraciones (nombre)
       `)
+      .eq('tipo', 'consorcio')
       .is('deleted_at', null)
       .order('nombre');
       

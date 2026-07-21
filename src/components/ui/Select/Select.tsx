@@ -2,10 +2,25 @@ import { forwardRef, type SelectHTMLAttributes } from 'react';
 import { clsx } from 'clsx';
 import styles from './Select.module.css';
 
+export interface SelectOption {
+  label: string;
+  value: string;
+}
+
+export interface SelectGroup {
+  groupLabel: string;
+  options: SelectOption[];
+}
+
 export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
-  options: { label: string; value: string }[];
+  /** Puede ser una lista plana o una lista de grupos */
+  options: SelectOption[] | SelectGroup[];
+}
+
+function isGrouped(options: SelectOption[] | SelectGroup[]): options is SelectGroup[] {
+  return options.length > 0 && 'groupLabel' in options[0];
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
@@ -25,11 +40,22 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             {...props}
           >
             <option value="" disabled hidden>Seleccione una opción</option>
-            {options.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
+            {isGrouped(options)
+              ? options.map((group) => (
+                  <optgroup key={group.groupLabel} label={group.groupLabel}>
+                    {group.options.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))
+              : options.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))
+            }
           </select>
         </div>
         {error && <span className={styles.errorText}>{error}</span>}

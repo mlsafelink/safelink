@@ -6,6 +6,7 @@ import { PrivateRoute } from '@/features/auth/PrivateRoute';
 import { Dashboard } from '@/features/dashboard/Dashboard';
 import { AdminPage } from '@/features/admins/AdminPage';
 import { ConsorcioPage } from '@/features/consorcios/ConsorcioPage';
+import { ParticularPage } from '@/features/particulares/ParticularPage';
 import { DocumentPage } from '@/features/documents/DocumentPage';
 import { PublicReporteViewer } from '@/features/public/PublicReporteViewer';
 import { PublicPresupuestoViewer } from '@/features/public/PublicPresupuestoViewer';
@@ -28,6 +29,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/administraciones" element={<AdminPage />} />
           <Route path="/consorcios" element={<ConsorcioPage />} />
+          <Route path="/clientes" element={<ParticularPage />} />
           <Route path="/documentos" element={<DocumentPage />} />
         </Route>
       </Route>
