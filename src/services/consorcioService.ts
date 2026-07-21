@@ -30,7 +30,7 @@ export const consorcioService = {
         *,
         administraciones (nombre)
       `)
-      .eq('tipo', 'consorcio')
+      .or('tipo.eq.consorcio,tipo.is.null')
       .is('deleted_at', null)
       .order('nombre');
       

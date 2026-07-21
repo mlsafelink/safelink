@@ -212,3 +212,13 @@ CREATE POLICY "Public Read Instructivos" ON instructivos FOR SELECT TO anon USIN
 
 -- Nota: Para "consorcios" y "administraciones", el usuario anónimo no tiene acceso (ni SELECT ni nada). 
 -- Así garantizamos que por accidente nadie vea la lista de clientes.
+
+-- =====================================================
+-- MIGRACIÓN PARA CLIENTES PRIVADOS (Ejecutar en Supabase SQL Editor):
+-- =====================================================
+-- ALTER TABLE consorcios 
+--   ADD COLUMN IF NOT EXISTS tipo VARCHAR(50) DEFAULT 'consorcio',
+--   ALTER COLUMN administracion_id DROP NOT NULL;
+--
+-- UPDATE consorcios SET tipo = 'consorcio' WHERE tipo IS NULL;
+
