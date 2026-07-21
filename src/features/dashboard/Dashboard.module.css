@@ -121,3 +121,28 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+/* Acciones rápidas */
+.quickActionsCard {
+  padding: 1.5rem 2rem;
+}
+
+.quickActionsTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.quickActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.quickBtn {
+  flex-shrink: 0;
+}
+

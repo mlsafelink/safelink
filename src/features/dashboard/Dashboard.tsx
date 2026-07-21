@@ -1,9 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { adminService } from '@/services/adminService';
 import { consorcioService } from '@/services/consorcioService';
+import { particularService } from '@/services/particularService';
 import { reporteService, presupuestoService, instructivoService } from '@/services/documentService';
 import { Card } from '@/components/ui/Card/Card';
-import { Building2, Building, FileText, ClipboardList, BookOpen } from 'lucide-react';
+import { Button } from '@/components/ui/Button/Button';
+import { Building2, Building, FileText, ClipboardList, BookOpen, UserCheck, Plus } from 'lucide-react';
 import styles from './Dashboard.module.css';
 
 function StatCard({ title, value, icon: Icon, color }: {
@@ -28,6 +31,8 @@ function StatCard({ title, value, icon: Icon, color }: {
 }
 
 export function Dashboard() {
+  const navigate = useNavigate();
+
   const { data: administraciones = [] } = useQuery({
     queryKey: ['administraciones'],
     queryFn: adminService.getAll,
@@ -36,6 +41,11 @@ export function Dashboard() {
   const { data: consorcios = [] } = useQuery({
     queryKey: ['consorcios'],
     queryFn: consorcioService.getAll,
+  });
+
+  const { data: particulares = [] } = useQuery({
+    queryKey: ['particulares'],
+    queryFn: particularService.getAll,
   });
 
   const { data: reportes = [] } = useQuery({
@@ -53,7 +63,6 @@ export function Dashboard() {
     queryFn: instructivoService.getAll,
   });
 
-  // Últimos documentos: mezcla y ordena por created_at
   const recentDocs = [
     ...reportes.map(r => ({ tipo: 'Reporte', titulo: r.titulo, fecha: r.created_at, color: '#d69e2e' })),
     ...presupuestos.map(p => ({ tipo: 'Presupuesto', titulo: p.titulo, fecha: p.created_at, color: '#805ad5' })),
@@ -69,14 +78,48 @@ export function Dashboard() {
         <p>Resumen general de la plataforma</p>
       </div>
 
+      {/* Stats */}
       <div className={styles.statsGrid}>
-        <StatCard title="Administraciones" value={administraciones.length} icon={Building2} color="#3182ce" />
-        <StatCard title="Consorcios"        value={consorcios.length}       icon={Building}  color="#38a169" />
+        <StatCard title="Administraciones" value={administraciones.length} icon={Building2}     color="#3182ce" />
+        <StatCard title="Consorcios"        value={consorcios.length}       icon={Building}      color="#38a169" />
+        <StatCard title="Clientes Privados" value={particulares.length}     icon={UserCheck}     color="#6366f1" />
         <StatCard title="Reportes"          value={reportes.length}         icon={ClipboardList} color="#d69e2e" />
-        <StatCard title="Presupuestos"      value={presupuestos.length}     icon={FileText}  color="#805ad5" />
-        <StatCard title="Instructivos"      value={instructivos.length}     icon={BookOpen}  color="#e53e3e" />
+        <StatCard title="Presupuestos"      value={presupuestos.length}     icon={FileText}      color="#805ad5" />
+        <StatCard title="Instructivos"      value={instructivos.length}     icon={BookOpen}      color="#e53e3e" />
       </div>
 
+      {/* Acciones rápidas */}
+      <Card variant="neumorphic" className={styles.quickActionsCard}>
+        <h2 className={styles.quickActionsTitle}>Acciones Rápidas</h2>
+        <div className={styles.quickActions}>
+          <Button
+            variant="primary"
+            leftIcon={<Plus size={16} />}
+            onClick={() => navigate('/clientes')}
+            className={styles.quickBtn}
+          >
+            Nuevo Cliente Privado
+          </Button>
+          <Button
+            variant="secondary"
+            leftIcon={<Plus size={16} />}
+            onClick={() => navigate('/consorcios')}
+            className={styles.quickBtn}
+          >
+            Nuevo Consorcio
+          </Button>
+          <Button
+            variant="secondary"
+            leftIcon={<Plus size={16} />}
+            onClick={() => navigate('/documentos')}
+            className={styles.quickBtn}
+          >
+            Nuevo Documento
+          </Button>
+        </div>
+      </Card>
+
+      {/* Últimos documentos */}
       <div className={styles.recentSection}>
         <Card variant="neumorphic">
           <h2>Últimos Documentos Creados</h2>
@@ -88,10 +131,7 @@ export function Dashboard() {
             <div className={styles.recentList}>
               {recentDocs.map((doc, i) => (
                 <div key={i} className={styles.recentItem}>
-                  <span
-                    className={styles.recentBadge}
-                    style={{ background: doc.color }}
-                  >
+                  <span className={styles.recentBadge} style={{ background: doc.color }}>
                     {doc.tipo}
                   </span>
                   <span className={styles.recentTitle}>{doc.titulo}</span>
