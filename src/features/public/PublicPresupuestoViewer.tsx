@@ -1,14 +1,24 @@
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { presupuestoService } from '@/services/documentService';
+import { notificacionService } from '@/services/notificacionService';
 import {
   Calendar, Building, FileText, Clock, HelpCircle, Shield,
   DollarSign, AlertCircle, Info, Phone, Mail, FileCheck,
+  Share2, CheckCircle2, Check, ShieldCheck,
 } from 'lucide-react';
 import styles from './PresupuestoViewer.module.css';
 
 export function PublicPresupuestoViewer() {
   const { publicId } = useParams<{ publicId: string }>();
+  const queryClient = useQueryClient();
+
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [checkReadDoc, setCheckReadDoc] = useState(false);
+  const [checkAcceptTerms, setCheckAcceptTerms] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: presupuesto, isLoading, isError } = useQuery({
     queryKey: ['public-presupuesto', publicId],
@@ -16,6 +26,114 @@ export function PublicPresupuestoViewer() {
     enabled: !!publicId,
     retry: false,
   });
+
+  const consorcioNombre = (presupuesto?.consorcios as any)?.nombre;
+  const clienteNombre = (presupuesto as any)?.cliente_nombre || consorcioNombre || 'Cliente';
+
+  // 1. Registro automático del evento "presupuesto_visto" la primera vez
+  useEffect(() => {
+    if (!presupuesto) return;
+
+    const recordView = async () => {
+      try {
+        const hasBeenSeen = await notificacionService.hasEvent('presupuesto_visto', presupuesto.id);
+        if (!hasBeenSeen) {
+          await notificacionService.create({
+            tipo: 'presupuesto_visto',
+            presupuesto_id: presupuesto.id,
+            codigo_presupuesto: presupuesto.codigo || `#P-${presupuesto.id.slice(0, 4)}`,
+            cliente_nombre: clienteNombre,
+            consorcio_nombre: consorcioNombre,
+          });
+
+          if (presupuesto.estado !== 'aceptado') {
+            await presupuestoService.update(presupuesto.id, { estado: 'visto' });
+            queryClient.invalidateQueries({ queryKey: ['public-presupuesto', publicId] });
+          }
+        }
+      } catch (err) {
+        console.error('Error registrando visualización:', err);
+      }
+    };
+
+    recordView();
+  }, [presupuesto?.id]);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // 2. Acción Compartir
+  const handleShare = async () => {
+    if (!presupuesto) return;
+    const shareUrl = window.location.href;
+    const shareTitle = `Presupuesto: ${presupuesto.titulo} - SafeLink`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: shareTitle,
+          text: `Presupuesto SafeLink: ${presupuesto.titulo}`,
+          url: shareUrl,
+        });
+        showToast('Enlace compartido correctamente');
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        showToast('Enlace copiado al portapapeles');
+      }
+
+      // Registrar evento
+      await notificacionService.create({
+        tipo: 'presupuesto_compartido',
+        presupuesto_id: presupuesto.id,
+        codigo_presupuesto: presupuesto.codigo || `#P-${presupuesto.id.slice(0, 4)}`,
+        cliente_nombre: clienteNombre,
+        consorcio_nombre: consorcioNombre,
+      });
+
+      if (presupuesto.estado !== 'aceptado') {
+        await presupuestoService.update(presupuesto.id, { estado: 'compartido' });
+        queryClient.invalidateQueries({ queryKey: ['public-presupuesto', publicId] });
+      }
+    } catch (err) {
+      console.error('Error al compartir:', err);
+    }
+  };
+
+  // 3. Acción Aceptar Presupuesto
+  const handleConfirmAcceptance = async () => {
+    if (!presupuesto || !checkReadDoc || !checkAcceptTerms) return;
+
+    const confirm = window.confirm('¿Confirma que acepta este presupuesto?');
+    if (!confirm) return;
+
+    setIsSubmitting(true);
+    try {
+      const now = new Date().toISOString();
+      await presupuestoService.update(presupuesto.id, {
+        estado: 'aceptado',
+        aceptado_at: now,
+      });
+
+      await notificacionService.create({
+        tipo: 'presupuesto_aceptado',
+        presupuesto_id: presupuesto.id,
+        codigo_presupuesto: presupuesto.codigo || `#P-${presupuesto.id.slice(0, 4)}`,
+        cliente_nombre: clienteNombre,
+        consorcio_nombre: consorcioNombre,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['public-presupuesto', publicId] });
+      setShowAcceptModal(false);
+      showToast('✅ Presupuesto aceptado correctamente.');
+    } catch (err) {
+      console.error('Error al aceptar el presupuesto:', err);
+      showToast('Ocurrió un error al procesar la aceptación');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -38,7 +156,6 @@ export function PublicPresupuestoViewer() {
     );
   }
 
-  const consorcioNombre = (presupuesto.consorcios as any)?.nombre;
   const urlSitioWeb = presupuesto.url_sitio_web ?? 'instagram.com/ml.safelink';
 
   const formatFecha = (f: string | null) => {
@@ -51,9 +168,18 @@ export function PublicPresupuestoViewer() {
   };
 
   const fmtPrice = (n: number) => n.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+  const isAceptado = presupuesto.estado === 'aceptado';
 
   return (
     <div className={styles.page}>
+
+      {/* ── TOAST NOTIFICATION ── */}
+      {toastMessage && (
+        <div className={styles.toast}>
+          <CheckCircle2 size={18} color="#4ade80" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
 
       {/* ── HEADER ── */}
       <header className={styles.header}>
@@ -65,7 +191,7 @@ export function PublicPresupuestoViewer() {
           <div className={styles.titleSide}>
             <div className={styles.reporteBadge}>
               <FileCheck size={12} />
-              Presupuesto Comercial
+              Presupuesto Comercial {presupuesto.codigo ? `(${presupuesto.codigo})` : ''}
             </div>
             <h1 className={styles.docTitle}>{presupuesto.titulo}</h1>
             <p className={styles.docSubtitle}>
@@ -88,7 +214,7 @@ export function PublicPresupuestoViewer() {
           <div className={styles.infoChip}>
             <Building size={18} className={styles.infoIcon} />
             <div>
-              <span className={styles.infoLabel}>Consorcio</span>
+              <span className={styles.infoLabel}>Cliente / Consorcio</span>
               <span className={styles.infoValue}>{consorcioNombre || 'N/A'}</span>
             </div>
           </div>
@@ -110,7 +236,7 @@ export function PublicPresupuestoViewer() {
       </div>
 
       {/* ── CONTENIDO PRINCIPAL (CARDS) ── */}
-      <main className={styles.main}>
+      <main className={styles.main} style={{ paddingBottom: '110px' }}>
 
         {/* Card 1: Descripción de los trabajos */}
         {presupuesto.descripcion && (
@@ -177,9 +303,43 @@ export function PublicPresupuestoViewer() {
           </div>
         )}
 
+        {/* ── CARD 5: TÉRMINOS Y CONDICIONES ── */}
+        <div className={styles.termsCard}>
+          <div className={styles.termsHeader}>
+            <ShieldCheck size={18} />
+            <span>Términos y Condiciones</span>
+          </div>
+          <div className={styles.termsList}>
+            <div className={styles.termItem}>
+              <span className={styles.termTitle}>Validez del presupuesto:</span>
+              <span>El presente presupuesto tiene una validez de 15 días corridos desde su fecha de emisión, salvo indicación expresa en contrario.</span>
+            </div>
+            <div className={styles.termItem}>
+              <span className={styles.termTitle}>Forma de pago:</span>
+              <span>Para dar inicio a los trabajos podrá requerirse un anticipo destinado a la compra de materiales. El saldo restante deberá abonarse según las condiciones acordadas entre las partes.</span>
+            </div>
+            <div className={styles.termItem}>
+              <span className={styles.termTitle}>Plazos de ejecución:</span>
+              <span>Los tiempos estimados de ejecución podrán variar por condiciones climáticas, disponibilidad de materiales, acceso al lugar de trabajo u otros factores ajenos a SafeLink.</span>
+            </div>
+            <div className={styles.termItem}>
+              <span className={styles.termTitle}>Alcance del trabajo:</span>
+              <span>El presupuesto incluye únicamente las tareas, materiales y servicios expresamente detallados. Cualquier modificación o trabajo adicional será presupuestado por separado.</span>
+            </div>
+            <div className={styles.termItem}>
+              <span className={styles.termTitle}>Garantía:</span>
+              <span>Los trabajos realizados cuentan con garantía sobre la mano de obra ejecutada. La garantía no cubre daños ocasionados por terceros, manipulación indebida, vandalismo, fenómenos climáticos, fallas del suministro eléctrico ni desperfectos en equipos provistos por el cliente.</span>
+            </div>
+            <div className={styles.termItem}>
+              <span className={styles.termTitle}>Aceptación:</span>
+              <span>La aceptación del presente presupuesto implica la conformidad con las tareas detalladas y con los presentes términos y condiciones.</span>
+            </div>
+          </div>
+        </div>
+
       </main>
 
-      {/* ── FOOTER — solo ¿Necesita ayuda? ── */}
+      {/* ── FOOTER ── */}
       <footer className={styles.footer}>
         <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1.5rem', borderBottom: `1px solid var(--pv-border)` }}>
           <div className={styles.footerColTitle} style={{ marginBottom: '1rem' }}>
@@ -232,6 +392,97 @@ export function PublicPresupuestoViewer() {
           </div>
         </div>
       </footer>
+
+      {/* ── BARRA INFERIOR FIJA CON ACCIONES ── */}
+      <div className={styles.fixedActionBar}>
+        <div className={styles.fixedActionInner}>
+          <div className={styles.fixedActionLeft}>
+            {isAceptado && (
+              <div className={`${styles.fixedActionBadge} ${styles.badgeAceptado}`}>
+                <CheckCircle2 size={16} />
+                <span>Presupuesto Aceptado</span>
+              </div>
+            )}
+          </div>
+
+          <div className={styles.actionBtns}>
+            <button className={styles.btnShare} onClick={handleShare}>
+              <Share2 size={16} />
+              <span>Compartir</span>
+            </button>
+
+            {isAceptado ? (
+              <div className={styles.btnAccepted}>
+                <CheckCircle2 size={18} color="#16a34a" />
+                <span>✅ Presupuesto aceptado correctamente.</span>
+              </div>
+            ) : (
+              <button className={styles.btnAccept} onClick={() => setShowAcceptModal(true)}>
+                <CheckCircle2 size={18} />
+                <span>Aceptar presupuesto</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── MODAL DE ACEPTACIÓN ── */}
+      {showAcceptModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowAcceptModal(false)}>
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>
+              <CheckCircle2 size={20} color="#16a34a" />
+              Aceptar Presupuesto
+            </h3>
+            <p className={styles.modalSub}>
+              Por favor, confirme los siguientes puntos para procesar la aceptación de la propuesta.
+            </p>
+
+            <div className={styles.checkboxGroup}>
+              <label className={styles.checkLabel}>
+                <input
+                  type="checkbox"
+                  className={styles.checkInput}
+                  checked={checkReadDoc}
+                  onChange={(e) => setCheckReadDoc(e.target.checked)}
+                />
+                <span>☑ He leído el presupuesto completo.</span>
+              </label>
+
+              <label className={styles.checkLabel}>
+                <input
+                  type="checkbox"
+                  className={styles.checkInput}
+                  checked={checkAcceptTerms}
+                  onChange={(e) => setCheckAcceptTerms(e.target.checked)}
+                />
+                <span>☑ Acepto los Términos y Condiciones.</span>
+              </label>
+            </div>
+
+            <div className={styles.modalActions}>
+              <button
+                className={styles.btnCancel}
+                onClick={() => setShowAcceptModal(false)}
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </button>
+              <button
+                className={styles.btnAccept}
+                disabled={!checkReadDoc || !checkAcceptTerms || isSubmitting}
+                style={{
+                  opacity: (!checkReadDoc || !checkAcceptTerms || isSubmitting) ? 0.5 : 1,
+                  cursor: (!checkReadDoc || !checkAcceptTerms || isSubmitting) ? 'not-allowed' : 'pointer',
+                }}
+                onClick={handleConfirmAcceptance}
+              >
+                {isSubmitting ? 'Procesando...' : 'Aceptar Presupuesto'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -327,6 +327,18 @@ export function PresupuestoPDF({ presupuesto }: { presupuesto: Presupuesto }) {
           </View>
         )}
 
+        <View style={[styles.section, { marginTop: 15 }]}>
+          <Text style={[styles.sectionTitle, { fontSize: 10, color: '#2b6cb0' }]}>Términos y Condiciones</Text>
+          <Text style={[styles.sectionBody, { fontSize: 7.5, color: '#4a5568', lineHeight: 1.4 }]}>
+            • Validez del presupuesto: El presente presupuesto tiene una validez de 15 días corridos desde su fecha de emisión, salvo indicación expresa en contrario.{"\n"}
+            • Forma de pago: Para dar inicio a los trabajos podrá requerirse un anticipo destinado a la compra de materiales. El saldo restante deberá abonarse según las condiciones acordadas.{"\n"}
+            • Plazos de ejecución: Los tiempos estimados de ejecución podrán variar por condiciones climáticas, disponibilidad de materiales, acceso al lugar u otros factores ajenos.{"\n"}
+            • Alcance del trabajo: El presupuesto incluye únicamente las tareas, materiales y servicios detallados. Cualquier modificación adicional será presupuestada por separado.{"\n"}
+            • Garantía: Los trabajos realizados cuentan con garantía sobre la mano de obra ejecutada. No cubre daños por terceros, mal uso, vandalismo o suministro eléctrico.{"\n"}
+            • Aceptación: La aceptación del presente presupuesto implica la conformidad con las tareas detalladas y con los presentes términos y condiciones.
+          </Text>
+        </View>
+
         <View style={styles.footer} fixed>
           <Text>SafeLink — Gestión Técnica de Consorcios</Text>
           <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />

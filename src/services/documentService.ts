@@ -36,6 +36,8 @@ export type Reporte = {
   consorcios?: { nombre: string; administraciones?: { nombre: string } };
 };
 
+export type PresupuestoEstado = 'enviado' | 'visto' | 'compartido' | 'aceptado';
+
 export type Presupuesto = {
   id: string;
   consorcio_id: string;
@@ -55,6 +57,9 @@ export type Presupuesto = {
   email_soporte: string | null;
   horario_soporte: string | null;
   url_sitio_web: string | null;
+  estado?: PresupuestoEstado;
+  codigo?: string | null;
+  aceptado_at?: string | null;
   version: number;
   created_at: string;
   consorcios?: { nombre: string; administraciones?: { nombre: string } };
@@ -180,9 +185,14 @@ export const presupuestoService = {
   },
 
   async create(presupuesto: Partial<Presupuesto>) {
+    const payload = {
+      estado: 'enviado' as PresupuestoEstado,
+      codigo: `#P-${Math.floor(100 + Math.random() * 900)}`,
+      ...presupuesto,
+    };
     const { data, error } = await supabase
       .from('presupuestos')
-      .insert(presupuesto)
+      .insert(payload)
       .select()
       .single();
     if (error) throw error;

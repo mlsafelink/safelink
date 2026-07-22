@@ -137,8 +137,22 @@ export function DocumentPage() {
             >
               <Card variant="glass" className={styles.docCard}>
                 <div className={styles.docInfo}>
-                  <h3 className={styles.docTitle}>{doc.titulo}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <h3 className={styles.docTitle}>{doc.titulo}</h3>
+                    {activeTab === 'presupuestos' && (doc as any).codigo && (
+                      <span className={styles.version}>{(doc as any).codigo}</span>
+                    )}
+                  </div>
                   <div className={styles.docMeta}>
+                    {activeTab === 'presupuestos' && (
+                      <>
+                        {((doc as any).estado === 'aceptado' && <span className={`${styles.statusBadge} ${styles.statusAceptado}`}>✅ Aceptado</span>) ||
+                         ((doc as any).estado === 'compartido' && <span className={`${styles.statusBadge} ${styles.statusCompartido}`}>📤 Compartido</span>) ||
+                         ((doc as any).estado === 'visto' && <span className={`${styles.statusBadge} ${styles.statusVisto}`}>👁️ Visto</span>) ||
+                         <span className={`${styles.statusBadge} ${styles.statusEnviado}`}>🟡 Enviado</span>}
+                        <span className={styles.dot}>·</span>
+                      </>
+                    )}
                     {doc.consorcios && (
                       <span>{(doc.consorcios as any).nombre}</span>
                     )}

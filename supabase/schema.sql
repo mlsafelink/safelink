@@ -185,6 +185,18 @@ CREATE TABLE instructivos (
 --   ON CONFLICT (id) DO NOTHING;
 
 
+-- 6. Eventos del Sistema (Notificaciones)
+CREATE TABLE eventos_sistema (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tipo VARCHAR(50) NOT NULL, -- 'presupuesto_visto', 'presupuesto_compartido', 'presupuesto_aceptado', etc.
+    presupuesto_id UUID REFERENCES presupuestos(id) ON DELETE CASCADE,
+    codigo_presupuesto TEXT,
+    cliente_nombre TEXT,
+    consorcio_nombre TEXT,
+    detalles JSONB DEFAULT '{}'::JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 ------------------------------------------------------
 -- SEGURIDAD: ROW LEVEL SECURITY (RLS)
 ------------------------------------------------------
@@ -194,6 +206,7 @@ ALTER TABLE consorcios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reportes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE presupuestos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE instructivos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE eventos_sistema ENABLE ROW LEVEL SECURITY;
 
 -- Política 1: El Super Admin (usuario autenticado) tiene acceso total a TODO.
 -- Suponemos que cualquier usuario autenticado es el superadmin (ya que la app es de uso exclusivo interno).
@@ -202,6 +215,7 @@ CREATE POLICY "Admin All Consorcios" ON consorcios FOR ALL TO authenticated USIN
 CREATE POLICY "Admin All Reportes" ON reportes FOR ALL TO authenticated USING (true);
 CREATE POLICY "Admin All Presupuestos" ON presupuestos FOR ALL TO authenticated USING (true);
 CREATE POLICY "Admin All Instructivos" ON instructivos FOR ALL TO authenticated USING (true);
+CREATE POLICY "Admin All Eventos" ON eventos_sistema FOR ALL TO authenticated USING (true);
 
 -- Política 2: Acceso público de SOLO LECTURA a los documentos si se accede mediante public_id.
 -- Supabase REST API filtra por `public_id=eq.X`. 
@@ -209,16 +223,46 @@ CREATE POLICY "Admin All Instructivos" ON instructivos FOR ALL TO authenticated 
 CREATE POLICY "Public Read Reportes" ON reportes FOR SELECT TO anon USING (deleted_at IS NULL);
 CREATE POLICY "Public Read Presupuestos" ON presupuestos FOR SELECT TO anon USING (deleted_at IS NULL);
 CREATE POLICY "Public Read Instructivos" ON instructivos FOR SELECT TO anon USING (deleted_at IS NULL);
+CREATE POLICY "Public Update Presupuestos Estado" ON presupuestos FOR UPDATE TO anon USING (true);
+CREATE POLICY "Public Insert Eventos" ON eventos_sistema FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Public Read Eventos" ON eventos_sistema FOR SELECT TO anon USING (true);
 
 -- Nota: Para "consorcios" y "administraciones", el usuario anónimo no tiene acceso (ni SELECT ni nada). 
 -- Así garantizamos que por accidente nadie vea la lista de clientes.
 
 -- =====================================================
--- MIGRACIÓN PARA CLIENTES PRIVADOS (Ejecutar en Supabase SQL Editor):
+-- MIGRACIONES SQL (Ejecutar en Supabase SQL Editor):
 -- =====================================================
+
+-- 1. Migración Clientes Privados:
 -- ALTER TABLE consorcios 
 --   ADD COLUMN IF NOT EXISTS tipo VARCHAR(50) DEFAULT 'consorcio',
 --   ALTER COLUMN administracion_id DROP NOT NULL;
---
 -- UPDATE consorcios SET tipo = 'consorcio' WHERE tipo IS NULL;
+
+-- 2. Migración Presupuestos (Estado, Código y Aceptación):
+-- ALTER TABLE presupuestos
+--   ADD COLUMN IF NOT EXISTS estado TEXT DEFAULT 'enviado',
+--   ADD COLUMN IF NOT EXISTS codigo VARCHAR(20),
+--   ADD COLUMN IF NOT EXISTS aceptado_at TIMESTAMPTZ;
+
+-- 3. Crear Tabla de Eventos del Sistema (si ya existen las otras tablas):
+-- CREATE TABLE IF NOT EXISTS eventos_sistema (
+--     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+--     tipo VARCHAR(50) NOT NULL,
+--     presupuesto_id UUID REFERENCES presupuestos(id) ON DELETE CASCADE,
+--     codigo_presupuesto TEXT,
+--     cliente_nombre TEXT,
+--     consorcio_nombre TEXT,
+--     detalles JSONB DEFAULT '{}'::JSONB,
+--     created_at TIMESTAMPTZ DEFAULT NOW()
+-- );
+-- ALTER TABLE eventos_sistema ENABLE ROW LEVEL SECURITY;
+-- CREATE POLICY "Admin All Eventos" ON eventos_sistema FOR ALL TO authenticated USING (true);
+-- CREATE POLICY "Public Insert Eventos" ON eventos_sistema FOR INSERT TO anon WITH CHECK (true);
+-- CREATE POLICY "Public Read Eventos" ON eventos_sistema FOR SELECT TO anon USING (true);
+
+-- 4. Habilitar Supabase Realtime para la tabla eventos_sistema:
+-- ALTER PUBLICATION supabase_realtime ADD TABLE eventos_sistema;
+
 

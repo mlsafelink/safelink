@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Building, FileText, LogOut, UserCheck } from 'lucide-react';
+import { LayoutDashboard, Building2, Building, FileText, LogOut, UserCheck, Bell } from 'lucide-react';
 import logoImg from '@/assets/logo.png';
 import { useAuth } from '@/features/auth/AuthContext';
 import styles from './Sidebar.module.css';
@@ -54,6 +54,14 @@ export function Sidebar() {
         >
           <FileText size={20} />
           <span>Documentos</span>
+        </NavLink>
+
+        <NavLink 
+          to="/notificaciones" 
+          className={({ isActive }) => clsx(styles.navItem, isActive && styles.active)}
+        >
+          <Bell size={20} />
+          <span>Notificaciones</span>
         </NavLink>
       </nav>
 
