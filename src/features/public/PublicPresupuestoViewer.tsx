@@ -6,7 +6,7 @@ import { notificacionService } from '@/services/notificacionService';
 import {
   Calendar, Building, FileText, Clock, HelpCircle, Shield,
   DollarSign, AlertCircle, Info, Phone, Mail, FileCheck,
-  Share2, CheckCircle2, Check, ShieldCheck,
+  Share2, CheckCircle2, ShieldCheck,
 } from 'lucide-react';
 import styles from './PresupuestoViewer.module.css';
 

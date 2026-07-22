@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { notificacionService, type EventoSistema, type EventoTipo } from '@/services/notificacionService';
 import { Card } from '@/components/ui/Card/Card';
