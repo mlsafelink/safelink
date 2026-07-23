@@ -312,11 +312,11 @@ export function PublicPresupuestoViewer() {
           <div className={styles.termsList}>
             <div className={styles.termItem}>
               <span className={styles.termTitle}>Validez del presupuesto:</span>
-              <span>El presente presupuesto tiene una validez de 15 días corridos desde su fecha de emisión, salvo indicación expresa en contrario.</span>
+              <span>El presente presupuesto tiene una validez de 15 días corridos desde su fecha de emisión, salvo indicación expresa de lo contrario.</span>
             </div>
             <div className={styles.termItem}>
               <span className={styles.termTitle}>Forma de pago:</span>
-              <span>Para dar inicio a los trabajos podrá requerirse un anticipo destinado a la compra de materiales. El saldo restante deberá abonarse según las condiciones acordadas entre las partes.</span>
+              <span>Para dar inicio a los trabajos podrá requerirse un anticipo del 50% destinado a la compra de materiales. El saldo restante deberá abonarse según las condiciones acordadas entre las partes.</span>
             </div>
             <div className={styles.termItem}>
               <span className={styles.termTitle}>Plazos de ejecución:</span>
