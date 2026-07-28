@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { safeLinkNoteService } from '@/services/safeLinkNoteService';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { safeLinkNoteService, type SlnFile } from '@/services/safeLinkNoteService';
 import { notificacionService } from '@/services/notificacionService';
 
 const SEEN_KEY     = 'safelink_note_seen_files';
@@ -8,13 +8,19 @@ export const LAST_VISIT_KEY = 'safelink_note_last_visit';
 const POLL_INTERVAL = 30_000; // 30 segundos
 
 type SafeLinkNoteContextType = {
+  files: SlnFile[];
+  isLoading: boolean;
   hasUnread: boolean;
   markAsRead: () => void;
+  refetch: () => Promise<void>;
 };
 
 const SafeLinkNoteContext = createContext<SafeLinkNoteContextType>({
+  files: [],
+  isLoading: true,
   hasUnread: false,
   markAsRead: () => {},
+  refetch: async () => {},
 });
 
 function getStoredSet(key: string): Set<string> {
@@ -31,36 +37,30 @@ function saveSet(key: string, set: Set<string>) {
 }
 
 export function SafeLinkNoteProvider({ children }: { children: React.ReactNode }) {
+  const [files, setFiles] = useState<SlnFile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [hasUnread, setHasUnread] = useState(false);
   const currentFilesRef = useRef<Set<string>>(new Set());
 
-  const markAsRead = () => {
-    saveSet(SEEN_KEY, currentFilesRef.current);
-    localStorage.setItem(LAST_VISIT_KEY, new Date().toISOString());
-    setHasUnread(false);
-  };
+  const fetchFiles = useCallback(async () => {
+    try {
+      const fetchedFiles = await safeLinkNoteService.listSlnFiles();
+      setFiles(fetchedFiles);
 
-  useEffect(() => {
-    let mounted = true;
-
-    const doCheck = async () => {
-      const files = await safeLinkNoteService.listSlnFiles();
-      if (!mounted) return;
-
-      const fileNames = new Set(files.map(f => f.name));
+      const fileNames = new Set(fetchedFiles.map(f => f.name));
       currentFilesRef.current = fileNames;
 
       const seenFiles     = getStoredSet(SEEN_KEY);
       const notifiedFiles = getStoredSet(NOTIFIED_KEY);
 
-      // Evaluar archivos no vistos y notificar si corresponde
-      const newFiles = files.filter(f => !seenFiles.has(f.name));
+      // Evaluar si existen archivos no vistos por el usuario
+      const newFiles = fetchedFiles.filter(f => !seenFiles.has(f.name));
       if (newFiles.length > 0) {
         setHasUnread(true);
       }
 
-      // Archivos sin notificación creada → crear notificación (evitar duplicados)
-      const toNotify = files.filter(f => !notifiedFiles.has(f.name));
+      // Notificar archivos que no hayan sido notificados previamente
+      const toNotify = fetchedFiles.filter(f => !notifiedFiles.has(f.name));
       for (const file of toNotify) {
         try {
           await notificacionService.create({
@@ -79,18 +79,46 @@ export function SafeLinkNoteProvider({ children }: { children: React.ReactNode }
       if (toNotify.length > 0) {
         saveSet(NOTIFIED_KEY, notifiedFiles);
       }
+    } catch (err) {
+      console.error('[SafeLinkNote] Error buscando archivos .sln:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const markAsRead = useCallback(() => {
+    saveSet(SEEN_KEY, currentFilesRef.current);
+    localStorage.setItem(LAST_VISIT_KEY, new Date().toISOString());
+    setHasUnread(false);
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const run = async () => {
+      if (!mounted) return;
+      await fetchFiles();
     };
 
-    doCheck();
-    const interval = setInterval(doCheck, POLL_INTERVAL);
+    run();
+    const interval = setInterval(run, POLL_INTERVAL);
+
     return () => {
       mounted = false;
       clearInterval(interval);
     };
-  }, []);
+  }, [fetchFiles]);
 
   return (
-    <SafeLinkNoteContext.Provider value={{ hasUnread, markAsRead }}>
+    <SafeLinkNoteContext.Provider
+      value={{
+        files,
+        isLoading,
+        hasUnread,
+        markAsRead,
+        refetch: fetchFiles,
+      }}
+    >
       {children}
     </SafeLinkNoteContext.Provider>
   );

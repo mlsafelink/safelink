@@ -31,14 +31,22 @@ export const safeLinkNoteService = {
   },
 
   async getDownloadUrl(fileName: string): Promise<string | null> {
-    const { data, error } = await supabase.storage
-      .from(BUCKET)
-      .createSignedUrl(fileName, 3600); // válida 1 hora
+    try {
+      const { data, error } = await supabase.storage
+        .from(BUCKET)
+        .createSignedUrl(fileName, 3600); // válida 1 hora
 
-    if (error) {
-      console.error('[SafeLinkNote] Error generando URL firmada:', error);
-      return null;
+      if (!error && data?.signedUrl) {
+        return data.signedUrl;
+      }
+    } catch {
+      // Fallback a URL pública
     }
-    return data.signedUrl;
+
+    const { data: pub } = supabase.storage
+      .from(BUCKET)
+      .getPublicUrl(fileName);
+
+    return pub?.publicUrl || null;
   },
 };

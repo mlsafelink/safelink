@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { safeLinkNoteService, type SlnFile } from '@/services/safeLinkNoteService';
 import { useSafeLinkNote } from './SafeLinkNoteContext';
 import { FileArchive, Download, Clock, Loader2, StickyNote } from 'lucide-react';
@@ -25,7 +24,9 @@ function SlnCard({ file }: { file: SlnFile }) {
 
   const handleDownload = async () => {
     const url = await safeLinkNoteService.getDownloadUrl(file.name);
-    if (url) window.open(url, '_blank');
+    if (url) {
+      window.open(url, '_blank');
+    }
   };
 
   return (
@@ -59,13 +60,7 @@ function SlnCard({ file }: { file: SlnFile }) {
 }
 
 export function SafeLinkNotePage() {
-  const { markAsRead } = useSafeLinkNote();
-
-  const { data: files = [], isLoading } = useQuery({
-    queryKey: ['sln-files'],
-    queryFn:  safeLinkNoteService.listSlnFiles,
-    refetchInterval: 30_000,
-  });
+  const { files, isLoading, markAsRead } = useSafeLinkNote();
 
   // Marcar como leído al entrar al módulo
   useEffect(() => {
