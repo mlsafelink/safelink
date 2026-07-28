@@ -12,32 +12,39 @@ import { NotificacionesPage } from '@/features/notificaciones/NotificacionesPage
 import { PublicReporteViewer } from '@/features/public/PublicReporteViewer';
 import { PublicPresupuestoViewer } from '@/features/public/PublicPresupuestoViewer';
 import { PublicInstructivoViewer } from '@/features/public/PublicInstructivoViewer';
+import { SafeLinkNotePage } from '@/features/safeLinkNote/SafeLinkNotePage';
+import { SafeLinkIAPage } from '@/features/safeLinkIA/SafeLinkIAPage';
+import { SafeLinkNoteProvider } from '@/features/safeLinkNote/SafeLinkNoteContext';
 
 function App() {
   return (
-    <Routes>
-      {/* ---- RUTAS PÚBLICAS — sin login, sin sidebar, sin escape ---- */}
-      <Route path="/p/reporte/:publicId" element={<PublicReporteViewer />} />
-      <Route path="/p/presupuesto/:publicId" element={<PublicPresupuestoViewer />} />
-      <Route path="/p/instructivo/:publicId" element={<PublicInstructivoViewer />} />
+    <SafeLinkNoteProvider>
+      <Routes>
+        {/* ---- RUTAS PÚBLICAS — sin login, sin sidebar, sin escape ---- */}
+        <Route path="/p/reporte/:publicId" element={<PublicReporteViewer />} />
+        <Route path="/p/presupuesto/:publicId" element={<PublicPresupuestoViewer />} />
+        <Route path="/p/instructivo/:publicId" element={<PublicInstructivoViewer />} />
 
-      {/* ---- AUTENTICACIÓN ---- */}
-      <Route path="/login" element={<Login />} />
+        {/* ---- AUTENTICACIÓN ---- */}
+        <Route path="/login" element={<Login />} />
 
-      {/* ---- RUTAS PROTEGIDAS ---- */}
-      <Route element={<PrivateRoute />}>
-        <Route element={<MainLayout sidebar={<Sidebar />} />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/administraciones" element={<AdminPage />} />
-          <Route path="/consorcios" element={<ConsorcioPage />} />
-          <Route path="/clientes" element={<ParticularPage />} />
-          <Route path="/documentos" element={<DocumentPage />} />
-          <Route path="/notificaciones" element={<NotificacionesPage />} />
+        {/* ---- RUTAS PROTEGIDAS ---- */}
+        <Route element={<PrivateRoute />}>
+          <Route element={<MainLayout sidebar={<Sidebar />} />}>
+            <Route path="/dashboard"      element={<Dashboard />} />
+            <Route path="/administraciones" element={<AdminPage />} />
+            <Route path="/consorcios"     element={<ConsorcioPage />} />
+            <Route path="/clientes"       element={<ParticularPage />} />
+            <Route path="/documentos"     element={<DocumentPage />} />
+            <Route path="/notificaciones" element={<NotificacionesPage />} />
+            <Route path="/safelink-note"  element={<SafeLinkNotePage />} />
+            <Route path="/safelink-ia"    element={<SafeLinkIAPage />} />
+          </Route>
         </Route>
-      </Route>
 
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </SafeLinkNoteProvider>
   );
 }
 

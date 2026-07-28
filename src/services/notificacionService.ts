@@ -8,7 +8,8 @@ export type EventoTipo =
   | 'trabajo_finalizado'
   | 'garantia_vencer'
   | 'nuevo_reporte'
-  | 'nuevo_instructivo';
+  | 'nuevo_instructivo'
+  | 'nuevo_sln';
 
 export type EventoSistema = {
   id: string;

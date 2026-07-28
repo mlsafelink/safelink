@@ -1,14 +1,26 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { notificacionService, type EventoSistema, type EventoTipo } from '@/services/notificacionService';
 import { Card } from '@/components/ui/Card/Card';
+import { clsx } from 'clsx';
 import {
   Eye, Share2, CheckCircle2, Bell, Clock,
-  Wrench, CheckSquare, ShieldAlert, FileText, BookOpen,
+  Wrench, CheckSquare, ShieldAlert, FileText, BookOpen, FileArchive,
 } from 'lucide-react';
+import { LAST_VISIT_KEY } from '@/features/safeLinkNote/SafeLinkNoteContext';
 import styles from './NotificacionesPage.module.css';
 
-function getEventConfig(tipo: EventoTipo) {
+type EventConfig = {
+  icon: React.ElementType;
+  color: string;
+  bgColor: string;
+  label: string;
+  description?: string;
+  isSln?: boolean;
+};
+
+
+function getEventConfig(tipo: EventoTipo): EventConfig {
   switch (tipo) {
     case 'presupuesto_visto':
       return {
@@ -65,6 +77,15 @@ function getEventConfig(tipo: EventoTipo) {
         color: '#ec4899',
         bgColor: 'rgba(236, 72, 153, 0.12)',
         label: 'Nuevo instructivo publicado',
+      };
+    case 'nuevo_sln':
+      return {
+        icon: FileArchive,
+        color: '#f97316',
+        bgColor: 'rgba(249, 115, 22, 0.12)',
+        label: 'Nuevo archivo .sln recibido',
+        description: 'Se recibió un nuevo archivo de SafeLink Note listo para importar.',
+        isSln: true,
       };
     default:
       return {
@@ -138,8 +159,20 @@ export function NotificacionesPage() {
             const cliente = ev.cliente_nombre || ev.consorcio_nombre || 'Cliente';
             const codigo = ev.codigo_presupuesto ? ` ${ev.codigo_presupuesto}` : '';
 
+            // Estado "leído" para notificaciones SafeLink Note
+            const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
+            const isRead = config.isSln && !!lastVisit && ev.created_at < lastVisit;
+            const slnFile = ev.detalles?.archivo as string | undefined;
+
             return (
-              <div key={ev.id} className={styles.notifCard}>
+              <div
+                key={ev.id}
+                className={clsx(
+                  styles.notifCard,
+                  config.isSln && styles.notifCardSln,
+                  isRead && styles.notifCardRead,
+                )}
+              >
                 <div
                   className={styles.iconBox}
                   style={{ background: config.bgColor, color: config.color }}
@@ -147,14 +180,30 @@ export function NotificacionesPage() {
                   <Icon size={24} />
                 </div>
                 <div className={styles.notifContent}>
-                  <div className={styles.notifText}>
-                    <span className={styles.highlight}>{cliente}</span> {config.label}
-                    {codigo && <span className={styles.highlight}>{codigo}</span>}
-                  </div>
+                  {config.isSln ? (
+                    <>
+                      <div className={styles.notifText}>
+                        <span className={styles.highlightOrange}>{config.label}</span>
+                        {isRead && <span className={styles.leidaTag}>Leída</span>}
+                      </div>
+                      <div className={styles.slnDesc}>{config.description}</div>
+                      {slnFile && (
+                        <div className={styles.notifMeta}>
+                          <FileArchive size={12} />
+                          <span className={styles.fileTag}>{slnFile}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className={styles.notifText}>
+                      <span className={styles.highlight}>{cliente}</span> {config.label}
+                      {codigo && <span className={styles.highlight}>{codigo}</span>}
+                    </div>
+                  )}
                   <div className={styles.notifMeta}>
                     <Clock size={12} />
                     <span>{fecha} a las {hora} hs.</span>
-                    {ev.consorcio_nombre && ev.consorcio_nombre !== ev.cliente_nombre && (
+                    {!config.isSln && ev.consorcio_nombre && ev.consorcio_nombre !== ev.cliente_nombre && (
                       <>
                         <span className={styles.dot}>·</span>
                         <span>{ev.consorcio_nombre}</span>
