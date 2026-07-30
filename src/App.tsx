@@ -12,6 +12,7 @@ import { NotificacionesPage } from '@/features/notificaciones/NotificacionesPage
 import { PublicReporteViewer } from '@/features/public/PublicReporteViewer';
 import { PublicPresupuestoViewer } from '@/features/public/PublicPresupuestoViewer';
 import { PublicInstructivoViewer } from '@/features/public/PublicInstructivoViewer';
+import { PublicReporteTrabajoViewer } from '@/features/public/PublicReporteTrabajoViewer';
 import { SafeLinkNotePage } from '@/features/safeLinkNote/SafeLinkNotePage';
 import { SafeLinkIAPage } from '@/features/safeLinkIA/SafeLinkIAPage';
 import { SafeLinkNoteProvider } from '@/features/safeLinkNote/SafeLinkNoteContext';
@@ -24,6 +25,7 @@ function App() {
         <Route path="/p/reporte/:publicId" element={<PublicReporteViewer />} />
         <Route path="/p/presupuesto/:publicId" element={<PublicPresupuestoViewer />} />
         <Route path="/p/instructivo/:publicId" element={<PublicInstructivoViewer />} />
+        <Route path="/p/reporte-trabajo/:publicId" element={<PublicReporteTrabajoViewer />} />
 
         {/* ---- AUTENTICACIÓN ---- */}
         <Route path="/login" element={<Login />} />

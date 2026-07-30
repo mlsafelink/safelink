@@ -7,6 +7,7 @@ export type Reporte = {
   id: string;
   consorcio_id: string;
   public_id: string;
+  codigo?: string | null;
   fecha: string;
   titulo: string;
   motivo: string | null;
@@ -18,7 +19,7 @@ export type Reporte = {
   fotografias: string[];
   observaciones: string | null;
 
-  // Nuevos campos de plantilla y soporte
+  // Campos de plantilla y soporte
   equipo_relevado: string | null;
   inspeccion_realizada: string | null;
   cliente_nombre: string | null;
@@ -33,7 +34,7 @@ export type Reporte = {
   version: number;
   created_at: string;
   // JOIN
-  consorcios?: { nombre: string; administraciones?: { nombre: string } };
+  consorcios?: { nombre: string; direccion?: string; administraciones?: { nombre: string } };
 };
 
 export type PresupuestoEstado = 'enviado' | 'visto' | 'compartido' | 'aceptado';
@@ -42,6 +43,8 @@ export type Presupuesto = {
   id: string;
   consorcio_id: string;
   public_id: string;
+  reporte_id?: string | null;
+  codigo?: string | null;
   titulo: string;
   fecha: string;
   materiales: MaterialItem[];
@@ -58,11 +61,11 @@ export type Presupuesto = {
   horario_soporte: string | null;
   url_sitio_web: string | null;
   estado?: PresupuestoEstado;
-  codigo?: string | null;
   aceptado_at?: string | null;
   version: number;
   created_at: string;
-  consorcios?: { nombre: string; administraciones?: { nombre: string } };
+  consorcios?: { nombre: string; direccion?: string; administraciones?: { nombre: string } };
+  reportes?: Reporte | null;
 };
 
 export type MaterialItem = {
@@ -72,14 +75,44 @@ export type MaterialItem = {
   subtotal: number;
 };
 
+export type ReporteTrabajo = {
+  id: string;
+  consorcio_id: string;
+  public_id: string;
+  codigo?: string | null;
+  fecha: string;
+  titulo: string;
+  tecnico_nombre: string | null;
+  cliente_nombre: string | null;
+  cliente_direccion: string | null;
+  descripcion_trabajos: string | null;
+  equipamiento_instalado: string | null;
+  materiales_utilizados: string | null;
+  configuraciones_realizadas: string | null;
+  observaciones: string | null;
+  fotografias: string[];
+  garantia: string | null;
+  firmas: any[];
+  presupuesto_id?: string | null;
+  reporte_id?: string | null;
+  url_sitio_web: string | null;
+  telefono_soporte: string | null;
+  email_soporte: string | null;
+  horario_soporte: string | null;
+  version: number;
+  created_at: string;
+  consorcios?: { nombre: string; direccion?: string; administraciones?: { nombre: string } };
+  presupuestos?: Presupuesto | null;
+  reportes?: Reporte | null;
+};
+
 export type Instructivo = {
   id: string;
   consorcio_id: string;
   public_id: string;
   titulo: string;
-  contenido?: InstructivoBloque[] | null; // deprecated, backward compat
+  contenido?: InstructivoBloque[] | null;
 
-  // Campos del template (editables por instructivo)
   nombre_app: string | null;
   texto_descarga: string | null;
   url_google_play: string | null;
@@ -109,12 +142,60 @@ export type InstructivoBloque = {
   contenido: string;
 };
 
+// ---- Función de generación de Códigos Únicos ----
+export async function generateUniqueDocCode(
+  prefix: 'RT' | 'PRES' | 'RTE',
+  tableName: 'reportes' | 'presupuestos' | 'reportes_trabajo'
+): Promise<string> {
+  const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const searchPattern = `${prefix}-${todayStr}-%`;
+
+  let maxSeq = 0;
+  try {
+    const { data } = await supabase
+      .from(tableName)
+      .select('codigo')
+      .like('codigo', searchPattern)
+      .order('created_at', { ascending: false });
+
+    if (data && data.length > 0) {
+      for (const item of data) {
+        if (item.codigo) {
+          const parts = item.codigo.split('-');
+          if (parts.length === 3) {
+            const seq = parseInt(parts[2], 10);
+            if (!isNaN(seq) && seq > maxSeq) {
+              maxSeq = seq;
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Error al verificar código secuencial:', e);
+  }
+
+  if (maxSeq === 0) {
+    try {
+      const { count } = await supabase
+        .from(tableName)
+        .select('id', { count: 'exact', head: true });
+      maxSeq = count || 0;
+    } catch {
+      maxSeq = 0;
+    }
+  }
+
+  const nextSeq = (maxSeq + 1).toString().padStart(4, '0');
+  return `${prefix}-${todayStr}-${nextSeq}`;
+}
+
 // ---- Servicios ----
 export const reporteService = {
   async getAll() {
     const { data, error } = await supabase
       .from('reportes')
-      .select(`*, consorcios (nombre, administraciones (nombre))`)
+      .select(`*, consorcios (nombre, direccion, administraciones (nombre))`)
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -133,6 +214,9 @@ export const reporteService = {
   },
 
   async create(reporte: Partial<Reporte>) {
+    if (!reporte.codigo) {
+      reporte.codigo = await generateUniqueDocCode('RT', 'reportes');
+    }
     const { data, error } = await supabase
       .from('reportes')
       .insert(reporte)
@@ -166,7 +250,7 @@ export const presupuestoService = {
   async getAll() {
     const { data, error } = await supabase
       .from('presupuestos')
-      .select(`*, consorcios (nombre, administraciones (nombre))`)
+      .select(`*, consorcios (nombre, direccion, administraciones (nombre)), reportes (id, codigo, titulo, public_id)`)
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -176,18 +260,22 @@ export const presupuestoService = {
   async getByPublicId(publicId: string) {
     const { data, error } = await supabase
       .from('presupuestos')
-      .select(`*, consorcios (nombre, direccion, administraciones (nombre))`)
+      .select(`*, consorcios (nombre, direccion, administraciones (nombre)), reportes (id, codigo, titulo, public_id)`)
       .eq('public_id', publicId)
       .is('deleted_at', null)
       .single();
     if (error) throw error;
-    return data as Presupuesto & { consorcios: { nombre: string; direccion?: string; administraciones: { nombre: string } } };
+    return data as Presupuesto & {
+      consorcios: { nombre: string; direccion?: string; administraciones: { nombre: string } };
+      reportes?: { id: string; codigo?: string; titulo: string; public_id: string } | null;
+    };
   },
 
   async create(presupuesto: Partial<Presupuesto>) {
+    const codigo = presupuesto.codigo || (await generateUniqueDocCode('PRES', 'presupuestos'));
     const payload = {
       estado: 'enviado' as PresupuestoEstado,
-      codigo: `#P-${Math.floor(100 + Math.random() * 900)}`,
+      codigo,
       ...presupuesto,
     };
     const { data, error } = await supabase
@@ -213,6 +301,65 @@ export const presupuestoService = {
   async delete(id: string) {
     const { error } = await supabase
       .from('presupuestos')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) throw error;
+  },
+};
+
+export const reporteTrabajoService = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from('reportes_trabajo')
+      .select(`*, consorcios (nombre, direccion, administraciones (nombre)), presupuestos (id, codigo, titulo, public_id), reportes (id, codigo, titulo, public_id)`)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data as ReporteTrabajo[];
+  },
+
+  async getByPublicId(publicId: string) {
+    const { data, error } = await supabase
+      .from('reportes_trabajo')
+      .select(`*, consorcios (nombre, direccion, administraciones (nombre)), presupuestos (id, codigo, titulo, public_id), reportes (id, codigo, titulo, public_id)`)
+      .eq('public_id', publicId)
+      .is('deleted_at', null)
+      .single();
+    if (error) throw error;
+    return data as ReporteTrabajo & {
+      consorcios: { nombre: string; direccion?: string; administraciones: { nombre: string } };
+      presupuestos?: { id: string; codigo?: string; titulo: string; public_id: string } | null;
+      reportes?: { id: string; codigo?: string; titulo: string; public_id: string } | null;
+    };
+  },
+
+  async create(reporteTrabajo: Partial<ReporteTrabajo>) {
+    if (!reporteTrabajo.codigo) {
+      reporteTrabajo.codigo = await generateUniqueDocCode('RTE', 'reportes_trabajo');
+    }
+    const { data, error } = await supabase
+      .from('reportes_trabajo')
+      .insert(reporteTrabajo)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as ReporteTrabajo;
+  },
+
+  async update(id: string, reporteTrabajo: Partial<ReporteTrabajo>) {
+    const { data, error } = await supabase
+      .from('reportes_trabajo')
+      .update(reporteTrabajo)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as ReporteTrabajo;
+  },
+
+  async delete(id: string) {
+    const { error } = await supabase
+      .from('reportes_trabajo')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
     if (error) throw error;

@@ -1,14 +1,17 @@
+import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { reporteService } from '@/services/documentService';
+import { useAuth } from '@/features/auth/AuthContext';
 import {
-  Calendar, Building, ClipboardList, Clock, HelpCircle, Shield,
-  FileText, Cpu, Eye, AlertTriangle, CheckSquare, Phone, Mail, Image,
+  Calendar, Building, ClipboardList, Shield,
+  FileText, Cpu, Eye, AlertTriangle, CheckSquare, Image,
 } from 'lucide-react';
 import styles from './ReporteViewer.module.css';
 
 export function PublicReporteViewer() {
   const { publicId } = useParams<{ publicId: string }>();
+  const { user } = useAuth();
 
   const { data: reporte, isLoading, isError } = useQuery({
     queryKey: ['public-reporte', publicId],
@@ -16,6 +19,20 @@ export function PublicReporteViewer() {
     enabled: !!publicId,
     retry: false,
   });
+
+  const consorcioNombre = (reporte?.consorcios as any)?.nombre;
+  const codigoDoc = reporte?.codigo || (reporte ? `RT-${reporte.id.slice(0, 8).toUpperCase()}` : 'RT');
+
+  // Registro inteligente del evento "nuevo_reporte" / vista
+  useEffect(() => {
+    if (!reporte) return;
+
+    // Si el usuario es el autor / admin autenticado, NO generar notificación
+    if (user) {
+      console.info('[SmartNotif] Omitiendo notificación de lectura porque el usuario autenticado (autor) está visualizando el reporte.');
+      return;
+    }
+  }, [reporte?.id, user]);
 
   if (isLoading) {
     return (
@@ -38,10 +55,6 @@ export function PublicReporteViewer() {
     );
   }
 
-  const adminNombre = (reporte.consorcios as any)?.administraciones?.nombre;
-  const consorcioNombre = (reporte.consorcios as any)?.nombre;
-  const urlSitioWeb = reporte.url_sitio_web ?? 'www.safelink.com.ar';
-
   const formatFecha = (f: string | null) => {
     if (!f) return '';
     try {
@@ -51,7 +64,6 @@ export function PublicReporteViewer() {
     } catch { return f; }
   };
 
-  // Convertir recomendaciones separadas por salto de línea en un array
   const listRecomendaciones = reporte.recomendaciones
     ? reporte.recomendaciones.split('\n').map(r => r.replace(/^•\s*/, '').trim()).filter(Boolean)
     : [
@@ -73,7 +85,7 @@ export function PublicReporteViewer() {
           <div className={styles.titleSide}>
             <div className={styles.reporteBadge}>
               <ClipboardList size={12} />
-              Reporte Técnico
+              Reporte Técnico ({codigoDoc})
             </div>
             <h1 className={styles.docTitle}>{reporte.titulo}</h1>
             <p className={styles.docSubtitle}>
@@ -96,192 +108,109 @@ export function PublicReporteViewer() {
           <div className={styles.infoChip}>
             <Building size={18} className={styles.infoIcon} />
             <div>
-              <span className={styles.infoLabel}>Consorcio</span>
+              <span className={styles.infoLabel}>Consorcio / Cliente</span>
               <span className={styles.infoValue}>{consorcioNombre || 'N/A'}</span>
             </div>
           </div>
           <div className={styles.infoChip}>
             <Shield size={18} className={styles.infoIcon} />
             <div>
-              <span className={styles.infoLabel}>Administración</span>
-              <span className={styles.infoValue}>{adminNombre || 'N/A'}</span>
-            </div>
-          </div>
-          <div className={styles.infoChip}>
-            <HelpCircle size={18} className={styles.infoIcon} />
-            <div>
-              <span className={styles.infoLabel}>Estado</span>
-              <span className={styles.infoValue}>v{reporte.version} (Vigente)</span>
+              <span className={styles.infoLabel}>Código Único</span>
+              <span className={styles.infoValue} style={{ color: '#d97706', fontWeight: 'bold' }}>{codigoDoc}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── CONTENIDO PRINCIPAL (CARDS) ── */}
-      <main className={styles.main}>
+      {/* ── CONTENIDO PRINCIPAL ── */}
+      <main className={styles.mainContent}>
 
-        {/* Card 1: Descripción de la situación */}
         {reporte.descripcion && (
-          <div className={styles.card}>
-            <div className={styles.cardLeft}>
-              <span className={styles.stepNum}>Sección</span>
-              <span className={styles.stepNumber}>1</span>
-              <div className={styles.stepIcon}><FileText size={18} /></div>
-              <span className={styles.stepLabel}>Situación</span>
+          <section className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+              <FileText size={20} className={styles.sectionIcon} />
+              <h2>Motivo y Descripción de la Situación</h2>
             </div>
-            <div className={styles.cardRight}>
-              <h2 className={styles.cardHeading}>Descripción de la situación</h2>
-              <p className={styles.cardText}>{reporte.descripcion}</p>
+            <div className={styles.sectionBody}>
+              <p style={{ whiteSpace: 'pre-wrap' }}>{reporte.descripcion}</p>
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Card 2: Equipo relevado */}
         {reporte.equipo_relevado && (
-          <div className={styles.card}>
-            <div className={styles.cardLeft}>
-              <span className={styles.stepNum}>Sección</span>
-              <span className={styles.stepNumber}>2</span>
-              <div className={styles.stepIcon}><Cpu size={18} /></div>
-              <span className={styles.stepLabel}>Equipos</span>
+          <section className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+              <Cpu size={20} className={styles.sectionIcon} />
+              <h2>Equipamiento Relevado</h2>
             </div>
-            <div className={styles.cardRight}>
-              <h2 className={styles.cardHeading}>Equipo relevado</h2>
-              <p className={styles.cardText}>{reporte.equipo_relevado}</p>
+            <div className={styles.sectionBody}>
+              <p style={{ whiteSpace: 'pre-wrap' }}>{reporte.equipo_relevado}</p>
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Card 3: Inspección realizada */}
         {reporte.inspeccion_realizada && (
-          <div className={styles.card}>
-            <div className={styles.cardLeft}>
-              <span className={styles.stepNum}>Sección</span>
-              <span className={styles.stepNumber}>3</span>
-              <div className={styles.stepIcon}><Eye size={18} /></div>
-              <span className={styles.stepLabel}>Inspección</span>
+          <section className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+              <Eye size={20} className={styles.sectionIcon} />
+              <h2>Inspección Realizada</h2>
             </div>
-            <div className={styles.cardRight}>
-              <h2 className={styles.cardHeading}>Inspección realizada</h2>
-              <p className={styles.cardText}>{reporte.inspeccion_realizada}</p>
+            <div className={styles.sectionBody}>
+              <p style={{ whiteSpace: 'pre-wrap' }}>{reporte.inspeccion_realizada}</p>
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Card 4: Diagnóstico */}
         {reporte.diagnostico && (
-          <div className={styles.card}>
-            <div className={styles.cardLeft}>
-              <span className={styles.stepNum}>Sección</span>
-              <span className={styles.stepNumber}>4</span>
-              <div className={styles.stepIcon}><AlertTriangle size={18} /></div>
-              <span className={styles.stepLabel}>Diagnóstico</span>
+          <section className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+              <AlertTriangle size={20} className={styles.sectionIcon} />
+              <h2>Diagnóstico Técnico</h2>
             </div>
-            <div className={styles.cardRight}>
-              <h2 className={styles.cardHeading}>Diagnóstico Técnico</h2>
-              <p className={styles.cardText}>{reporte.diagnostico}</p>
+            <div className={styles.sectionBody}>
+              <p style={{ whiteSpace: 'pre-wrap' }}>{reporte.diagnostico}</p>
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Fotografías */}
-        {reporte.fotografias && reporte.fotografias.length > 0 && (
-          <div className={styles.galleryCard}>
-            <div className={styles.galleryHeader}>
-              <Image size={18} />
-              <span>Registro Fotográfico</span>
-            </div>
-            <div className={styles.galleryGrid}>
-              {reporte.fotografias.map((url, i) => (
-                <a
-                  key={i}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.galleryItem}
-                >
-                  <img src={url} alt={`Evidencia ${i + 1}`} className={styles.galleryImg} />
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-        {/* Card 5: Recomendaciones */}
         {listRecomendaciones.length > 0 && (
-          <div className={styles.card}>
-            <div className={styles.cardLeft}>
-              <span className={styles.stepNum}>Sección</span>
-              <span className={styles.stepNumber}>5</span>
-              <div className={styles.stepIcon}><CheckSquare size={18} /></div>
-              <span className={styles.stepLabel}>Recomend.</span>
+          <section className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+              <CheckSquare size={20} className={styles.sectionIcon} />
+              <h2>Recomendaciones Técnicas</h2>
             </div>
-            <div className={styles.cardRight}>
-              <h2 className={styles.cardHeading}>Recomendaciones</h2>
-              <ul className={styles.footerBullets} style={{ marginTop: '0.25rem' }}>
+            <div className={styles.sectionBody}>
+              <ul className={styles.recomList}>
                 {listRecomendaciones.map((rec, i) => (
-                  <li key={i} style={{ fontSize: '0.88rem', color: 'var(--rv-text)', lineHeight: 1.6 }}>{rec}</li>
+                  <li key={i}>{rec}</li>
                 ))}
               </ul>
             </div>
-          </div>
+          </section>
+        )}
+
+        {reporte.fotografias && reporte.fotografias.length > 0 && (
+          <section className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+              <Image size={20} className={styles.sectionIcon} />
+              <h2>Evidencia Fotográfica</h2>
+            </div>
+            <div className={styles.photoGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+              {reporte.fotografias.map((url, idx) => (
+                <div key={idx} style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                  <img src={url} alt={`Evidencia ${idx + 1}`} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                </div>
+              ))}
+            </div>
+          </section>
         )}
 
       </main>
 
-      {/* ── FOOTER — solo ¿Necesita ayuda? ── */}
-      <footer className={styles.footer}>
-        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1.5rem', borderBottom: `1px solid var(--rv-border)` }}>
-          <div className={styles.footerColTitle} style={{ marginBottom: '1rem' }}>
-            <HelpCircle size={14} />
-            ¿Necesita ayuda?
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
-            {reporte.telefono_soporte && (
-              <div className={styles.contactRow}>
-                <Phone size={14} className={styles.contactIcon} />
-                <span>{reporte.telefono_soporte}</span>
-              </div>
-            )}
-            {reporte.email_soporte && (
-              <div className={styles.contactRow}>
-                <Mail size={14} className={styles.contactIcon} />
-                <span>{reporte.email_soporte}</span>
-              </div>
-            )}
-            {reporte.horario_soporte && (
-              <div className={styles.contactRow}>
-                <Clock size={14} className={styles.contactIcon} />
-                <span>{reporte.horario_soporte}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Barra final */}
-        <div className={styles.bottomBar}>
-          <div className={styles.bottomBarInner}>
-            <div className={styles.bottomBrand}>
-              <span className={styles.bottomBrandName}>SafeLink</span>
-              <span className={styles.bottomTagline}>Soluciones inteligentes para tu seguridad</span>
-            </div>
-            <a
-              href={urlSitioWeb.includes('instagram.com') ? `https://${urlSitioWeb.replace(/^https?:\/\//, '')}` : `https://www.instagram.com/${urlSitioWeb.replace(/^@/, '')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.bottomUrl}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-              </svg>
-              <span>{urlSitioWeb.includes('instagram.com') ? urlSitioWeb.split('/').pop() : urlSitioWeb}</span>
-            </a>
-          </div>
-        </div>
+      {/* ── FOOTER ── */}
+      <footer className={styles.footer} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8', fontSize: '0.85rem' }}>
+        <p>SafeLink Cloud · Gestión Técnica de Consorcios y Seguridad</p>
       </footer>
-
     </div>
   );
 }
