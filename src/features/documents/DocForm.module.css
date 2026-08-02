@@ -378,4 +378,61 @@
 @media (max-width: 640px) {
   .stepIndicator { flex-wrap: wrap; }
   .stepItem { min-width: 33%; border-bottom: 1px solid var(--glass-border); }
+  .formGrid { grid-template-columns: 1fr; }
 }
+
+/* ── Stepper Nav para ReporteTrabajoForm ── */
+.stepperNav {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.25rem 0.25rem 0.65rem 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.stepBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--glass-border);
+  background: var(--bg-color);
+  box-shadow: var(--shadow-light);
+  font-family: var(--font-family);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.stepBtn:hover {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.stepBtnActive {
+  background: var(--primary-color) !important;
+  color: white !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 4px 14px rgba(49, 130, 206, 0.35) !important;
+}
+
+.formContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.cardPadding {
+  padding: 1.75rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+

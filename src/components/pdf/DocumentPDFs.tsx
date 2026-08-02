@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
-import { type Reporte, type Presupuesto, type Instructivo } from '@/services/documentService';
+import { type Reporte, type Presupuesto, type Instructivo, type ReporteTrabajo } from '@/services/documentService';
 
 const styles = StyleSheet.create({
   page: {
@@ -403,3 +403,67 @@ export function InstructivoPDF({ instructivo }: { instructivo: Instructivo }) {
     </Document>
   );
 }
+
+export function ReporteTrabajoPDF({ reporte }: { reporte: ReporteTrabajo }) {
+  const consorcioNombre = reporte.consorcios?.nombre || 'N/A';
+  const clienteNombre = reporte.cliente_nombre || consorcioNombre;
+  const codigoDoc = reporte.codigo || `RTE-${reporte.id.slice(0, 8).toUpperCase()}`;
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.brandName}>SafeLink</Text>
+            <Text style={styles.docTypeName}>Reporte de Trabajo Efectuado ({codigoDoc})</Text>
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={{ color: '#718096' }}>Fecha: {reporte.fecha}</Text>
+            <Text style={{ color: '#a0aec0', marginTop: 2 }}>v{reporte.version}</Text>
+          </View>
+        </View>
+
+        <View style={styles.metaBlock}>
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>Código Único:</Text>
+            <Text style={[styles.metaValue, { fontWeight: 'bold', color: '#10b981' }]}>{codigoDoc}</Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>Cliente/Consorcio:</Text>
+            <Text style={styles.metaValue}>{clienteNombre}</Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>Técnico Responsable:</Text>
+            <Text style={styles.metaValue}>{reporte.tecnico_nombre || 'Técnico SafeLink'}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.title}>{reporte.titulo}</Text>
+
+        {[
+          { key: 'descripcion_trabajos', label: 'Trabajos Efectuados' },
+          { key: 'equipamiento_instalado', label: 'Equipamiento Instalado' },
+          { key: 'materiales_utilizados', label: 'Materiales Utilizados' },
+          { key: 'configuraciones_realizadas', label: 'Configuraciones Realizadas' },
+          { key: 'observaciones', label: 'Observaciones' },
+          { key: 'garantia', label: 'Garantía del Servicio' },
+        ].map((sec) => {
+          const content = (reporte as any)[sec.key];
+          if (!content || String(content).trim() === '') return null;
+          return (
+            <View key={sec.key} style={styles.section}>
+              <Text style={styles.sectionTitle}>{sec.label}</Text>
+              <Text style={styles.sectionBody}>{content}</Text>
+            </View>
+          );
+        })}
+
+        <View style={styles.footer} fixed>
+          <Text>SafeLink — Certificación de Trabajo Finalizado</Text>
+          <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+        </View>
+      </Page>
+    </Document>
+  );
+}
+

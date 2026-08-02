@@ -248,23 +248,43 @@ export const reporteService = {
 
 export const presupuestoService = {
   async getAll() {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('presupuestos')
       .select(`*, consorcios (nombre, direccion, administraciones (nombre)), reportes (id, codigo, titulo, public_id)`)
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
-    if (error) throw error;
+
+    if (error) {
+      // Fallback if 'reportes' FK relationship does not exist in PostgREST schema cache
+      const res = await supabase
+        .from('presupuestos')
+        .select(`*, consorcios (nombre, direccion, administraciones (nombre))`)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+      if (res.error) throw res.error;
+      data = res.data;
+    }
     return data as Presupuesto[];
   },
 
   async getByPublicId(publicId: string) {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('presupuestos')
       .select(`*, consorcios (nombre, direccion, administraciones (nombre)), reportes (id, codigo, titulo, public_id)`)
       .eq('public_id', publicId)
       .is('deleted_at', null)
       .single();
-    if (error) throw error;
+
+    if (error) {
+      const res = await supabase
+        .from('presupuestos')
+        .select(`*, consorcios (nombre, direccion, administraciones (nombre))`)
+        .eq('public_id', publicId)
+        .is('deleted_at', null)
+        .single();
+      if (res.error) throw res.error;
+      data = res.data;
+    }
     return data as Presupuesto & {
       consorcios: { nombre: string; direccion?: string; administraciones: { nombre: string } };
       reportes?: { id: string; codigo?: string; titulo: string; public_id: string } | null;
@@ -309,23 +329,42 @@ export const presupuestoService = {
 
 export const reporteTrabajoService = {
   async getAll() {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('reportes_trabajo')
       .select(`*, consorcios (nombre, direccion, administraciones (nombre)), presupuestos (id, codigo, titulo, public_id), reportes (id, codigo, titulo, public_id)`)
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
-    if (error) throw error;
+
+    if (error) {
+      const res = await supabase
+        .from('reportes_trabajo')
+        .select(`*, consorcios (nombre, direccion, administraciones (nombre))`)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+      if (res.error) return (res.data || []) as ReporteTrabajo[];
+      data = res.data;
+    }
     return data as ReporteTrabajo[];
   },
 
   async getByPublicId(publicId: string) {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('reportes_trabajo')
       .select(`*, consorcios (nombre, direccion, administraciones (nombre)), presupuestos (id, codigo, titulo, public_id), reportes (id, codigo, titulo, public_id)`)
       .eq('public_id', publicId)
       .is('deleted_at', null)
       .single();
-    if (error) throw error;
+
+    if (error) {
+      const res = await supabase
+        .from('reportes_trabajo')
+        .select(`*, consorcios (nombre, direccion, administraciones (nombre))`)
+        .eq('public_id', publicId)
+        .is('deleted_at', null)
+        .single();
+      if (res.error) throw res.error;
+      data = res.data;
+    }
     return data as ReporteTrabajo & {
       consorcios: { nombre: string; direccion?: string; administraciones: { nombre: string } };
       presupuestos?: { id: string; codigo?: string; titulo: string; public_id: string } | null;
