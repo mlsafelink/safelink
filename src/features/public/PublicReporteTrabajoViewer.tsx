@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { reporteTrabajoService } from '@/services/documentService';
 import {
-  Calendar, Building, Shield,
+  Calendar, Building, Shield, FileText,
   Cpu, CheckSquare, Wrench, Image,
   User, CheckCircle2, Share2, Download, Layers, ClipboardList
 } from 'lucide-react';
@@ -178,11 +178,11 @@ export function PublicReporteTrabajoViewer() {
       )}
 
       {/* ── CONTENIDO PRINCIPAL ── */}
-      <main className={styles.mainContent}>
+      <main className={styles.main}>
 
         {/* Acciones (Compartir y Descargar PDF) */}
-        <div className={styles.actionRow} style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginBottom: '1.5rem' }}>
-          <button onClick={handleShare} className={styles.shareBtn} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginBottom: '0.5rem' }}>
+          <button onClick={handleShare} className={styles.shareBtn} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', fontWeight: 600, color: '#334155' }}>
             <Share2 size={16} />
             <span>Compartir</span>
           </button>
@@ -203,94 +203,124 @@ export function PublicReporteTrabajoViewer() {
 
         {/* 1. Descripción de los Trabajos */}
         {reporteTrabajo.descripcion_trabajos && (
-          <section className={styles.sectionCard}>
-            <div className={styles.sectionHeader}>
-              <Wrench size={20} className={styles.sectionIcon} />
-              <h2>Descripción de Trabajos Efectuados</h2>
+          <div className={styles.card}>
+            <div className={styles.cardLeft}>
+              <span className={styles.stepNum}>Sección</span>
+              <span className={styles.stepNumber}>1</span>
+              <div className={styles.stepIcon}><Wrench size={18} /></div>
+              <span className={styles.stepLabel}>Trabajos</span>
             </div>
-            <div className={styles.sectionBody}>
-              <p style={{ whiteSpace: 'pre-wrap' }}>{reporteTrabajo.descripcion_trabajos}</p>
+            <div className={styles.cardRight}>
+              <h2 className={styles.cardHeading}>Descripción de Trabajos Efectuados</h2>
+              <p className={styles.cardText}>{reporteTrabajo.descripcion_trabajos}</p>
             </div>
-          </section>
+          </div>
         )}
 
         {/* 2. Equipamiento e Instalación */}
         {reporteTrabajo.equipamiento_instalado && (
-          <section className={styles.sectionCard}>
-            <div className={styles.sectionHeader}>
-              <Cpu size={20} className={styles.sectionIcon} />
-              <h2>Equipamiento Instalado</h2>
+          <div className={styles.card}>
+            <div className={styles.cardLeft}>
+              <span className={styles.stepNum}>Sección</span>
+              <span className={styles.stepNumber}>2</span>
+              <div className={styles.stepIcon}><Cpu size={18} /></div>
+              <span className={styles.stepLabel}>Equipos</span>
             </div>
-            <div className={styles.sectionBody}>
-              <p style={{ whiteSpace: 'pre-wrap' }}>{reporteTrabajo.equipamiento_instalado}</p>
+            <div className={styles.cardRight}>
+              <h2 className={styles.cardHeading}>Equipamiento Instalado</h2>
+              <p className={styles.cardText}>{reporteTrabajo.equipamiento_instalado}</p>
             </div>
-          </section>
+          </div>
         )}
 
         {/* 3. Materiales Utilizados */}
         {reporteTrabajo.materiales_utilizados && (
-          <section className={styles.sectionCard}>
-            <div className={styles.sectionHeader}>
-              <ClipboardList size={20} className={styles.sectionIcon} />
-              <h2>Materiales Utilizados</h2>
+          <div className={styles.card}>
+            <div className={styles.cardLeft}>
+              <span className={styles.stepNum}>Sección</span>
+              <span className={styles.stepNumber}>3</span>
+              <div className={styles.stepIcon}><ClipboardList size={18} /></div>
+              <span className={styles.stepLabel}>Materiales</span>
             </div>
-            <div className={styles.sectionBody}>
-              <p style={{ whiteSpace: 'pre-wrap' }}>{reporteTrabajo.materiales_utilizados}</p>
+            <div className={styles.cardRight}>
+              <h2 className={styles.cardHeading}>Materiales Utilizados</h2>
+              <p className={styles.cardText}>{reporteTrabajo.materiales_utilizados}</p>
             </div>
-          </section>
+          </div>
         )}
 
         {/* 4. Configuraciones Realizadas */}
         {reporteTrabajo.configuraciones_realizadas && (
-          <section className={styles.sectionCard}>
-            <div className={styles.sectionHeader}>
-              <CheckSquare size={20} className={styles.sectionIcon} />
-              <h2>Configuraciones Realizadas</h2>
+          <div className={styles.card}>
+            <div className={styles.cardLeft}>
+              <span className={styles.stepNum}>Sección</span>
+              <span className={styles.stepNumber}>4</span>
+              <div className={styles.stepIcon}><CheckSquare size={18} /></div>
+              <span className={styles.stepLabel}>Configuración</span>
             </div>
-            <div className={styles.sectionBody}>
-              <p style={{ whiteSpace: 'pre-wrap' }}>{reporteTrabajo.configuraciones_realizadas}</p>
+            <div className={styles.cardRight}>
+              <h2 className={styles.cardHeading}>Configuraciones Realizadas</h2>
+              <p className={styles.cardText}>{reporteTrabajo.configuraciones_realizadas}</p>
             </div>
-          </section>
+          </div>
         )}
 
-        {/* 5. Fotografías del Trabajo Realizado */}
-        {reporteTrabajo.fotografias && reporteTrabajo.fotografias.length > 0 && (
-          <section className={styles.sectionCard}>
-            <div className={styles.sectionHeader}>
-              <Image size={20} className={styles.sectionIcon} />
-              <h2>Registro Fotográfico de Obra</h2>
+        {/* 5. Observaciones */}
+        {reporteTrabajo.observaciones && (
+          <div className={styles.card}>
+            <div className={styles.cardLeft}>
+              <span className={styles.stepNum}>Sección</span>
+              <span className={styles.stepNumber}>5</span>
+              <div className={styles.stepIcon}><FileText size={18} /></div>
+              <span className={styles.stepLabel}>Observaciones</span>
             </div>
-            <div className={styles.photoGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+            <div className={styles.cardRight}>
+              <h2 className={styles.cardHeading}>Observaciones</h2>
+              <p className={styles.cardText}>{reporteTrabajo.observaciones}</p>
+            </div>
+          </div>
+        )}
+
+        {/* 6. Fotografías del Trabajo Realizado */}
+        {reporteTrabajo.fotografias && reporteTrabajo.fotografias.length > 0 && (
+          <div className={styles.galleryCard}>
+            <div className={styles.galleryHeader}>
+              <Image size={20} style={{ color: '#2563eb' }} />
+              <span>Registro Fotográfico de Obra</span>
+            </div>
+            <div className={styles.galleryGrid}>
               {reporteTrabajo.fotografias.map((url, idx) => (
-                <div key={idx} style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-                  <img src={url} alt={`Trabajo ${idx + 1}`} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                <div key={idx} className={styles.galleryItem}>
+                  <img src={url} alt={`Trabajo ${idx + 1}`} className={styles.galleryImg} />
                 </div>
               ))}
             </div>
-          </section>
+          </div>
         )}
 
-        {/* 6. Garantía & Conformidad */}
-        <section className={styles.sectionCard} style={{ background: '#f8fafc', border: '1px solid #cbd5e1' }}>
-          <div className={styles.sectionHeader}>
-            <Shield size={20} className={styles.sectionIcon} style={{ color: '#16a34a' }} />
-            <h2>Garantía del Servicio & Conformidad</h2>
+        {/* 7. Garantía & Conformidad */}
+        <div className={styles.card}>
+          <div className={styles.cardLeft} style={{ background: 'linear-gradient(180deg, #059669 0%, #047857 100%)' }}>
+            <span className={styles.stepNum}>Garantía</span>
+            <span className={styles.stepNumber}><Shield size={28} /></span>
+            <span className={styles.stepLabel}>SafeLink</span>
           </div>
-          <div className={styles.sectionBody}>
-            <p style={{ fontWeight: 600, color: '#15803d' }}>
+          <div className={styles.cardRight}>
+            <h2 className={styles.cardHeading}>Garantía del Servicio & Conformidad</h2>
+            <p style={{ fontWeight: 700, color: '#047857', fontSize: '0.95rem', margin: 0 }}>
               {reporteTrabajo.garantia || '6 meses de garantía oficial SafeLink sobre materiales y mano de obra.'}
             </p>
-            <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px dashed #cbd5e1', display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#64748b', fontSize: '0.85rem' }}>
-              <CheckCircle2 size={20} style={{ color: '#2563eb' }} />
+            <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px dashed #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#64748b', fontSize: '0.82rem' }}>
+              <CheckCircle2 size={16} style={{ color: '#2563eb' }} />
               <span>Documento firmado digitalmente y respaldado por SafeLink Cloud.</span>
             </div>
           </div>
-        </section>
+        </div>
 
       </main>
 
       {/* ── FOOTER ── */}
-      <footer className={styles.footer} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8', fontSize: '0.85rem' }}>
+      <footer className={styles.footer}>
         <p>SafeLink Cloud · Soluciones Inteligentes para tu Seguridad</p>
       </footer>
     </div>

@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { type Reporte, type Presupuesto, type Instructivo, type ReporteTrabajo } from '@/services/documentService';
 
 const styles = StyleSheet.create({
@@ -74,6 +74,31 @@ const styles = StyleSheet.create({
     color: '#2d3748',
     textAlign: 'justify',
   },
+  photoSection: {
+    marginTop: 15,
+    marginBottom: 15,
+  },
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 8,
+  },
+  photoCard: {
+    width: '47%',
+    height: 150,
+    borderRadius: 6,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#f8fafc',
+    marginBottom: 8,
+  },
+  photoImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
   // Table styles for budget
   table: {
     width: 'auto',
@@ -104,27 +129,28 @@ const styles = StyleSheet.create({
     fontSize: 9,
   },
   tableCellPrice: {
-    width: '18%',
+    width: '17.5%',
     textAlign: 'right',
     paddingRight: 8,
     fontSize: 9,
   },
-  tableCellSubtotal: {
-    width: '17%',
+  tableCellTotal: {
+    width: '17.5%',
     textAlign: 'right',
     paddingRight: 8,
     fontSize: 9,
+  },
+  tableHeaderCell: {
     fontWeight: 'bold',
+    color: '#4a5568',
   },
   totalsBlock: {
+    marginTop: 10,
     alignItems: 'flex-end',
-    marginTop: 15,
-    paddingRight: 8,
   },
   totalRow: {
     flexDirection: 'row',
-    marginBottom: 4,
-    fontSize: 9,
+    marginVertical: 2,
   },
   totalLabel: {
     width: 120,
@@ -243,6 +269,19 @@ export function ReportePDF({ reporte }: { reporte: Reporte }) {
             </View>
           );
         })}
+
+        {reporte.fotografias && reporte.fotografias.length > 0 && (
+          <View style={styles.photoSection}>
+            <Text style={styles.sectionTitle}>REGISTRO FOTOGRÁFICO DE OBRA</Text>
+            <View style={styles.photoGrid}>
+              {reporte.fotografias.map((url, idx) => (
+                <View key={idx} style={styles.photoCard}>
+                  <Image src={url} style={styles.photoImage} />
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         <View style={styles.footer} fixed>
           <Text>SafeLink — Gestión Técnica de Consorcios</Text>
@@ -457,6 +496,19 @@ export function ReporteTrabajoPDF({ reporte }: { reporte: ReporteTrabajo }) {
             </View>
           );
         })}
+
+        {reporte.fotografias && reporte.fotografias.length > 0 && (
+          <View style={styles.photoSection}>
+            <Text style={styles.sectionTitle}>REGISTRO FOTOGRÁFICO DE OBRA</Text>
+            <View style={styles.photoGrid}>
+              {reporte.fotografias.map((url, idx) => (
+                <View key={idx} style={styles.photoCard}>
+                  <Image src={url} style={styles.photoImage} />
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         <View style={styles.footer} fixed>
           <Text>SafeLink — Certificación de Trabajo Finalizado</Text>
