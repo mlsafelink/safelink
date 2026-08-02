@@ -2,14 +2,13 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { facturaService } from '@/services/facturaService';
 import { notificacionService } from '@/services/notificacionService';
-import { useAuth } from '@/features/auth/AuthContext';
 import { Button } from '@/components/ui/Button/Button';
 import { Card } from '@/components/ui/Card/Card';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, Edit, Download, Share2, Check,
   FileText, ClipboardList, BookOpen, Wrench, DollarSign,
-  Calendar, CheckCircle2, Clock, AlertCircle,
+  Calendar, Clock, AlertCircle,
 } from 'lucide-react';
 import { getEstadoConfig, formatMonto, formatFechaCorta, isVencida } from './FinanzasPage';
 import styles from './FacturaDetalle.module.css';
@@ -113,7 +112,6 @@ function TimelineEvent({ fecha, label, isLast }: { fecha: string | null; label: 
 
 export function FacturaDetalle({ facturaId, onBack, onEdit }: FacturaDetalleProps) {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
   const [copied, setCopied] = useState(false);
 
   // Cargar factura

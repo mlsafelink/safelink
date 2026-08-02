@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { facturaService, type FacturaInsert, type FacturaTipo, type FacturaEstado } from '@/services/facturaService';
+import { facturaService, type Factura, type FacturaInsert, type FacturaTipo, type FacturaEstado } from '@/services/facturaService';
 import { notificacionService } from '@/services/notificacionService';
 import { consorcioService } from '@/services/consorcioService';
 import { presupuestoService } from '@/services/documentService';
@@ -102,7 +102,7 @@ export function FacturaForm({ onBack, editingId }: FacturaFormProps) {
 
       const payload = form as FacturaInsert;
 
-      let factura;
+      let factura: Factura;
       if (editingId) {
         factura = await facturaService.update(editingId, payload);
       } else {
@@ -163,7 +163,6 @@ export function FacturaForm({ onBack, editingId }: FacturaFormProps) {
     setForm(prev => ({ ...prev, [key]: value }));
 
   const isEditing = !!editingId;
-  const hasPdf = !!(form.pdf_url || pdfFile);
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
