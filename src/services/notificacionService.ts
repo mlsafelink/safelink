@@ -9,7 +9,12 @@ export type EventoTipo =
   | 'garantia_vencer'
   | 'nuevo_reporte'
   | 'nuevo_instructivo'
-  | 'nuevo_sln';
+  | 'nuevo_sln'
+  | 'factura_cargada'
+  | 'factura_descargada'
+  | 'factura_compartida'
+  | 'factura_proxima_vencer'
+  | 'factura_pagada';
 
 export type EventoSistema = {
   id: string;

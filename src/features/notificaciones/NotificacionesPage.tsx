@@ -6,6 +6,7 @@ import { clsx } from 'clsx';
 import {
   Eye, Share2, CheckCircle2, Bell, Clock,
   Wrench, CheckSquare, ShieldAlert, FileText, BookOpen, FileArchive,
+  DollarSign, Download, AlertTriangle,
 } from 'lucide-react';
 import { LAST_VISIT_KEY } from '@/features/safeLinkNote/SafeLinkNoteContext';
 import styles from './NotificacionesPage.module.css';
@@ -86,6 +87,41 @@ function getEventConfig(tipo: EventoTipo): EventConfig {
         label: 'Nuevo archivo .sln recibido',
         description: 'Se recibió un nuevo archivo de SafeLink Note listo para importar.',
         isSln: true,
+      };
+    case 'factura_cargada':
+      return {
+        icon: DollarSign,
+        color: '#059669',
+        bgColor: 'rgba(5, 150, 105, 0.12)',
+        label: 'Nueva factura cargada',
+      };
+    case 'factura_descargada':
+      return {
+        icon: Download,
+        color: '#3b82f6',
+        bgColor: 'rgba(59, 130, 246, 0.12)',
+        label: 'descargó la factura',
+      };
+    case 'factura_compartida':
+      return {
+        icon: Share2,
+        color: '#8b5cf6',
+        bgColor: 'rgba(139, 92, 246, 0.12)',
+        label: 'Factura compartida correctamente',
+      };
+    case 'factura_proxima_vencer':
+      return {
+        icon: AlertTriangle,
+        color: '#f59e0b',
+        bgColor: 'rgba(245, 158, 11, 0.12)',
+        label: 'Factura próxima a vencer',
+      };
+    case 'factura_pagada':
+      return {
+        icon: CheckCircle2,
+        color: '#22c55e',
+        bgColor: 'rgba(34, 197, 94, 0.12)',
+        label: 'Factura marcada como pagada',
       };
     default:
       return {

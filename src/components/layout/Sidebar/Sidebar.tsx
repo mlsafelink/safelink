@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Building, FileText, LogOut, UserCheck, Bell, StickyNote, Bot } from 'lucide-react';
+import { LayoutDashboard, Building2, Building, FileText, LogOut, UserCheck, Bell, StickyNote, Bot, DollarSign } from 'lucide-react';
 import logoImg from '@/assets/logo.png';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useSafeLinkNote } from '@/features/safeLinkNote/SafeLinkNoteContext';
@@ -56,6 +56,14 @@ export function Sidebar() {
         >
           <FileText size={20} />
           <span>Documentos</span>
+        </NavLink>
+
+        <NavLink 
+          to="/finanzas" 
+          className={({ isActive }) => clsx(styles.navItem, isActive && styles.active)}
+        >
+          <DollarSign size={20} />
+          <span>Finanzas</span>
         </NavLink>
 
         <NavLink 

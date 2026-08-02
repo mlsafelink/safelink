@@ -4,9 +4,10 @@ import { adminService } from '@/services/adminService';
 import { consorcioService } from '@/services/consorcioService';
 import { particularService } from '@/services/particularService';
 import { reporteService, presupuestoService, instructivoService } from '@/services/documentService';
+import { facturaService } from '@/services/facturaService';
 import { Card } from '@/components/ui/Card/Card';
 import { Button } from '@/components/ui/Button/Button';
-import { Building2, Building, FileText, ClipboardList, BookOpen, UserCheck, Plus } from 'lucide-react';
+import { Building2, Building, FileText, ClipboardList, BookOpen, UserCheck, Plus, DollarSign } from 'lucide-react';
 import styles from './Dashboard.module.css';
 
 function StatCard({ title, value, icon: Icon, color }: {
@@ -63,6 +64,11 @@ export function Dashboard() {
     queryFn: instructivoService.getAll,
   });
 
+  const { data: facturas = [] } = useQuery({
+    queryKey: ['facturas'],
+    queryFn: facturaService.getAll,
+  });
+
   const recentDocs = [
     ...reportes.map(r => ({ tipo: 'Reporte', titulo: r.titulo, fecha: r.created_at, color: '#d69e2e' })),
     ...presupuestos.map(p => ({ tipo: 'Presupuesto', titulo: p.titulo, fecha: p.created_at, color: '#805ad5' })),
@@ -86,6 +92,7 @@ export function Dashboard() {
         <StatCard title="Reportes"          value={reportes.length}         icon={ClipboardList} color="#d69e2e" />
         <StatCard title="Presupuestos"      value={presupuestos.length}     icon={FileText}      color="#805ad5" />
         <StatCard title="Instructivos"      value={instructivos.length}     icon={BookOpen}      color="#e53e3e" />
+        <StatCard title="Facturas"          value={facturas.length}         icon={DollarSign}    color="#059669" />
       </div>
 
       {/* Acciones rápidas */}

@@ -1,0 +1,427 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  border: none;
+  background: var(--bg-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-light);
+  color: var(--text-secondary);
+  font-family: var(--font-family);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.backBtn:hover {
+  color: var(--text-primary);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.header h1 {
+  font-size: 1.75rem;
+  color: var(--text-primary);
+}
+
+.header p {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  margin-top: 0.2rem;
+}
+
+/* Form layout */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sideColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Sections */
+.section {
+  padding: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .fieldsGrid { grid-template-columns: 1fr; }
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.fieldGroupFull {
+  grid-column: 1 / -1;
+}
+
+/* Inputs */
+.label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.input,
+.select,
+.textarea {
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--glass-border);
+  background: var(--bg-color);
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-inset);
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--primary-color);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.select {
+  cursor: pointer;
+}
+
+/* Monto */
+.montoWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--glass-border);
+  background: var(--bg-color);
+  box-shadow: var(--shadow-inset);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.montoWrapper:focus-within {
+  border-color: var(--primary-color);
+}
+
+.montoPrefix {
+  padding: 0.6rem 0.7rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: rgba(0,0,0,0.04);
+  border-right: 1px solid var(--glass-border);
+  user-select: none;
+}
+
+.montoInput {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  flex: 1;
+}
+
+/* Tipo buttons */
+.tipoGroup {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tipoBtn {
+  flex: 1;
+  padding: 0.55rem 0;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--glass-border);
+  background: var(--bg-color);
+  box-shadow: var(--shadow-light);
+  font-family: var(--font-family);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tipoBtn:hover {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.tipoBtnActive {
+  background: var(--primary-color) !important;
+  color: white !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.35) !important;
+}
+
+/* Estado buttons */
+.estadoGroup {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.estadoBtn {
+  flex: 1;
+  padding: 0.5rem 0;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--glass-border);
+  background: var(--bg-color);
+  box-shadow: var(--shadow-light);
+  font-family: var(--font-family);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.estadoBtn:hover { color: var(--text-primary); }
+
+.estadoBtn[data-estado="pendiente"].estadoBtnActive {
+  background: rgba(239,68,68,0.1);
+  color: #ef4444;
+  border-color: rgba(239,68,68,0.4);
+}
+
+.estadoBtn[data-estado="parcial"].estadoBtnActive {
+  background: rgba(245,158,11,0.1);
+  color: #d97706;
+  border-color: rgba(245,158,11,0.4);
+}
+
+.estadoBtn[data-estado="pagado"].estadoBtnActive {
+  background: rgba(34,197,94,0.1);
+  color: #15803d;
+  border-color: rgba(34,197,94,0.4);
+}
+
+/* PDF section */
+.pdfSection {
+  padding: 1.25rem;
+}
+
+.pdfHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  color: var(--primary-color);
+}
+
+.pdfSubtitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.pdfExisting {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: #15803d;
+  background: rgba(34,197,94,0.08);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  border: 1px solid rgba(34,197,94,0.2);
+}
+
+/* Dropzone */
+.dropzone {
+  border: 2px dashed var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(255,255,255,0.2);
+}
+
+.dropzone:hover {
+  border-color: var(--primary-color);
+  background: rgba(49,130,206,0.04);
+}
+
+.dropzoneOver {
+  border-color: var(--primary-color);
+  background: rgba(49,130,206,0.06);
+  transform: scale(1.01);
+}
+
+.dropzoneFilled {
+  border-style: solid;
+  border-color: var(--primary-color);
+  background: rgba(49,130,206,0.05);
+}
+
+.dropzoneEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.uploadIcon {
+  color: var(--text-secondary);
+  opacity: 0.5;
+  margin-bottom: 0.25rem;
+}
+
+.dropzoneOr {
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+
+.dropzoneHint {
+  font-size: 0.72rem;
+  opacity: 0.5;
+  margin-top: 0.25rem;
+}
+
+.pdfFilePreview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: left;
+}
+
+.pdfFileName {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.pdfFileSize {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.1rem;
+}
+
+.pdfRemove {
+  margin-left: auto;
+  background: rgba(239,68,68,0.1);
+  border: none;
+  border-radius: 6px;
+  color: #ef4444;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.pdfRemove:hover { background: rgba(239,68,68,0.2); }
+
+.pdfError {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: #ef4444;
+  margin-top: 0.5rem;
+}
+
+.pdfStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: #15803d;
+  margin-top: 0.5rem;
+}
+
+.pdfViewLink {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+/* Form actions */
+.formActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.formActions > * {
+  flex: 1;
+}
+
+/* Error card */
+.errorCard {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.85rem;
+  color: #ef4444;
+  background: rgba(254,242,242,0.9) !important;
+  border: 1px solid rgba(239,68,68,0.2);
+}

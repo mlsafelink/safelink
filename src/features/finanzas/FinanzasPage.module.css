@@ -1,0 +1,383 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 2rem;
+  color: var(--text-primary);
+}
+
+.header p {
+  color: var(--text-secondary);
+  margin-top: 0.15rem;
+}
+
+.headerIcon {
+  color: var(--primary-color);
+}
+
+/* Filters card */
+.filtersCard {
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.searchWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-color);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.85rem;
+  box-shadow: var(--shadow-inset);
+}
+
+.searchIcon {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: var(--text-secondary);
+}
+
+.filterBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.filtrosRow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filtroBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 20px;
+  border: 1.5px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-family);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filtroBtn:hover {
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--text-primary);
+}
+
+.filtroBtnActive {
+  background: var(--bg-color);
+  box-shadow: var(--shadow-inset);
+  font-weight: 600;
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.filtroCount {
+  background: rgba(0, 0, 0, 0.07);
+  padding: 0.05rem 0.4rem;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* Table */
+.tableCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table thead tr {
+  background: rgba(255, 255, 255, 0.3);
+  border-bottom: 1.5px solid var(--glass-border);
+}
+
+.table th {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.tableRow {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  transition: background 0.15s;
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableRow:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.table td {
+  padding: 0.8rem 1rem;
+  color: var(--text-primary);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.tdNumero { font-weight: 600; }
+
+.numFactura {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.82rem;
+  background: var(--bg-color);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  box-shadow: var(--shadow-inset);
+  color: var(--primary-color);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.tipoBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.tdNombre {
+  font-weight: 500;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tdAdmin {
+  color: var(--text-secondary);
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tdVencida {
+  color: #ef4444 !important;
+  font-weight: 600;
+}
+
+.tdMonto {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.estadoBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tdPdf {
+  text-align: center;
+}
+
+.pdfLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: var(--primary-color);
+  background: rgba(49, 130, 206, 0.1);
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.pdfLink:hover {
+  background: rgba(49, 130, 206, 0.2);
+  transform: translateY(-1px);
+}
+
+.noPdf {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: var(--bg-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-light);
+}
+
+.actionBtn:hover {
+  transform: translateY(-1px);
+}
+
+.btnVer:hover       { color: #3182ce; border-color: rgba(49,130,206,0.3); background: rgba(49,130,206,0.07); }
+.btnDownload:hover  { color: #059669; border-color: rgba(5,150,105,0.3); background: rgba(5,150,105,0.07); }
+.btnShare:hover     { color: #8b5cf6; border-color: rgba(139,92,246,0.3); background: rgba(139,92,246,0.07); }
+.btnShareActive     { color: white !important; background: #22c55e !important; border-color: #22c55e !important; }
+.btnEdit:hover      { color: #d97706; border-color: rgba(217,119,6,0.3); background: rgba(217,119,6,0.07); }
+.btnDelete:hover    { color: #ef4444; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.07); }
+
+.deleteConfirm {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-md);
+  background: rgba(254,242,242,0.9);
+  border: 1px solid rgba(239,68,68,0.2);
+  backdrop-filter: blur(8px);
+}
+
+.confirmText {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.btnConfirmYes {
+  color: white !important;
+  background: #ef4444 !important;
+  border-color: #ef4444 !important;
+}
+
+.btnConfirmNo {
+  color: var(--text-secondary) !important;
+}
+
+/* Empty state */
+.emptyCard {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.emptyIcon {
+  color: var(--text-secondary);
+  opacity: 0.4;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+/* Totales */
+.totalesRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.totalCard {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.25rem;
+}
+
+.totalCard svg {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.totalCard p {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.15rem;
+}
+
+.totalCard strong {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}

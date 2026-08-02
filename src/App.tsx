@@ -16,6 +16,8 @@ import { PublicReporteTrabajoViewer } from '@/features/public/PublicReporteTraba
 import { SafeLinkNotePage } from '@/features/safeLinkNote/SafeLinkNotePage';
 import { SafeLinkIAPage } from '@/features/safeLinkIA/SafeLinkIAPage';
 import { SafeLinkNoteProvider } from '@/features/safeLinkNote/SafeLinkNoteContext';
+import { FinanzasPage } from '@/features/finanzas/FinanzasPage';
+import { PublicFacturaViewer } from '@/features/public/PublicFacturaViewer';
 
 function App() {
   return (
@@ -26,6 +28,7 @@ function App() {
         <Route path="/p/presupuesto/:publicId" element={<PublicPresupuestoViewer />} />
         <Route path="/p/instructivo/:publicId" element={<PublicInstructivoViewer />} />
         <Route path="/p/reporte-trabajo/:publicId" element={<PublicReporteTrabajoViewer />} />
+        <Route path="/p/factura/:publicId" element={<PublicFacturaViewer />} />
 
         {/* ---- AUTENTICACIÓN ---- */}
         <Route path="/login" element={<Login />} />
@@ -38,6 +41,7 @@ function App() {
             <Route path="/consorcios"     element={<ConsorcioPage />} />
             <Route path="/clientes"       element={<ParticularPage />} />
             <Route path="/documentos"     element={<DocumentPage />} />
+            <Route path="/finanzas"       element={<FinanzasPage />} />
             <Route path="/notificaciones" element={<NotificacionesPage />} />
             <Route path="/safelink-note"  element={<SafeLinkNotePage />} />
             <Route path="/safelink-ia"    element={<SafeLinkIAPage />} />
