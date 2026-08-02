@@ -5,8 +5,9 @@ import { reporteTrabajoService } from '@/services/documentService';
 import {
   Calendar, Building, Shield, FileText,
   Cpu, CheckSquare, Wrench, Image,
-  User, CheckCircle2, Share2, Download, Layers, ClipboardList
+  User, CheckCircle2, Share2, Download, Layers, ClipboardList, X, ExternalLink
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { ReporteTrabajoPDF } from '@/components/pdf/DocumentPDFs';
 import styles from './ReporteViewer.module.css';
@@ -14,6 +15,7 @@ import styles from './ReporteViewer.module.css';
 export function PublicReporteTrabajoViewer() {
   const { publicId } = useParams<{ publicId: string }>();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const { data: reporteTrabajo, isLoading, isError } = useQuery({
     queryKey: ['public-reporte-trabajo', publicId],
@@ -290,7 +292,12 @@ export function PublicReporteTrabajoViewer() {
             </div>
             <div className={styles.galleryGrid}>
               {reporteTrabajo.fotografias.map((url, idx) => (
-                <div key={idx} className={styles.galleryItem}>
+                <div
+                  key={idx}
+                  className={styles.galleryItem}
+                  onClick={() => setSelectedImage(url)}
+                  style={{ cursor: 'zoom-in' }}
+                >
                   <img src={url} alt={`Trabajo ${idx + 1}`} className={styles.galleryImg} />
                 </div>
               ))}
@@ -323,6 +330,74 @@ export function PublicReporteTrabajoViewer() {
       <footer className={styles.footer}>
         <p>SafeLink Cloud · Soluciones Inteligentes para tu Seguridad</p>
       </footer>
+
+      {/* ── LIGHTBOX ── */}
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            key="lightbox"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setSelectedImage(null)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 9999,
+              background: 'rgba(0,0,0,0.88)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: '1.5rem',
+            }}
+          >
+            {/* Botones de control */}
+            <div
+              style={{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex', gap: '0.5rem' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <a
+                href={selectedImage}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: '2.25rem', height: '2.25rem', borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.15)', color: '#fff',
+                  textDecoration: 'none',
+                }}
+              >
+                <ExternalLink size={16} />
+              </a>
+              <button
+                onClick={() => setSelectedImage(null)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: '2.25rem', height: '2.25rem', borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.15)', color: '#fff',
+                  border: 'none', cursor: 'pointer',
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Imagen ampliada */}
+            <motion.img
+              src={selectedImage}
+              alt="Fotografía ampliada"
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                maxWidth: '90vw', maxHeight: '88vh',
+                borderRadius: '12px',
+                boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
+                objectFit: 'contain',
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
