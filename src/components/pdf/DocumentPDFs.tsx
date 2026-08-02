@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
-import { type Reporte, type Presupuesto, type Instructivo, type ReporteTrabajo } from '@/services/documentService';
+import { type Reporte, type Presupuesto, type Instructivo } from '@/services/documentService';
 
 const styles = StyleSheet.create({
   page: {
@@ -74,34 +74,98 @@ const styles = StyleSheet.create({
     color: '#2d3748',
     textAlign: 'justify',
   },
+  // Table styles for budget
+  table: {
+    width: 'auto',
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderBottomWidth: 0,
+    marginVertical: 10,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomColor: '#e2e8f0',
+    borderBottomWidth: 1,
+    alignItems: 'center',
+    minHeight: 24,
+  },
+  tableHeaderRow: {
+    backgroundColor: '#f7fafc',
+  },
+  tableCellDesc: {
+    width: '50%',
+    paddingLeft: 8,
+    fontSize: 9,
+  },
+  tableCellQty: {
+    width: '15%',
+    textAlign: 'center',
+    fontSize: 9,
+  },
+  tableCellPrice: {
+    width: '18%',
+    textAlign: 'right',
+    paddingRight: 8,
+    fontSize: 9,
+  },
+  tableCellSubtotal: {
+    width: '17%',
+    textAlign: 'right',
+    paddingRight: 8,
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
   totalsBlock: {
+    alignItems: 'flex-end',
     marginTop: 15,
+    paddingRight: 8,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+    fontSize: 9,
+  },
+  totalLabel: {
+    width: 120,
+    textAlign: 'right',
+    color: '#718096',
+  },
+  totalValue: {
+    width: 100,
+    textAlign: 'right',
+    color: '#2d3748',
   },
   grandTotalRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingTop: 5,
+    marginTop: 6,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    fontSize: 11,
+    fontWeight: 'bold',
   },
   grandTotalLabel: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#2b6cb0',
+    width: 120,
+    textAlign: 'right',
+    color: '#1a202c',
   },
   grandTotalValue: {
+    width: 100,
+    textAlign: 'right',
+    color: '#3182ce',
+  },
+  // Blocks for instructivos
+  blockTitle: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#2b6cb0',
-  },
-  blockTitle: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#2b6cb0',
+    color: '#2d3748',
     marginTop: 10,
-    marginBottom: 4,
+    marginBottom: 5,
   },
   blockText: {
     fontSize: 9.5,
-    color: '#2d3748',
+    color: '#4a5568',
     marginBottom: 8,
     textAlign: 'justify',
   },
@@ -131,7 +195,6 @@ const fmt = (n: number) => n.toLocaleString('es-AR', { style: 'currency', curren
 export function ReportePDF({ reporte }: { reporte: Reporte }) {
   const consorcioNombre = reporte.consorcios?.nombre || 'N/A';
   const adminNombre = reporte.consorcios?.administraciones?.nombre || 'N/A';
-  const codigoDoc = reporte.codigo || `RT-${reporte.id.slice(0, 8).toUpperCase()}`;
 
   return (
     <Document>
@@ -139,7 +202,7 @@ export function ReportePDF({ reporte }: { reporte: Reporte }) {
         <View style={styles.header}>
           <View>
             <Text style={styles.brandName}>SafeLink</Text>
-            <Text style={styles.docTypeName}>Reporte Técnico ({codigoDoc})</Text>
+            <Text style={styles.docTypeName}>Reporte Técnico</Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <Text style={{ color: '#718096' }}>Fecha: {reporte.fecha}</Text>
@@ -149,11 +212,7 @@ export function ReportePDF({ reporte }: { reporte: Reporte }) {
 
         <View style={styles.metaBlock}>
           <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Código Único:</Text>
-            <Text style={[styles.metaValue, { fontWeight: 'bold', color: '#d97706' }]}>{codigoDoc}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Consorcio/Cliente:</Text>
+            <Text style={styles.metaLabel}>Consorcio:</Text>
             <Text style={styles.metaValue}>{consorcioNombre}</Text>
           </View>
           <View style={styles.metaRow}>
@@ -197,8 +256,7 @@ export function ReportePDF({ reporte }: { reporte: Reporte }) {
 export function PresupuestoPDF({ presupuesto }: { presupuesto: Presupuesto }) {
   const consorcioNombre = presupuesto.consorcios?.nombre || 'N/A';
   const adminNombre = presupuesto.consorcios?.administraciones?.nombre || 'N/A';
-  const codigoDoc = presupuesto.codigo || `PRES-${presupuesto.id.slice(0, 8).toUpperCase()}`;
-  const reporteAsociadoCodigo = presupuesto.reportes?.codigo || null;
+
 
   return (
     <Document>
@@ -206,7 +264,7 @@ export function PresupuestoPDF({ presupuesto }: { presupuesto: Presupuesto }) {
         <View style={styles.header}>
           <View>
             <Text style={styles.brandName}>SafeLink</Text>
-            <Text style={styles.docTypeName}>Presupuesto Comercial ({codigoDoc})</Text>
+            <Text style={styles.docTypeName}>Presupuesto</Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <Text style={{ color: '#718096' }}>Fecha: {presupuesto.fecha}</Text>
@@ -216,35 +274,15 @@ export function PresupuestoPDF({ presupuesto }: { presupuesto: Presupuesto }) {
 
         <View style={styles.metaBlock}>
           <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Código Presupuesto:</Text>
-            <Text style={[styles.metaValue, { fontWeight: 'bold', color: '#2b6cb0' }]}>{codigoDoc}</Text>
-          </View>
-          {reporteAsociadoCodigo && (
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Reporte Base:</Text>
-              <Text style={[styles.metaValue, { fontWeight: 'bold', color: '#d97706' }]}>{reporteAsociadoCodigo}</Text>
-            </View>
-          )}
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Consorcio/Cliente:</Text>
+            <Text style={styles.metaLabel}>Consorcio:</Text>
             <Text style={styles.metaValue}>{consorcioNombre}</Text>
           </View>
           <View style={styles.metaRow}>
             <Text style={styles.metaLabel}>Administración:</Text>
             <Text style={styles.metaValue}>{adminNombre}</Text>
           </View>
-        </View>
-
-        <Text style={styles.title}>{presupuesto.titulo}</Text>
-
-        {reporteAsociadoCodigo && (
-          <View style={[styles.section, { padding: 8, backgroundColor: '#fef3c7', borderRadius: 4, marginBottom: 15 }]}>
-            <Text style={{ fontSize: 9, color: '#92400e' }}>
-              Este presupuesto fue elaborado tomando como base el Reporte Técnico: {reporteAsociadoCodigo}
-            </Text>
-          </View>
-        )}
-
+          <Text style={styles.title}>{presupuesto.titulo}</Text>
+        
         {presupuesto.descripcion && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Descripción de los Trabajos</Text>
@@ -258,6 +296,7 @@ export function PresupuestoPDF({ presupuesto }: { presupuesto: Presupuesto }) {
             <Text style={styles.grandTotalValue}>{fmt(presupuesto.total)}</Text>
           </View>
         </View>
+      </View>
 
         <View style={{ marginTop: 20 }}>
           {presupuesto.validez && (
@@ -288,71 +327,20 @@ export function PresupuestoPDF({ presupuesto }: { presupuesto: Presupuesto }) {
           </View>
         )}
 
-        <View style={styles.footer} fixed>
-          <Text>SafeLink — Propuesta Comercial Inteligente</Text>
-          <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+        <View style={[styles.section, { marginTop: 15 }]}>
+          <Text style={[styles.sectionTitle, { fontSize: 10, color: '#2b6cb0' }]}>Términos y Condiciones</Text>
+          <Text style={[styles.sectionBody, { fontSize: 7.5, color: '#4a5568', lineHeight: 1.4 }]}>
+            • Validez del presupuesto: El presente presupuesto tiene una validez de 15 días corridos desde su fecha de emisión, salvo indicación expresa en contrario.{"\n"}
+            • Forma de pago: Para dar inicio a los trabajos podrá requerirse un anticipo destinado a la compra de materiales. El saldo restante deberá abonarse según las condiciones acordadas.{"\n"}
+            • Plazos de ejecución: Los tiempos estimados de ejecución podrán variar por condiciones climáticas, disponibilidad de materiales, acceso al lugar u otros factores ajenos.{"\n"}
+            • Alcance del trabajo: El presupuesto incluye únicamente las tareas, materiales y servicios detallados. Cualquier modificación adicional será presupuestada por separado.{"\n"}
+            • Garantía: Los trabajos realizados cuentan con garantía sobre la mano de obra ejecutada. No cubre daños por terceros, mal uso, vandalismo o suministro eléctrico.{"\n"}
+            • Aceptación: La aceptación del presente presupuesto implica la conformidad con las tareas detalladas y con los presentes términos y condiciones.
+          </Text>
         </View>
-      </Page>
-    </Document>
-  );
-}
-
-export function ReporteTrabajoPDF({ reporte }: { reporte: ReporteTrabajo }) {
-  const consorcioNombre = reporte.consorcios?.nombre || 'N/A';
-  const clienteNombre = reporte.cliente_nombre || consorcioNombre;
-  const codigoDoc = reporte.codigo || `RTE-${reporte.id.slice(0, 8).toUpperCase()}`;
-
-  return (
-    <Document>
-      <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.brandName}>SafeLink</Text>
-            <Text style={styles.docTypeName}>Reporte de Trabajo Efectuado ({codigoDoc})</Text>
-          </View>
-          <View style={{ alignItems: 'flex-end' }}>
-            <Text style={{ color: '#718096' }}>Fecha: {reporte.fecha}</Text>
-            <Text style={{ color: '#a0aec0', marginTop: 2 }}>v{reporte.version}</Text>
-          </View>
-        </View>
-
-        <View style={styles.metaBlock}>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Código Único:</Text>
-            <Text style={[styles.metaValue, { fontWeight: 'bold', color: '#10b981' }]}>{codigoDoc}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Cliente/Consorcio:</Text>
-            <Text style={styles.metaValue}>{clienteNombre}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Técnico Responsable:</Text>
-            <Text style={styles.metaValue}>{reporte.tecnico_nombre || 'Técnico SafeLink'}</Text>
-          </View>
-        </View>
-
-        <Text style={styles.title}>{reporte.titulo}</Text>
-
-        {[
-          { key: 'descripcion_trabajos', label: 'Trabajos Efectuados' },
-          { key: 'equipamiento_instalado', label: 'Equipamiento Instalado' },
-          { key: 'materiales_utilizados', label: 'Materiales Utilizados' },
-          { key: 'configuraciones_realizadas', label: 'Configuraciones Realizadas' },
-          { key: 'observaciones', label: 'Observaciones' },
-          { key: 'garantia', label: 'Garantía del Servicio' },
-        ].map((sec) => {
-          const content = (reporte as any)[sec.key];
-          if (!content || String(content).trim() === '') return null;
-          return (
-            <View key={sec.key} style={styles.section}>
-              <Text style={styles.sectionTitle}>{sec.label}</Text>
-              <Text style={styles.sectionBody}>{content}</Text>
-            </View>
-          );
-        })}
 
         <View style={styles.footer} fixed>
-          <Text>SafeLink — Certificación de Trabajo Finalizado</Text>
+          <Text>SafeLink — Gestión Técnica de Consorcios</Text>
           <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
         </View>
       </Page>
