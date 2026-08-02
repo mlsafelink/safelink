@@ -240,6 +240,29 @@
   white-space: nowrap;
 }
 
+.estadoSelectWrapper {
+  display: inline-flex;
+  align-items: center;
+}
+
+.estadoSelect {
+  padding: 0.25rem 0.55rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1.5px solid transparent;
+  outline: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: all 0.2s;
+  appearance: auto;
+}
+
+.estadoSelect:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
 .tdPdf {
   text-align: center;
 }
@@ -300,6 +323,18 @@
 .btnShareActive     { color: white !important; background: #22c55e !important; border-color: #22c55e !important; }
 .btnEdit:hover      { color: #d97706; border-color: rgba(217,119,6,0.3); background: rgba(217,119,6,0.07); }
 .btnDelete:hover    { color: #ef4444; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.07); }
+
+.btnQuickPay:hover {
+  color: white !important;
+  background: #22c55e !important;
+  border-color: #22c55e !important;
+}
+
+.btnQuickPending:hover {
+  color: white !important;
+  background: #ef4444 !important;
+  border-color: #ef4444 !important;
+}
 
 .deleteConfirm {
   display: flex;

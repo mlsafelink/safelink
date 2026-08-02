@@ -82,6 +82,30 @@ export function FinanzasPage() {
     },
   });
 
+  const updateEstadoMutation = useMutation({
+    mutationFn: async ({ id, nuevoEstado, factura }: { id: string; nuevoEstado: FacturaEstado; factura: Factura }) => {
+      const updates: any = { estado: nuevoEstado };
+      if (nuevoEstado === 'pagado') {
+        updates.fecha_pago = new Date().toISOString().split('T')[0];
+      } else {
+        updates.fecha_pago = null;
+      }
+      await facturaService.update(id, updates);
+
+      if (nuevoEstado === 'pagado') {
+        await notificacionService.create({
+          tipo: 'factura_pagada',
+          cliente_nombre: (factura.consorcios as any)?.nombre ?? null,
+          consorcio_nombre: (factura.consorcios as any)?.nombre ?? null,
+          detalles: { numero_factura: factura.numero_factura },
+        }).catch(console.error);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['facturas'] });
+    },
+  });
+
   // Filtro local
   const facturasFiltradas = useMemo(() => {
     let result = facturas;
@@ -265,13 +289,23 @@ export function FinanzasPage() {
                         </td>
                         <td className={styles.tdMonto}>{formatMonto(f.monto_total)}</td>
                         <td>
-                          <span
-                            className={styles.estadoBadge}
-                            style={{ color: est.color, background: est.bg }}
-                          >
-                            <EstIcon size={12} />
-                            {est.label}
-                          </span>
+                          <div className={styles.estadoSelectWrapper}>
+                            <select
+                              className={styles.estadoSelect}
+                              style={{ color: est.color, backgroundColor: est.bg, borderColor: est.color }}
+                              value={f.estado}
+                              onChange={(e) => {
+                                const newEst = e.target.value as FacturaEstado;
+                                updateEstadoMutation.mutate({ id: f.id, nuevoEstado: newEst, factura: f });
+                              }}
+                              disabled={updateEstadoMutation.isPending}
+                              title="Cambiar estado del pago"
+                            >
+                              <option value="pendiente" style={{ color: '#ef4444', backgroundColor: '#fff' }}>🔴 Pendiente</option>
+                              <option value="parcial" style={{ color: '#d97706', backgroundColor: '#fff' }}>🟡 Parcial</option>
+                              <option value="pagado" style={{ color: '#15803d', backgroundColor: '#fff' }}>🟢 Pagado</option>
+                            </select>
+                          </div>
                         </td>
                         <td className={styles.tdPdf}>
                           {f.pdf_url ? (
@@ -321,6 +355,25 @@ export function FinanzasPage() {
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                               >
+                                {f.estado === 'pagado' ? (
+                                  <button
+                                    className={`${styles.actionBtn} ${styles.btnQuickPending}`}
+                                    onClick={() => updateEstadoMutation.mutate({ id: f.id, nuevoEstado: 'pendiente', factura: f })}
+                                    title="Marcar como Pendiente"
+                                    disabled={updateEstadoMutation.isPending}
+                                  >
+                                    <XCircle size={14} />
+                                  </button>
+                                ) : (
+                                  <button
+                                    className={`${styles.actionBtn} ${styles.btnQuickPay}`}
+                                    onClick={() => updateEstadoMutation.mutate({ id: f.id, nuevoEstado: 'pagado', factura: f })}
+                                    title="Marcar como Pagada"
+                                    disabled={updateEstadoMutation.isPending}
+                                  >
+                                    <CheckCircle2 size={14} />
+                                  </button>
+                                )}
                                 <button
                                   className={`${styles.actionBtn} ${styles.btnVer}`}
                                   onClick={() => handleVer(f.id)}
