@@ -262,7 +262,6 @@ export function FinanzasPage() {
                 <AnimatePresence>
                   {facturasFiltradas.map((f, i) => {
                     const est = getEstadoConfig(isVencida(f) && f.estado !== 'pagado' ? 'vencida' : f.estado);
-                    const EstIcon = est.icon;
                     const consorcioNombre = (f.consorcios as any)?.nombre ?? '—';
                     const adminNombre = (f.consorcios as any)?.administraciones?.nombre ?? '—';
 
