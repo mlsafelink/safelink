@@ -37,6 +37,19 @@ CREATE TABLE IF NOT EXISTS reportes_trabajo (
     deleted_at TIMESTAMPTZ
 );
 
+-- Enable RLS & policies for reportes_trabajo
+ALTER TABLE reportes_trabajo ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admin All ReportesTrabajo" ON reportes_trabajo;
+DROP POLICY IF EXISTS "Public Read ReportesTrabajo" ON reportes_trabajo;
+DROP POLICY IF EXISTS "Anon Insert ReportesTrabajo" ON reportes_trabajo;
+DROP POLICY IF EXISTS "Anon Update ReportesTrabajo" ON reportes_trabajo;
+
+CREATE POLICY "Admin All ReportesTrabajo" ON reportes_trabajo FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Public Read ReportesTrabajo" ON reportes_trabajo FOR SELECT TO anon USING (deleted_at IS NULL);
+CREATE POLICY "Anon Insert ReportesTrabajo" ON reportes_trabajo FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Anon Update ReportesTrabajo" ON reportes_trabajo FOR UPDATE TO anon USING (true) WITH CHECK (true);
+
 -- 1. Nueva tabla facturas
 CREATE TABLE IF NOT EXISTS facturas (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
