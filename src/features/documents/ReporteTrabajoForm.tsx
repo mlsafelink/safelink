@@ -12,7 +12,7 @@ import { Select } from '@/components/ui/Select/Select';
 import { Card } from '@/components/ui/Card/Card';
 import {
   ArrowLeft, Save, FileText, Cpu, CheckSquare, Wrench,
-  Camera, Shield, UserCheck, Trash2
+  Camera, Shield, UserCheck, Trash2, CheckCircle2, AlertCircle
 } from 'lucide-react';
 import { ImageUploader } from '@/components/ui/ImageUploader/ImageUploader';
 import styles from './DocForm.module.css';
@@ -59,6 +59,8 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
   const isEditing = !!editingId;
   const [fotografias, setFotografias] = useState<string[]>([]);
   const [activeStep, setActiveStep] = useState('general');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const { data: consorcios = [] } = useQuery({
     queryKey: ['consorcios'],
@@ -78,6 +80,12 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
   const { data: reportes = [] } = useQuery({
     queryKey: ['reportes'],
     queryFn: reporteService.getAll,
+  });
+
+  const { data: reportesTrabajo = [] } = useQuery({
+    queryKey: ['reportes_trabajo'],
+    queryFn: reporteTrabajoService.getAll,
+    enabled: isEditing,
   });
 
   const clienteOptions = [
@@ -115,14 +123,8 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
     },
   });
 
-  const { data: reportesTrabajo } = useQuery({
-    queryKey: ['reportes_trabajo'],
-    queryFn: reporteTrabajoService.getAll,
-    enabled: isEditing,
-  });
-
   useEffect(() => {
-    if (isEditing && reportesTrabajo) {
+    if (isEditing && reportesTrabajo.length > 0) {
       const doc = reportesTrabajo.find(x => x.id === editingId);
       if (doc) {
         reset({
@@ -152,6 +154,7 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
 
   const mutation = useMutation({
     mutationFn: async (data: ReporteTrabajoFormData) => {
+      setErrorMsg('');
       const selectedConsorcio = consorcios.find(c => c.id === data.consorcio_id);
       const selectedParticular = particulares.find(p => p.id === data.consorcio_id);
       const clienteNombre = data.cliente_nombre || selectedConsorcio?.nombre || selectedParticular?.nombre || 'Cliente';
@@ -170,7 +173,14 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reportes_trabajo'] });
-      onBack();
+      setSuccessMsg(isEditing ? '¡Reporte actualizado con éxito!' : '¡Reporte creado con éxito!');
+      setTimeout(() => {
+        onBack();
+      }, 1500);
+    },
+    onError: (err: Error) => {
+      console.error(err);
+      setErrorMsg(err.message || 'Error al guardar el reporte de trabajo.');
     },
   });
 
@@ -190,6 +200,43 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
         </Button>
         <h2>{isEditing ? 'Editar Reporte de Trabajo' : 'Nuevo Reporte de Trabajo Efectuado (RTE)'}</h2>
       </div>
+
+      {successMsg && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.6rem',
+          padding: '0.85rem 1.25rem',
+          borderRadius: '12px',
+          background: 'rgba(34, 197, 94, 0.12)',
+          border: '1px solid rgba(34, 197, 94, 0.3)',
+          color: '#15803d',
+          fontWeight: 700,
+          fontSize: '0.92rem',
+          boxShadow: '0 4px 12px rgba(34, 197, 94, 0.15)',
+        }}>
+          <CheckCircle2 size={20} />
+          <span>{successMsg}</span>
+        </div>
+      )}
+
+      {errorMsg && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.6rem',
+          padding: '0.85rem 1.25rem',
+          borderRadius: '12px',
+          background: 'rgba(239, 68, 68, 0.12)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          color: '#b91c1c',
+          fontWeight: 600,
+          fontSize: '0.88rem',
+        }}>
+          <AlertCircle size={20} />
+          <span>{errorMsg}</span>
+        </div>
+      )}
 
       <div className={styles.stepperNav}>
         {STEPS.map(step => {

@@ -376,9 +376,13 @@ export const reporteTrabajoService = {
     if (!reporteTrabajo.codigo) {
       reporteTrabajo.codigo = await generateUniqueDocCode('RTE', 'reportes_trabajo');
     }
+    const payload: any = { ...reporteTrabajo };
+    if (!payload.presupuesto_id || payload.presupuesto_id === '') delete payload.presupuesto_id;
+    if (!payload.reporte_id || payload.reporte_id === '') delete payload.reporte_id;
+
     const { data, error } = await supabase
       .from('reportes_trabajo')
-      .insert(reporteTrabajo)
+      .insert(payload)
       .select()
       .single();
     if (error) throw error;
@@ -386,9 +390,13 @@ export const reporteTrabajoService = {
   },
 
   async update(id: string, reporteTrabajo: Partial<ReporteTrabajo>) {
+    const payload: any = { ...reporteTrabajo };
+    if (!payload.presupuesto_id || payload.presupuesto_id === '') payload.presupuesto_id = null;
+    if (!payload.reporte_id || payload.reporte_id === '') payload.reporte_id = null;
+
     const { data, error } = await supabase
       .from('reportes_trabajo')
-      .update(reporteTrabajo)
+      .update(payload)
       .eq('id', id)
       .select()
       .single();
