@@ -329,42 +329,25 @@ export const presupuestoService = {
 
 export const reporteTrabajoService = {
   async getAll() {
-    let { data, error } = await supabase
+    const { data, error } = await supabase
       .from('reportes_trabajo')
-      .select(`*, consorcios (nombre, direccion, administraciones (nombre)), presupuestos (id, codigo, titulo, public_id), reportes (id, codigo, titulo, public_id)`)
+      .select(`*, consorcios (nombre, direccion, administraciones (nombre)), presupuestos (id, codigo, titulo, public_id)`)
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      const res = await supabase
-        .from('reportes_trabajo')
-        .select(`*, consorcios (nombre, direccion, administraciones (nombre))`)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false });
-      if (res.error) return (res.data || []) as ReporteTrabajo[];
-      data = res.data;
-    }
-    return data as ReporteTrabajo[];
+    if (error) throw error;
+    return (data || []) as ReporteTrabajo[];
   },
 
   async getByPublicId(publicId: string) {
-    let { data, error } = await supabase
+    const { data, error } = await supabase
       .from('reportes_trabajo')
-      .select(`*, consorcios (nombre, direccion, administraciones (nombre)), presupuestos (id, codigo, titulo, public_id), reportes (id, codigo, titulo, public_id)`)
+      .select(`*, consorcios (nombre, direccion, administraciones (nombre)), presupuestos (id, codigo, titulo, public_id)`)
       .eq('public_id', publicId)
       .is('deleted_at', null)
       .single();
 
-    if (error) {
-      const res = await supabase
-        .from('reportes_trabajo')
-        .select(`*, consorcios (nombre, direccion, administraciones (nombre))`)
-        .eq('public_id', publicId)
-        .is('deleted_at', null)
-        .single();
-      if (res.error) throw res.error;
-      data = res.data;
-    }
+    if (error) throw error;
     return data as ReporteTrabajo & {
       consorcios: { nombre: string; direccion?: string; administraciones: { nombre: string } };
       presupuestos?: { id: string; codigo?: string; titulo: string; public_id: string } | null;
