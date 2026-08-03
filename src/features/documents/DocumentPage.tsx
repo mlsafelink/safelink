@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reporteService, presupuestoService, instructivoService, reporteTrabajoService } from '@/services/documentService';
 import { Card } from '@/components/ui/Card/Card';
@@ -8,13 +8,46 @@ import {
   Edit, Copy, Download, Trash2, Check, X, Wrench,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+import { pdf } from '@react-pdf/renderer';
 import { ReportePDF, PresupuestoPDF, InstructivoPDF, ReporteTrabajoPDF } from '@/components/pdf/DocumentPDFs';
 import styles from './DocumentPage.module.css';
 import { ReporteForm } from './ReporteForm';
 import { PresupuestoForm } from './PresupuestoForm';
 import { InstructivoForm } from './InstructivoForm';
 import { ReporteTrabajoForm } from './ReporteTrabajoForm';
+import type { ReactElement } from 'react';
+
+/** Botón de descarga PDF completamente lazy: genera el blob solo al hacer click */
+function LazyPdfDownload({ document: doc, fileName }: { document: ReactElement; fileName: string }) {
+  const [loading, setLoading] = useState(false);
+  const handleClick = useCallback(async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const blob = await pdf(doc).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = window.document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Error generando PDF:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [doc, fileName, loading]);
+  return (
+    <button
+      onClick={handleClick}
+      disabled={loading}
+      className={`${styles.actionBtn} ${styles.btnDownload}`}
+      title="Descargar PDF"
+    >
+      {loading ? '...' : <Download size={15} />}
+    </button>
+  );
+}
 
 type ActiveTab = 'reportes' | 'presupuestos' | 'instructivos' | 'reportes_trabajo';
 type ViewMode = 'list' | 'form';
@@ -217,50 +250,30 @@ export function DocumentPage() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
                     >
-                      {/* PDF Download */}
+                      {/* PDF Download - lazy para evitar Buffer error */}
                       {activeTab === 'reportes' && (
-                        <PDFDownloadLink
+                        <LazyPdfDownload
                           document={<ReportePDF reporte={doc as any} />}
                           fileName={`${doc.titulo}.pdf`}
-                          className={`${styles.actionBtn} ${styles.btnDownload}`}
-                          title="Descargar PDF"
-                        >
-                          {/* @ts-ignore */}
-                          {({ loading }) => loading ? '...' : <Download size={15} />}
-                        </PDFDownloadLink>
+                        />
                       )}
                       {activeTab === 'presupuestos' && (
-                        <PDFDownloadLink
+                        <LazyPdfDownload
                           document={<PresupuestoPDF presupuesto={doc as any} />}
                           fileName={`${doc.titulo}.pdf`}
-                          className={`${styles.actionBtn} ${styles.btnDownload}`}
-                          title="Descargar PDF"
-                        >
-                          {/* @ts-ignore */}
-                          {({ loading }) => loading ? '...' : <Download size={15} />}
-                        </PDFDownloadLink>
+                        />
                       )}
                       {activeTab === 'instructivos' && (
-                        <PDFDownloadLink
+                        <LazyPdfDownload
                           document={<InstructivoPDF instructivo={doc as any} />}
                           fileName={`${doc.titulo}.pdf`}
-                          className={`${styles.actionBtn} ${styles.btnDownload}`}
-                          title="Descargar PDF"
-                        >
-                          {/* @ts-ignore */}
-                          {({ loading }) => loading ? '...' : <Download size={15} />}
-                        </PDFDownloadLink>
+                        />
                       )}
                       {activeTab === 'reportes_trabajo' && (
-                        <PDFDownloadLink
+                        <LazyPdfDownload
                           document={<ReporteTrabajoPDF reporte={doc as any} />}
                           fileName={`SafeLink_ReporteTrabajo_${(doc as any).codigo || doc.titulo}.pdf`}
-                          className={`${styles.actionBtn} ${styles.btnDownload}`}
-                          title="Descargar PDF"
-                        >
-                          {/* @ts-ignore */}
-                          {({ loading }) => loading ? '...' : <Download size={15} />}
-                        </PDFDownloadLink>
+                        />
                       )}
 
                       {/* Copiar link */}
