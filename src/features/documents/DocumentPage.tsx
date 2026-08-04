@@ -16,9 +16,10 @@ import { PresupuestoForm } from './PresupuestoForm';
 import { InstructivoForm } from './InstructivoForm';
 import { ReporteTrabajoForm } from './ReporteTrabajoForm';
 import type { ReactElement } from 'react';
+import type { DocumentProps } from '@react-pdf/renderer';
 
 /** Botón de descarga PDF completamente lazy: genera el blob solo al hacer click */
-function LazyPdfDownload({ document: doc, fileName }: { document: ReactElement; fileName: string }) {
+function LazyPdfDownload({ document: doc, fileName }: { document: ReactElement<DocumentProps>; fileName: string }) {
   const [loading, setLoading] = useState(false);
   const handleClick = useCallback(async () => {
     if (loading) return;

@@ -8,11 +8,18 @@ import {
   DollarSign, Plus, Search, FileText, Edit, Trash2,
   Eye, Check, X, Filter, Download, Share2, Clock,
   CheckCircle2, AlertCircle, XCircle, MinusCircle,
+  BarChart3, LayoutDashboard, History,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FacturaForm } from './FacturaForm';
 import { FacturaDetalle } from './FacturaDetalle';
+import { DashboardMes } from './components/DashboardMes';
+import { DashboardSemanal } from './components/DashboardSemanal';
+import { EstadisticasMes } from './components/EstadisticasMes';
+import { EstadisticasAnuales } from './components/EstadisticasAnuales';
+import { MonotributoCard, MonotributoBanner } from './components/MonotributoCard';
 import styles from './FinanzasPage.module.css';
+import dashStyles from './components/FinanzasDashboard.module.css';
 
 type ViewMode = 'list' | 'form' | 'detalle';
 type FilterEstado = 'todos' | FacturaEstado;
@@ -57,11 +64,14 @@ export function isVencida(factura: Factura): boolean {
   return new Date(factura.fecha_vencimiento) < new Date();
 }
 
+type ActiveTab = 'dashboard' | 'historial' | 'estadisticas';
+
 // ── Componente principal ──────────────────────────────────────────────────────
 
 export function FinanzasPage() {
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [detalleId, setDetalleId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -192,14 +202,56 @@ export function FinanzasPage() {
       <div className={styles.header}>
         <div>
           <h1><DollarSign size={28} className={styles.headerIcon} />Finanzas</h1>
-          <p>Gestión de facturas y documentación fiscal</p>
+          <p>Panel económico y gestión de facturación</p>
         </div>
         <Button variant="primary" leftIcon={<Plus size={18} />} onClick={handleNew}>
           Nueva Factura
         </Button>
       </div>
 
-      {/* Buscador + Filtros */}
+      {/* Tabs */}
+      <div className={dashStyles.tabsRow}>
+        <button
+          className={`${dashStyles.tab} ${activeTab === 'dashboard' ? dashStyles.tabActive : ''}`}
+          onClick={() => setActiveTab('dashboard')}
+        >
+          <LayoutDashboard size={15} /> Dashboard
+        </button>
+        <button
+          className={`${dashStyles.tab} ${activeTab === 'historial' ? dashStyles.tabActive : ''}`}
+          onClick={() => setActiveTab('historial')}
+        >
+          <History size={15} /> Historial
+        </button>
+        <button
+          className={`${dashStyles.tab} ${activeTab === 'estadisticas' ? dashStyles.tabActive : ''}`}
+          onClick={() => setActiveTab('estadisticas')}
+        >
+          <BarChart3 size={15} /> Estadísticas
+        </button>
+      </div>
+
+      {/* ── TAB DASHBOARD ── */}
+      {activeTab === 'dashboard' && (
+        <>
+          <MonotributoBanner />
+          <div className={dashStyles.dashboardGrid}>
+            <DashboardMes facturas={facturas} />
+            <MonotributoCard />
+            <DashboardSemanal facturas={facturas} />
+            <EstadisticasMes facturas={facturas} />
+          </div>
+        </>
+      )}
+
+      {/* ── TAB ESTADÍSTICAS ── */}
+      {activeTab === 'estadisticas' && (
+        <EstadisticasAnuales facturas={facturas} />
+      )}
+
+      {/* ── TAB HISTORIAL (sección existente sin modificar) ── */}
+      {activeTab === 'historial' && (
+        <>
       <Card variant="glass" className={styles.filtersCard}>
         <div className={styles.searchRow}>
           <div className={styles.searchWrapper}>
@@ -426,45 +478,47 @@ export function FinanzasPage() {
         </Card>
       )}
 
-      {/* Resumen de totales */}
-      {facturasFiltradas.length > 0 && (
-        <div className={styles.totalesRow}>
-          <Card variant="neumorphic" className={styles.totalCard}>
-            <Clock size={16} />
-            <div>
-              <p>Pendiente de cobro</p>
-              <strong>
-                {formatMonto(
-                  facturasFiltradas
-                    .filter(f => f.estado !== 'pagado')
-                    .reduce((acc, f) => acc + f.monto_total, 0)
-                )}
-              </strong>
+          {/* Resumen de totales */}
+          {facturasFiltradas.length > 0 && (
+            <div className={styles.totalesRow}>
+              <Card variant="neumorphic" className={styles.totalCard}>
+                <Clock size={16} />
+                <div>
+                  <p>Pendiente de cobro</p>
+                  <strong>
+                    {formatMonto(
+                      facturasFiltradas
+                        .filter(f => f.estado !== 'pagado')
+                        .reduce((acc, f) => acc + f.monto_total, 0)
+                    )}
+                  </strong>
+                </div>
+              </Card>
+              <Card variant="neumorphic" className={styles.totalCard}>
+                <CheckCircle2 size={16} style={{ color: '#22c55e' }} />
+                <div>
+                  <p>Cobrado</p>
+                  <strong style={{ color: '#22c55e' }}>
+                    {formatMonto(
+                      facturasFiltradas
+                        .filter(f => f.estado === 'pagado')
+                        .reduce((acc, f) => acc + f.monto_total, 0)
+                    )}
+                  </strong>
+                </div>
+              </Card>
+              <Card variant="neumorphic" className={styles.totalCard}>
+                <DollarSign size={16} style={{ color: '#3182ce' }} />
+                <div>
+                  <p>Total facturado</p>
+                  <strong style={{ color: '#3182ce' }}>
+                    {formatMonto(facturasFiltradas.reduce((acc, f) => acc + f.monto_total, 0))}
+                  </strong>
+                </div>
+              </Card>
             </div>
-          </Card>
-          <Card variant="neumorphic" className={styles.totalCard}>
-            <CheckCircle2 size={16} style={{ color: '#22c55e' }} />
-            <div>
-              <p>Cobrado</p>
-              <strong style={{ color: '#22c55e' }}>
-                {formatMonto(
-                  facturasFiltradas
-                    .filter(f => f.estado === 'pagado')
-                    .reduce((acc, f) => acc + f.monto_total, 0)
-                )}
-              </strong>
-            </div>
-          </Card>
-          <Card variant="neumorphic" className={styles.totalCard}>
-            <DollarSign size={16} style={{ color: '#3182ce' }} />
-            <div>
-              <p>Total facturado</p>
-              <strong style={{ color: '#3182ce' }}>
-                {formatMonto(facturasFiltradas.reduce((acc, f) => acc + f.monto_total, 0))}
-              </strong>
-            </div>
-          </Card>
-        </div>
+          )}
+        </>
       )}
     </div>
   );
