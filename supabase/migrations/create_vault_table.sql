@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS vault (
   cantidad_canales INTEGER,
   serial_number VARCHAR(255),
   qr_image TEXT,
+  pattern_image TEXT,
   admin_user VARCHAR(255),
   admin_password VARCHAR(255),
   user1 VARCHAR(255),
@@ -24,8 +25,9 @@ CREATE TABLE IF NOT EXISTS vault (
   deleted_at TIMESTAMPTZ
 );
 
--- Asegurar que la columna deleted_at existe si la tabla ya había sido creada antes
+-- Asegurar que las columnas nuevas existen si la tabla ya había sido creada antes
 ALTER TABLE vault ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+ALTER TABLE vault ADD COLUMN IF NOT EXISTS pattern_image TEXT;
 
 -- Habilitar RLS
 ALTER TABLE vault ENABLE ROW LEVEL SECURITY;

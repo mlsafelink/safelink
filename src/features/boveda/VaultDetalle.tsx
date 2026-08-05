@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button/Button';
 import { useToast } from '@/components/ui/Toast/ToastContext';
 import {
   ArrowLeft, Pencil, Trash2, Eye, EyeOff, Copy, Check,
-  Shield, MapPin, Hash, Cpu, StickyNote, QrCode, Building2
+  Shield, MapPin, Hash, Cpu, StickyNote, QrCode, Building2, Grid
 } from 'lucide-react';
 import styles from './VaultDetalle.module.css';
 
@@ -284,6 +284,19 @@ export function VaultDetalle({ entryId, onBack, onEdit, onDeleted }: VaultDetall
             </div>
             <div className={styles.qrWrapper}>
               <img src={entry.qr_image} alt="QR del equipo" className={styles.qrImage} />
+            </div>
+          </Card>
+        )}
+
+        {/* Patrón de desbloqueo */}
+        {entry.pattern_image && (
+          <Card variant="neumorphic" className={`${styles.section} ${styles.qrSection}`}>
+            <div className={styles.sectionTitle}>
+              <Grid size={16} className={styles.sectionIcon} />
+              Patrón de Desbloqueo
+            </div>
+            <div className={styles.qrWrapper}>
+              <img src={entry.pattern_image} alt="Patrón de desbloqueo" className={styles.qrImage} />
             </div>
           </Card>
         )}

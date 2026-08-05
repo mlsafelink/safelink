@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Building, FileText, LogOut, UserCheck, Bell, StickyNote, Bot, DollarSign, Lock } from 'lucide-react';
+import { LayoutDashboard, Building2, Building, FileText, LogOut, UserCheck, Bell, StickyNote, Bot, DollarSign, Lock, Settings } from 'lucide-react';
 import logoImg from '@/assets/logo.png';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useSafeLinkNote } from '@/features/safeLinkNote/SafeLinkNoteContext';
@@ -102,6 +102,15 @@ export function Sidebar() {
         >
           <Lock size={20} />
           <span>Bóveda Segura</span>
+        </NavLink>
+
+        {/* ── Configuración ── */}
+        <NavLink
+          to="/configuracion"
+          className={({ isActive }) => clsx(styles.navItem, isActive && styles.active)}
+        >
+          <Settings size={20} />
+          <span>Configuración</span>
         </NavLink>
       </nav>
 

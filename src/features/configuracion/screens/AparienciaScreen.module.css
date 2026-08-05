@@ -1,0 +1,350 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* Header */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  border: none;
+  background: var(--bg-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-light);
+  color: var(--text-secondary);
+  font-family: var(--font-family);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+}
+
+.backBtn:hover {
+  color: var(--text-primary);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.headerIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
+  flex-shrink: 0;
+}
+
+.headerTitle h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.headerTitle p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-top: 0.15rem;
+}
+
+/* Sections Grid */
+.sectionsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sectionCard {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.sectionIcon {
+  color: var(--primary-color);
+}
+
+.sectionTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Temas Grid */
+.temasGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.temaBox {
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-color);
+  border: 2px solid var(--glass-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.temaBox:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+.selectedBox {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+}
+
+.temaHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text-primary);
+}
+
+.temaLabel {
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex: 1;
+}
+
+.checkIcon {
+  color: var(--primary-color);
+}
+
+.temaDesc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Colores Grid */
+.coloresGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.colorBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-color);
+  border: 2px solid var(--glass-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-family);
+}
+
+.colorBtn:hover {
+  transform: translateY(-2px);
+}
+
+.selectedColorBtn {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+}
+
+.colorCircle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.colorLabel {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+/* Tipografía Grid */
+.tipografiaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.tipografiaBox {
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-color);
+  border: 2px solid var(--glass-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tipografiaBox:hover {
+  border-color: var(--primary-color);
+}
+
+.tipografiaHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tipografiaLabel {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.tipografiaSize {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Options List */
+.optionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.25rem;
+  background: var(--bg-color);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+}
+
+@media (max-width: 680px) {
+  .optionRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.optionInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.optionTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.optionTitleRow h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.optionIcon {
+  color: var(--primary-color);
+}
+
+.optionInfo p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Toggle Switch */
+.toggleSwitch {
+  width: 52px;
+  height: 28px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.25s ease;
+  flex-shrink: 0;
+}
+
+.toggleActive {
+  background: var(--primary-color) !important;
+}
+
+.toggleKnob {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.toggleActive .toggleKnob {
+  transform: translateX(24px);
+}
+
+/* Modo Buttons */
+.modoButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.modoBtn {
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  font-family: var(--font-family);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.selectedModoBtn {
+  background: var(--primary-color) !important;
+  color: white !important;
+  border-color: var(--primary-color) !important;
+}

@@ -9,6 +9,7 @@ export type VaultEntry = {
   cantidad_canales: number | null;
   serial_number: string | null;
   qr_image: string | null;
+  pattern_image: string | null;
   admin_user: string | null;
   admin_password: string | null;
   user1: string | null;

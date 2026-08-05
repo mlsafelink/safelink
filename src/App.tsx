@@ -20,9 +20,14 @@ import { FinanzasPage } from '@/features/finanzas/FinanzasPage';
 import { PublicFacturaViewer } from '@/features/public/PublicFacturaViewer';
 import { BóvedaPage } from '@/features/boveda/BóvedaPage';
 import { ToastProvider } from '@/components/ui/Toast/ToastContext';
+import { ConfiguracionProvider } from '@/features/configuracion/ConfiguracionContext';
+import { ConfiguracionPage } from '@/features/configuracion/ConfiguracionPage';
+import { BackupScreen } from '@/features/configuracion/screens/BackupScreen';
+import { AparienciaScreen } from '@/features/configuracion/screens/AparienciaScreen';
 
 function App() {
   return (
+    <ConfiguracionProvider>
     <ToastProvider>
     <SafeLinkNoteProvider>
       <Routes>
@@ -49,6 +54,9 @@ function App() {
             <Route path="/safelink-note"  element={<SafeLinkNotePage />} />
             <Route path="/safelink-ia"    element={<SafeLinkIAPage />} />
             <Route path="/boveda"          element={<BóvedaPage />} />
+            <Route path="/configuracion"            element={<ConfiguracionPage />} />
+            <Route path="/configuracion/backup"     element={<BackupScreen />} />
+            <Route path="/configuracion/apariencia"  element={<AparienciaScreen />} />
           </Route>
         </Route>
 
@@ -56,6 +64,7 @@ function App() {
       </Routes>
     </SafeLinkNoteProvider>
     </ToastProvider>
+    </ConfiguracionProvider>
   );
 }
 

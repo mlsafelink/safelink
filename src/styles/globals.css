@@ -1,23 +1,94 @@
 :root {
-  /* Colors - Neumorphism / Glassmorphism */
+  /* Colors - Neumorphism / Glassmorphism default */
   --bg-color: #f0f3f8;
   --text-primary: #2d3748;
   --text-secondary: #718096;
-  --primary-color: #3182ce;
-  --primary-hover: #2b6cb0;
+  --primary-color: #8b5cf6;
+  --primary-hover: #7c3aed;
   
   /* Neumorphic Shadows */
   --shadow-light: 8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff;
   --shadow-inset: inset 4px 4px 8px #d1d9e6, inset -4px -4px 8px #ffffff;
   
   /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.45);
   --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
 
   --font-family: 'Inter', system-ui, -apple-system, sans-serif;
   --radius-md: 12px;
   --radius-lg: 20px;
+}
+
+/* ── Temas (Oscuro / Claro) ── */
+[data-theme="dark"] {
+  --bg-color: #0f172a;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --shadow-light: 8px 8px 16px #090d16, -8px -8px 16px #1e293b;
+  --shadow-inset: inset 4px 4px 8px #090d16, inset -4px -4px 8px #1e293b;
+  --glass-bg: rgba(30, 41, 59, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+[data-theme="light"] {
+  --bg-color: #f0f3f8;
+  --text-primary: #2d3748;
+  --text-secondary: #718096;
+  --shadow-light: 8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff;
+  --shadow-inset: inset 4px 4px 8px #d1d9e6, inset -4px -4px 8px #ffffff;
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.45);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+/* ── Paleta de Colores Principales ── */
+[data-color="purpura"] {
+  --primary-color: #8b5cf6;
+  --primary-hover: #7c3aed;
+}
+
+[data-color="azul"] {
+  --primary-color: #3182ce;
+  --primary-hover: #2b6cb0;
+}
+
+[data-color="verde"] {
+  --primary-color: #10b981;
+  --primary-hover: #059669;
+}
+
+[data-color="rojo"] {
+  --primary-color: #ef4444;
+  --primary-hover: #dc2626;
+}
+
+[data-color="naranja"] {
+  --primary-color: #f97316;
+  --primary-hover: #ea580c;
+}
+
+/* ── Tipografía (Escala) ── */
+html[data-font-size="pequena"] {
+  font-size: 14px;
+}
+
+html[data-font-size="normal"] {
+  font-size: 16px;
+}
+
+html[data-font-size="grande"] {
+  font-size: 18px;
+}
+
+/* ── Control de Animaciones ── */
+html[data-animations="false"] *,
+html[data-animations="false"] *::before,
+html[data-animations="false"] *::after {
+  animation-duration: 0.001s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001s !important;
 }
 
 * {
@@ -32,6 +103,7 @@ body {
   color: var(--text-primary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .app-container {

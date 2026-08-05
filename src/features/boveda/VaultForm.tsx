@@ -23,6 +23,7 @@ type FormData = {
   cantidad_canales: string;
   serial_number: string;
   qr_image: string;
+  pattern_image: string;
   admin_user: string;
   admin_password: string;
   user1: string;
@@ -38,6 +39,7 @@ const EMPTY: FormData = {
   cantidad_canales: '',
   serial_number: '',
   qr_image: '',
+  pattern_image: '',
   admin_user: '',
   admin_password: '',
   user1: '',
@@ -54,6 +56,7 @@ function toFormData(e: VaultEntry): FormData {
     cantidad_canales: e.cantidad_canales != null ? String(e.cantidad_canales) : '',
     serial_number: e.serial_number ?? '',
     qr_image: e.qr_image ?? '',
+    pattern_image: e.pattern_image ?? '',
     admin_user: e.admin_user ?? '',
     admin_password: e.admin_password ?? '',
     user1: e.user1 ?? '',
@@ -135,6 +138,7 @@ export function VaultForm({ editingId, onBack, onDeleted }: VaultFormProps) {
         cantidad_canales: form.cantidad_canales ? parseInt(form.cantidad_canales) : null,
         serial_number: form.serial_number.trim() || null,
         qr_image: form.qr_image || null,
+        pattern_image: form.pattern_image || null,
         admin_user: form.admin_user.trim() || null,
         admin_password: form.admin_password || null,
         user1: form.user1.trim() || null,
@@ -356,6 +360,17 @@ export function VaultForm({ editingId, onBack, onDeleted }: VaultFormProps) {
             <ImageUploader
               value={form.qr_image}
               onChange={url => set('qr_image', url)}
+              label=""
+            />
+          </Card>
+
+          {/* Patrón de desbloqueo */}
+          <Card variant="neumorphic" className={styles.section}>
+            <h2 className={styles.sectionTitle}>Patrón de Desbloqueo</h2>
+            <p className={styles.qrHint}>Opcional. Subí una fotografía o diagrama del patrón de desbloqueo.</p>
+            <ImageUploader
+              value={form.pattern_image}
+              onChange={url => set('pattern_image', url)}
               label=""
             />
           </Card>
