@@ -18,9 +18,12 @@ import { SafeLinkIAPage } from '@/features/safeLinkIA/SafeLinkIAPage';
 import { SafeLinkNoteProvider } from '@/features/safeLinkNote/SafeLinkNoteContext';
 import { FinanzasPage } from '@/features/finanzas/FinanzasPage';
 import { PublicFacturaViewer } from '@/features/public/PublicFacturaViewer';
+import { BóvedaPage } from '@/features/boveda/BóvedaPage';
+import { ToastProvider } from '@/components/ui/Toast/ToastContext';
 
 function App() {
   return (
+    <ToastProvider>
     <SafeLinkNoteProvider>
       <Routes>
         {/* ---- RUTAS PÚBLICAS — sin login, sin sidebar, sin escape ---- */}
@@ -45,12 +48,14 @@ function App() {
             <Route path="/notificaciones" element={<NotificacionesPage />} />
             <Route path="/safelink-note"  element={<SafeLinkNotePage />} />
             <Route path="/safelink-ia"    element={<SafeLinkIAPage />} />
+            <Route path="/boveda"          element={<BóvedaPage />} />
           </Route>
         </Route>
 
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </SafeLinkNoteProvider>
+    </ToastProvider>
   );
 }
 
