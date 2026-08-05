@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { facturaService, type Factura, type FacturaInsert, type FacturaTipo, type FacturaEstado } from '@/services/facturaService';
 import { notificacionService } from '@/services/notificacionService';
 import { consorcioService } from '@/services/consorcioService';
+import { particularService } from '@/services/particularService';
 import { presupuestoService } from '@/services/documentService';
 import { reporteTrabajoService } from '@/services/documentService';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -46,6 +47,11 @@ export function FacturaForm({ onBack, editingId }: FacturaFormProps) {
   const { data: consorcios = [] } = useQuery({
     queryKey: ['consorcios'],
     queryFn: consorcioService.getAll,
+  });
+
+  const { data: particulares = [] } = useQuery({
+    queryKey: ['particulares'],
+    queryFn: particularService.getAll,
   });
 
   const { data: presupuestos = [] } = useQuery({
@@ -111,7 +117,9 @@ export function FacturaForm({ onBack, editingId }: FacturaFormProps) {
         await notificacionService.create({
           tipo: 'factura_cargada',
           cliente_nombre: null,
-          consorcio_nombre: consorcios.find(c => c.id === factura.consorcio_id)?.nombre ?? null,
+          consorcio_nombre: consorcios.find(c => c.id === factura.consorcio_id)?.nombre
+            ?? particulares.find(p => p.id === factura.consorcio_id)?.nombre
+            ?? null,
           detalles: { numero_factura: factura.numero_factura },
         });
       }
@@ -201,13 +209,13 @@ export function FacturaForm({ onBack, editingId }: FacturaFormProps) {
                 >
                   <option value="">Seleccioná...</option>
                   <optgroup label="Consorcios">
-                    {consorcios.filter(c => !c.tipo || c.tipo === 'consorcio').map(c => (
+                    {consorcios.map(c => (
                       <option key={c.id} value={c.id}>{c.nombre}</option>
                     ))}
                   </optgroup>
                   <optgroup label="Clientes Privados">
-                    {consorcios.filter(c => c.tipo === 'particular').map(c => (
-                      <option key={c.id} value={c.id}>{c.nombre}</option>
+                    {particulares.map(p => (
+                      <option key={p.id} value={p.id}>{p.nombre}</option>
                     ))}
                   </optgroup>
                 </select>
