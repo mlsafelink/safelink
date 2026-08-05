@@ -2,11 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import {
   configuracionService,
   DEFAULT_CONFIG,
-  type Configuracion,
-  type Tema,
-  type ColorPrincipal,
-  type Tipografia,
-  type ModoDashboard
+  type Configuracion
 } from '@/services/configuracionService';
 
 interface ConfiguracionContextValue {
