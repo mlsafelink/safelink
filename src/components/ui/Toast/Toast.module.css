@@ -45,6 +45,12 @@
   color: #4f46e5;
 }
 
+.warning {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #b45309;
+}
+
 .icon {
   display: flex;
   align-items: center;

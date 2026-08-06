@@ -6,6 +6,7 @@ interface ToastContextValue {
   success: (message: string) => void;
   error: (message: string) => void;
   info: (message: string) => void;
+  warning: (message: string) => void;
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null);
@@ -26,13 +27,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const success = useCallback((msg: string) => showToast(msg, 'success'), [showToast]);
   const error = useCallback((msg: string) => showToast(msg, 'error'), [showToast]);
   const info = useCallback((msg: string) => showToast(msg, 'info'), [showToast]);
+  const warning = useCallback((msg: string) => showToast(msg, 'warning'), [showToast]);
 
   const dismiss = useCallback((id: number) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
   return (
-    <ToastContext.Provider value={{ showToast, success, error, info }}>
+    <ToastContext.Provider value={{ showToast, success, error, info, warning }}>
       {children}
       <Toast toasts={toasts} onDismiss={dismiss} />
     </ToastContext.Provider>

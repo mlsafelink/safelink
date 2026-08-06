@@ -1,69 +1,60 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/Card/Card';
 import { Button } from '@/components/ui/Button/Button';
 import { useToast } from '@/components/ui/Toast/ToastContext';
-import { AnimatePresence, motion } from 'framer-motion';
+import { googleDriveService } from '@/services/googleDriveService';
+import type { BackupDestino } from '@/types/backup';
+
+import { BackupCreator } from './backup/BackupCreator';
+import { BackupHistoryList } from './backup/BackupHistoryList';
+import { GoogleDrivePanel } from './backup/GoogleDrivePanel';
+
 import {
-  ArrowLeft, Cloud, Download, RefreshCw, Plus, CheckCircle2,
-  HardDrive, Clock, AlertTriangle, ShieldCheck
+  ArrowLeft, Plus, Cloud, FolderOpen, ShieldCheck, History, Settings2
 } from 'lucide-react';
 import styles from './BackupScreen.module.css';
 
-type ModalType = 'crear' | 'descargar' | 'restaurar' | null;
-
-interface BackupStatus {
-  fecha: string;
-  hora: string;
-  tamano: string;
-  estado: 'completado' | 'procesando' | 'error';
-  tablas: number;
-}
+type Tab = 'historial' | 'drive' | 'config';
 
 export function BackupScreen() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const toast = useToast();
 
-  const [activeModal, setActiveModal] = useState<ModalType>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>('historial');
+  const [showCreator, setShowCreator] = useState(false);
+  const [driveKey, setDriveKey] = useState(0); // para forzar re-render del panel de Drive
 
-  const [status, setStatus] = useState<BackupStatus>({
-    fecha: '05/08/2026',
-    hora: '18:30 hs',
-    tamano: '14.2 MB',
-    estado: 'completado',
-    tablas: 9,
-  });
+  // Destinos activos (por ahora siempre ambos si Drive está conectado)
+  const getDestinos = (): BackupDestino[] => {
+    const destinos: BackupDestino[] = ['supabase'];
+    if (googleDriveService.isConnected()) destinos.push('drive');
+    return destinos;
+  };
 
-  const handleAction = async (type: ModalType) => {
-    setIsProcessing(true);
+  const handleSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['backup-history'] });
+    toast.success('✅ Backup completado y guardado correctamente.');
+    setShowCreator(false);
+    setActiveTab('historial');
+  };
 
-    // Simular delay de operación
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    setIsProcessing(false);
-    setActiveModal(null);
-
-    const now = new Date();
-    const fechaStr = now.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const horaStr = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + ' hs';
-
-    if (type === 'crear') {
-      setStatus({
-        fecha: fechaStr,
-        hora: horaStr,
-        tamano: '14.8 MB',
-        estado: 'completado',
-        tablas: 9,
-      });
-      toast.success('Backup creado exitosamente.');
-    } else if (type === 'descargar') {
-      toast.success('Descarga de backup iniciada (safelink_backup.json).');
-    } else if (type === 'restaurar') {
-      setStatus(prev => ({ ...prev, fecha: fechaStr, hora: horaStr }));
-      toast.success('Base de datos restaurada correctamente desde el backup.');
+  const handleError = (msg: string) => {
+    if (msg.toLowerCase().includes('parcial') || msg.toLowerCase().includes('drive')) {
+      toast.warning(`⚠️ Backup completado parcialmente. ${msg}`);
+    } else {
+      toast.error(`❌ Error durante el backup: ${msg}`);
     }
   };
+
+  const tabs: Array<{ id: Tab; label: string; icon: React.ElementType }> = [
+    { id: 'historial', label: 'Historial', icon: History },
+    { id: 'drive', label: 'Google Drive', icon: FolderOpen },
+    { id: 'config', label: 'Configuración', icon: Settings2 },
+  ];
 
   return (
     <div className={styles.container}>
@@ -73,166 +64,129 @@ export function BackupScreen() {
           <ArrowLeft size={18} />
           <span>Volver a Configuración</span>
         </button>
-        <div className={styles.headerTitle}>
-          <div className={styles.headerIcon}>
-            <Cloud size={24} />
+        <div className={styles.headerRow}>
+          <div className={styles.headerTitle}>
+            <div className={styles.headerIcon}>
+              <Cloud size={24} />
+            </div>
+            <div>
+              <h1>Centro de Backup</h1>
+              <p>Protegé tu información con respaldos hacia Supabase y Google Drive</p>
+            </div>
           </div>
-          <div>
-            <h1>Respaldo y Backup</h1>
-            <p>Generá copias de seguridad de tus datos y gestioná la restauración</p>
-          </div>
+          <Button
+            variant="primary"
+            leftIcon={<Plus size={16} />}
+            onClick={() => setShowCreator(true)}
+          >
+            Crear Backup
+          </Button>
         </div>
       </div>
 
-      <div className={styles.contentGrid}>
-        {/* Status Card */}
-        <Card variant="glass" className={styles.statusCard}>
-          <div className={styles.cardHeader}>
-            <ShieldCheck size={22} className={styles.statusIcon} />
-            <h2 className={styles.cardTitle}>Estado del Último Backup</h2>
-            <span className={styles.statusBadge}>
-              <CheckCircle2 size={13} />
-              {status.estado}
-            </span>
-          </div>
-
-          <div className={styles.metricsGrid}>
-            <div className={styles.metricItem}>
-              <Clock size={16} className={styles.metricIcon} />
-              <div>
-                <span className={styles.metricLabel}>Fecha y Hora</span>
-                <span className={styles.metricValue}>{status.fecha} — {status.hora}</span>
-              </div>
+      {/* Status bar */}
+      <Card variant="glass" className={styles.statusBar}>
+        <div className={styles.statusItem}>
+          <ShieldCheck size={16} className={styles.statusIcon} />
+          <span>Supabase Storage</span>
+          <span className={styles.statusBadge}>✅ Activo</span>
+        </div>
+        <div className={styles.statusDivider} />
+        <div className={styles.statusItem}>
+          <FolderOpen size={16} className={styles.statusIcon} />
+          <span>Google Drive</span>
+          <span className={`${styles.statusBadge} ${googleDriveService.isConnected() ? styles.active : styles.inactive}`}>
+            {googleDriveService.isConnected() ? '✅ Conectado' : '⚠️ Sin conectar'}
+          </span>
+        </div>
+        {googleDriveService.getEmail() && (
+          <>
+            <div className={styles.statusDivider} />
+            <div className={styles.statusItem}>
+              <span className={styles.statusEmail}>{googleDriveService.getEmail()}</span>
             </div>
+          </>
+        )}
+      </Card>
 
-            <div className={styles.metricItem}>
-              <HardDrive size={16} className={styles.metricIcon} />
-              <div>
-                <span className={styles.metricLabel}>Tamaño del Archivo</span>
-                <span className={styles.metricValue}>{status.tamano}</span>
-              </div>
-            </div>
-
-            <div className={styles.metricItem}>
-              <Cloud size={16} className={styles.metricIcon} />
-              <div>
-                <span className={styles.metricLabel}>Tablas Respaldadas</span>
-                <span className={styles.metricValue}>{status.tablas} tablas</span>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Acciones Card */}
-        <Card variant="glass" className={styles.actionsCard}>
-          <h2 className={styles.cardTitle}>Acciones de Backup</h2>
-          <p className={styles.cardDesc}>
-            Elegí una acción para gestionar el respaldo completo de administraciones, consorcios, clientes y documentos.
-          </p>
-
-          <div className={styles.buttonsGrid}>
-            <div className={styles.actionBox}>
-              <div className={styles.actionInfo}>
-                <h3>Crear Backup Manual</h3>
-                <p>Generá una copia de seguridad actualizada de todos los datos en este momento.</p>
-              </div>
-              <Button
-                variant="primary"
-                leftIcon={<Plus size={16} />}
-                onClick={() => setActiveModal('crear')}
-              >
-                Crear Backup
-              </Button>
-            </div>
-
-            <div className={styles.actionBox}>
-              <div className={styles.actionInfo}>
-                <h3>Descargar Backup</h3>
-                <p>Exportá el último respaldo generado a tu dispositivo en formato de archivo comprimido.</p>
-              </div>
-              <Button
-                variant="secondary"
-                leftIcon={<Download size={16} />}
-                onClick={() => setActiveModal('descargar')}
-              >
-                Descargar Backup
-              </Button>
-            </div>
-
-            <div className={styles.actionBox}>
-              <div className={styles.actionInfo}>
-                <h3>Restaurar Backup</h3>
-                <p>Reemplazá la información actual por los datos del último punto de restauración guardado.</p>
-              </div>
-              <Button
-                variant="secondary"
-                leftIcon={<RefreshCw size={16} />}
-                onClick={() => setActiveModal('restaurar')}
-              >
-                Restaurar Backup
-              </Button>
-            </div>
-          </div>
-        </Card>
+      {/* Tabs */}
+      <div className={styles.tabs}>
+        {tabs.map(tab => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              className={`${styles.tab} ${activeTab === tab.id ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <Icon size={15} />
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Modales de Confirmación */}
+      {/* Tab content */}
+      <div className={styles.tabContent}>
+        {activeTab === 'historial' && <BackupHistoryList />}
+
+        {activeTab === 'drive' && (
+          <GoogleDrivePanel
+            key={driveKey}
+            onStatusChange={() => setDriveKey(k => k + 1)}
+          />
+        )}
+
+        {activeTab === 'config' && (
+          <Card variant="glass" className={styles.configCard}>
+            <div className={styles.configHeader}>
+              <Settings2 size={18} className={styles.configIcon} />
+              <h2>Destinos de Respaldo</h2>
+            </div>
+            <p className={styles.configDesc}>
+              Los destinos activos se usarán automáticamente al crear un backup.
+              Google Drive solo está disponible cuando está conectado.
+            </p>
+            <div className={styles.destinosList}>
+              <div className={styles.destinoRow}>
+                <div className={styles.destinoInfo}>
+                  <h3>☁️ Supabase Storage</h3>
+                  <p>Almacenamiento en la nube del propio proyecto SafeLink. Siempre activo.</p>
+                </div>
+                <span className={`${styles.destinoBadge} ${styles.active}`}>Activo</span>
+              </div>
+              <div className={styles.destinoRow}>
+                <div className={styles.destinoInfo}>
+                  <h3>📁 Google Drive</h3>
+                  <p>
+                    Copia de respaldo en tu cuenta de Google Drive personal.
+                    {!googleDriveService.isConnected() && (
+                      <> <button className={styles.inlineLink} onClick={() => setActiveTab('drive')}>Conectar ahora →</button></>
+                    )}
+                  </p>
+                </div>
+                <span className={`${styles.destinoBadge} ${googleDriveService.isConnected() ? styles.active : styles.inactive}`}>
+                  {googleDriveService.isConnected() ? 'Activo' : 'Sin conectar'}
+                </span>
+              </div>
+            </div>
+            <div className={styles.configNote}>
+              <ShieldCheck size={14} />
+              <p>El formato de archivo es <strong>.sbk</strong> (ZIP comprimido). Contiene los datos de la base de datos y archivos de Supabase Storage.</p>
+            </div>
+          </Card>
+        )}
+      </div>
+
+      {/* Wizard de creación */}
       <AnimatePresence>
-        {activeModal && (
-          <motion.div
-            className={styles.overlay}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => !isProcessing && setActiveModal(null)}
-          >
-            <motion.div
-              className={styles.modal}
-              initial={{ opacity: 0, scale: 0.92, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, y: 20 }}
-              onClick={e => e.stopPropagation()}
-            >
-              <div className={styles.modalIcon}>
-                {activeModal === 'restaurar' ? (
-                  <AlertTriangle size={28} style={{ color: '#f59e0b' }} />
-                ) : (
-                  <Cloud size={28} style={{ color: '#6366f1' }} />
-                )}
-              </div>
-
-              <h3>
-                {activeModal === 'crear' && '¿Crear nuevo backup ahora?'}
-                {activeModal === 'descargar' && '¿Descargar respaldo de datos?'}
-                {activeModal === 'restaurar' && '¿Restaurar copia de seguridad?'}
-              </h3>
-
-              <p>
-                {activeModal === 'crear' && 'Se generará una instantánea de la base de datos con toda la información guardada hasta el momento.'}
-                {activeModal === 'descargar' && 'Se descargará un archivo estructurado con todos los datos registrados en SafeLink.'}
-                {activeModal === 'restaurar' && 'Esta acción sobrescribirá los datos del sistema con el último backup guardado.'}
-              </p>
-
-              <div className={styles.modalActions}>
-                <Button
-                  variant="primary"
-                  isLoading={isProcessing}
-                  onClick={() => handleAction(activeModal)}
-                >
-                  {activeModal === 'crear' && 'Sí, crear backup'}
-                  {activeModal === 'descargar' && 'Sí, descargar'}
-                  {activeModal === 'restaurar' && 'Sí, restaurar'}
-                </Button>
-                <Button
-                  variant="secondary"
-                  disabled={isProcessing}
-                  onClick={() => setActiveModal(null)}
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </motion.div>
-          </motion.div>
+        {showCreator && (
+          <BackupCreator
+            defaultDestinos={getDestinos()}
+            onClose={() => setShowCreator(false)}
+            onSuccess={handleSuccess}
+            onError={handleError}
+          />
         )}
       </AnimatePresence>
     </div>

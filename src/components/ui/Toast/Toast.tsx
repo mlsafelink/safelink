@@ -5,7 +5,7 @@ import styles from './Toast.module.css';
 export type ToastItem = {
   id: number;
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'info' | 'warning';
 };
 
 interface ToastProps {
@@ -17,6 +17,7 @@ const icons = {
   success: <CheckCircle2 size={18} />,
   error: <XCircle size={18} />,
   info: <Info size={18} />,
+  warning: <Info size={18} />,
 };
 
 export function Toast({ toasts, onDismiss }: ToastProps) {
