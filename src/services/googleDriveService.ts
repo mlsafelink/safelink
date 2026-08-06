@@ -4,7 +4,8 @@
  * No usa gapi — solo GIS para tokens y fetch para las llamadas a Drive.
  */
 
-const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
+const DEFAULT_CLIENT_ID = '545141398782-okeuohc20m7rnuuc3v0s715gsn2slvbp.apps.googleusercontent.com';
+const CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) || DEFAULT_CLIENT_ID;
 const SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const DRIVE_API = 'https://www.googleapis.com/drive/v3';
 const DRIVE_UPLOAD_API = 'https://www.googleapis.com/upload/drive/v3';
