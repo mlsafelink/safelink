@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button/Button';
-import { Card } from '@/components/ui/Card/Card';
 import {
   SELECCION_COMPLETA,
   SELECCION_VACIA,
