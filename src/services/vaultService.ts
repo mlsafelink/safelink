@@ -17,6 +17,7 @@ export type VaultEntry = {
   user2: string | null;
   password2: string | null;
   observaciones: string | null;
+  fecha_instalacion: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS vault (
   user2 VARCHAR(255),
   password2 VARCHAR(255),
   observaciones TEXT,
+  fecha_instalacion DATE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   deleted_at TIMESTAMPTZ
@@ -28,6 +29,7 @@ CREATE TABLE IF NOT EXISTS vault (
 -- Asegurar que las columnas nuevas existen si la tabla ya había sido creada antes
 ALTER TABLE vault ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
 ALTER TABLE vault ADD COLUMN IF NOT EXISTS pattern_image TEXT;
+ALTER TABLE vault ADD COLUMN IF NOT EXISTS fecha_instalacion DATE;
 
 -- Habilitar RLS
 ALTER TABLE vault ENABLE ROW LEVEL SECURITY;

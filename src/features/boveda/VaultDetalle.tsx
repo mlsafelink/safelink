@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button/Button';
 import { useToast } from '@/components/ui/Toast/ToastContext';
 import {
   ArrowLeft, Pencil, Trash2, Eye, EyeOff, Copy, Check,
-  Shield, MapPin, Hash, Cpu, StickyNote, QrCode, Building2, Grid
+  Shield, MapPin, Hash, Cpu, StickyNote, QrCode, Building2, Grid, Calendar
 } from 'lucide-react';
 import styles from './VaultDetalle.module.css';
 
@@ -21,6 +21,14 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-AR', {
     day: '2-digit', month: 'long', year: 'numeric',
   });
+}
+
+function formatFechaInstalacion(dateStr: string | null): string {
+  if (!dateStr) return 'No registrada';
+  const parts = dateStr.split('T')[0].split('-');
+  if (parts.length < 3) return 'No registrada';
+  const [year, month, day] = parts;
+  return `${day}/${month}/${year}`;
 }
 
 function CopyBtn({ text }: { text: string | null }) {
@@ -207,6 +215,7 @@ export function VaultDetalle({ entryId, onBack, onEdit, onDeleted }: VaultDetall
             <InfoField label="Dirección" value={entry.direccion} icon={MapPin} copyable />
             <InfoField label="Canales DVR/XVR" value={entry.cantidad_canales != null ? String(entry.cantidad_canales) : null} icon={Cpu} />
             <InfoField label="Número de Serie" value={entry.serial_number} icon={Hash} copyable />
+            <InfoField label="Fecha de Instalación" value={formatFechaInstalacion(entry.fecha_instalacion)} icon={Calendar} />
           </div>
           <div className={styles.dateRow}>
             <span>Creado: {formatDate(entry.created_at)}</span>

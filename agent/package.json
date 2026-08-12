@@ -1,0 +1,18 @@
+{
+  "name": "safelink-monitor-agent",
+  "version": "0.1.0",
+  "description": "SafeLink Monitor Agent - Servicio local de monitoreo de red para Windows",
+  "main": "server.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "keywords": [
+    "safelink",
+    "monitor",
+    "ping",
+    "agent"
+  ],
+  "author": "SafeLink",
+  "license": "MIT"
+}

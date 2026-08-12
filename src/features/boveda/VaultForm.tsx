@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button/Button';
 import { useToast } from '@/components/ui/Toast/ToastContext';
 import {
   ArrowLeft, Save, Trash2, Eye, EyeOff,
-  Shield, MapPin, Hash, Cpu, StickyNote, AlertCircle
+  Shield, MapPin, Hash, Cpu, StickyNote, AlertCircle, Calendar
 } from 'lucide-react';
 import styles from './VaultForm.module.css';
 
@@ -31,6 +31,7 @@ type FormData = {
   user2: string;
   password2: string;
   observaciones: string;
+  fecha_instalacion: string;
 };
 
 const EMPTY: FormData = {
@@ -47,6 +48,7 @@ const EMPTY: FormData = {
   user2: '',
   password2: '',
   observaciones: '',
+  fecha_instalacion: '',
 };
 
 function toFormData(e: VaultEntry): FormData {
@@ -64,6 +66,7 @@ function toFormData(e: VaultEntry): FormData {
     user2: e.user2 ?? '',
     password2: e.password2 ?? '',
     observaciones: e.observaciones ?? '',
+    fecha_instalacion: e.fecha_instalacion ?? '',
   };
 }
 
@@ -146,6 +149,7 @@ export function VaultForm({ editingId, onBack, onDeleted }: VaultFormProps) {
         user2: form.user2.trim() || null,
         password2: form.password2 || null,
         observaciones: form.observaciones.trim() || null,
+        fecha_instalacion: form.fecha_instalacion || null,
       };
       if (isEditing) {
         return vaultService.update(editingId!, payload);
@@ -250,6 +254,19 @@ export function VaultForm({ editingId, onBack, onDeleted }: VaultFormProps) {
                   placeholder="Ej: 123456789ABC"
                   value={form.serial_number}
                   onChange={e => set('serial_number', e.target.value)}
+                />
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>
+                  <Calendar size={13} style={{ display: 'inline', marginRight: 4 }} />
+                  Fecha de Instalación
+                </label>
+                <input
+                  className={styles.input}
+                  type="date"
+                  value={form.fecha_instalacion}
+                  onChange={e => set('fecha_instalacion', e.target.value)}
                 />
               </div>
             </div>

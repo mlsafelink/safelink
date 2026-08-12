@@ -24,6 +24,7 @@ import { ConfiguracionProvider } from '@/features/configuracion/ConfiguracionCon
 import { ConfiguracionPage } from '@/features/configuracion/ConfiguracionPage';
 import { BackupScreen } from '@/features/configuracion/screens/BackupScreen';
 import { AparienciaScreen } from '@/features/configuracion/screens/AparienciaScreen';
+import { SafeLinkMonitorPage } from '@/features/monitor/SafeLinkMonitorPage';
 
 function App() {
   return (
@@ -54,6 +55,7 @@ function App() {
             <Route path="/safelink-note"  element={<SafeLinkNotePage />} />
             <Route path="/safelink-ia"    element={<SafeLinkIAPage />} />
             <Route path="/boveda"          element={<BóvedaPage />} />
+            <Route path="/monitor"         element={<SafeLinkMonitorPage />} />
             <Route path="/configuracion"            element={<ConfiguracionPage />} />
             <Route path="/configuracion/backup"     element={<BackupScreen />} />
             <Route path="/configuracion/apariencia"  element={<AparienciaScreen />} />
