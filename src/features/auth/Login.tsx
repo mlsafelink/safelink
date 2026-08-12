@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button/Button';
 import { Card } from '@/components/ui/Card/Card';
@@ -94,6 +94,13 @@ export function Login() {
             Ingresar
           </Button>
         </form>
+
+        <div className={styles.footerLink}>
+          <Link to="/" className={styles.backLink}>
+            <ArrowLeft size={14} />
+            <span>Volver a la página principal</span>
+          </Link>
+        </div>
       </Card>
     </div>
   );

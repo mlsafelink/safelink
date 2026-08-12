@@ -14,7 +14,8 @@ export type EventoTipo =
   | 'factura_descargada'
   | 'factura_compartida'
   | 'factura_proxima_vencer'
-  | 'factura_pagada';
+  | 'factura_pagada'
+  | 'consulta_web';
 
 export type EventoSistema = {
   id: string;

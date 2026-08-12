@@ -1,12 +1,13 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { notificacionService, type EventoSistema, type EventoTipo } from '@/services/notificacionService';
+import { landingService } from '@/services/landingService';
 import { Card } from '@/components/ui/Card/Card';
 import { clsx } from 'clsx';
 import {
   Eye, Share2, CheckCircle2, Bell, Clock,
   Wrench, CheckSquare, ShieldAlert, FileText, BookOpen, FileArchive,
-  DollarSign, Download, AlertTriangle,
+  DollarSign, Download, AlertTriangle, MessageCircle, MessageSquare, Check,
 } from 'lucide-react';
 import { LAST_VISIT_KEY } from '@/features/safeLinkNote/SafeLinkNoteContext';
 import styles from './NotificacionesPage.module.css';
@@ -18,11 +19,20 @@ type EventConfig = {
   label: string;
   description?: string;
   isSln?: boolean;
+  isConsultaWeb?: boolean;
 };
 
 
 function getEventConfig(tipo: EventoTipo): EventConfig {
   switch (tipo) {
+    case 'consulta_web':
+      return {
+        icon: MessageCircle,
+        color: '#10b981',
+        bgColor: 'rgba(16, 185, 129, 0.12)',
+        label: 'Nueva consulta desde el sitio',
+        isConsultaWeb: true,
+      };
     case 'presupuesto_visto':
       return {
         icon: Eye,
@@ -135,6 +145,7 @@ function getEventConfig(tipo: EventoTipo): EventConfig {
 
 export function NotificacionesPage() {
   const queryClient = useQueryClient();
+  const [atendidasState, setAtendidasState] = useState<Record<string, boolean>>({});
 
   const { data: eventos = [], isLoading } = useQuery({
     queryKey: ['notificaciones-eventos'],
@@ -156,6 +167,17 @@ export function NotificacionesPage() {
     };
   }, [queryClient]);
 
+  const handleMarcarAtendida = async (eventoId: string, consultaId?: string) => {
+    setAtendidasState(prev => ({ ...prev, [eventoId]: true }));
+    if (consultaId) {
+      try {
+        await landingService.marcarAtendida(consultaId);
+      } catch (e) {
+        console.warn('Error al marcar consulta atendida:', e);
+      }
+    }
+  };
+
   const formatFechaHora = (isoDate: string) => {
     try {
       const d = new Date(isoDate);
@@ -164,6 +186,16 @@ export function NotificacionesPage() {
       return { fecha, hora };
     } catch {
       return { fecha: isoDate, hora: '' };
+    }
+  };
+
+  const formatServicioLabel = (servicio?: string) => {
+    switch (servicio) {
+      case 'camaras': return 'Cámaras';
+      case 'iluminacion': return 'Iluminación';
+      case 'redes': return 'Redes';
+      case 'otro': return 'Otro';
+      default: return servicio || 'General';
     }
   };
 
@@ -200,12 +232,28 @@ export function NotificacionesPage() {
             const isRead = config.isSln && !!lastVisit && ev.created_at < lastVisit;
             const slnFile = ev.detalles?.archivo as string | undefined;
 
+            // Datos de consulta_web
+            const isConsulta = config.isConsultaWeb;
+            const detalles = ev.detalles || {};
+            const whatsappNum = detalles.whatsapp as string | undefined;
+            const servicio = detalles.servicio as string | undefined;
+            const monto = detalles.monto_cotizado ? Number(detalles.monto_cotizado) : undefined;
+            const descripcion = detalles.descripcion as string | undefined;
+            const consultaId = detalles.consulta_id as string | undefined;
+            const isAtendida = atendidasState[ev.id] || detalles.estado === 'atendida';
+
+            const cleanPhone = whatsappNum ? whatsappNum.replace(/\D/g, '') : '';
+            const waUrl = cleanPhone
+              ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Hola ${cliente}, gracias por comunicarte con SafeLink. Recibimos tu consulta sobre ${formatServicioLabel(servicio)}.`)}`
+              : '#';
+
             return (
               <div
                 key={ev.id}
                 className={clsx(
                   styles.notifCard,
                   config.isSln && styles.notifCardSln,
+                  isConsulta && styles.notifCardConsulta,
                   isRead && styles.notifCardRead,
                 )}
               >
@@ -216,7 +264,65 @@ export function NotificacionesPage() {
                   <Icon size={24} />
                 </div>
                 <div className={styles.notifContent}>
-                  {config.isSln ? (
+                  {isConsulta ? (
+                    <>
+                      <div className={styles.notifText}>
+                        <span className={styles.highlight}>{config.label}</span>
+                        {isAtendida && <span className={styles.atendidaBadge}><Check size={12} /> Atendida</span>}
+                      </div>
+
+                      <div className={styles.consultaDetails}>
+                        <div className={styles.consultaField}>
+                          <span className={styles.consultaFieldLabel}>Nombre:</span>
+                          <span>{cliente}</span>
+                        </div>
+                        {whatsappNum && (
+                          <div className={styles.consultaField}>
+                            <span className={styles.consultaFieldLabel}>WhatsApp:</span>
+                            <span>{whatsappNum}</span>
+                          </div>
+                        )}
+                        <div className={styles.consultaField}>
+                          <span className={styles.consultaFieldLabel}>Servicio:</span>
+                          <span>{formatServicioLabel(servicio)}</span>
+                        </div>
+                        {monto !== undefined && (
+                          <div className={styles.consultaField}>
+                            <span className={styles.consultaFieldLabel}>Presupuesto informado:</span>
+                            <span>${monto.toLocaleString('es-AR')}</span>
+                          </div>
+                        )}
+                        {descripcion && (
+                          <div className={styles.consultaMensaje}>
+                            "{descripcion}"
+                          </div>
+                        )}
+                      </div>
+
+                      <div className={styles.consultaActions}>
+                        {whatsappNum && (
+                          <a
+                            href={waUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.actionBtnWa}
+                          >
+                            <MessageSquare size={14} />
+                            Responder por WhatsApp
+                          </a>
+                        )}
+                        {!isAtendida && (
+                          <button
+                            className={styles.actionBtnAtendida}
+                            onClick={() => handleMarcarAtendida(ev.id, consultaId)}
+                          >
+                            <Check size={14} />
+                            Marcar como atendida
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  ) : config.isSln ? (
                     <>
                       <div className={styles.notifText}>
                         <span className={styles.highlightOrange}>{config.label}</span>

@@ -24,6 +24,8 @@ import { ConfiguracionProvider } from '@/features/configuracion/ConfiguracionCon
 import { ConfiguracionPage } from '@/features/configuracion/ConfiguracionPage';
 import { BackupScreen } from '@/features/configuracion/screens/BackupScreen';
 import { AparienciaScreen } from '@/features/configuracion/screens/AparienciaScreen';
+import { SitioWebScreen } from '@/features/configuracion/screens/SitioWebScreen';
+import { LandingPage } from '@/features/landing/LandingPage';
 import { SafeLinkMonitorPage } from '@/features/monitor/SafeLinkMonitorPage';
 
 function App() {
@@ -33,6 +35,7 @@ function App() {
     <SafeLinkNoteProvider>
       <Routes>
         {/* ---- RUTAS PÚBLICAS — sin login, sin sidebar, sin escape ---- */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/p/reporte/:publicId" element={<PublicReporteViewer />} />
         <Route path="/p/presupuesto/:publicId" element={<PublicPresupuestoViewer />} />
         <Route path="/p/instructivo/:publicId" element={<PublicInstructivoViewer />} />
@@ -59,10 +62,11 @@ function App() {
             <Route path="/configuracion"            element={<ConfiguracionPage />} />
             <Route path="/configuracion/backup"     element={<BackupScreen />} />
             <Route path="/configuracion/apariencia"  element={<AparienciaScreen />} />
+            <Route path="/configuracion/sitio-web"   element={<SitioWebScreen />} />
           </Route>
         </Route>
 
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </SafeLinkNoteProvider>
     </ToastProvider>

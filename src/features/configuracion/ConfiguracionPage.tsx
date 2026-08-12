@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/Card/Card';
-import { Cloud, Palette, Settings, ChevronRight } from 'lucide-react';
+import { Cloud, Palette, Globe, Settings, ChevronRight } from 'lucide-react';
 import styles from './ConfiguracionPage.module.css';
 
 export function ConfiguracionPage() {
@@ -15,11 +15,11 @@ export function ConfiguracionPage() {
         </div>
         <div>
           <h1>Centro de Configuración</h1>
-          <p>Administrá los respaldos de la plataforma y personalizá tu experiencia visual</p>
+          <p>Administrá los respaldos de la plataforma, el sitio web público y personalizá tu experiencia visual</p>
         </div>
       </div>
 
-      {/* Grid de 2 Tarjetas Grandes */}
+      {/* Grid de Tarjetas Grandes */}
       <div className={styles.cardsGrid}>
         {/* Tarjeta 1: Backup */}
         <Card
@@ -45,7 +45,31 @@ export function ConfiguracionPage() {
           </div>
         </Card>
 
-        {/* Tarjeta 2: Apariencia */}
+        {/* Tarjeta 2: Sitio Web */}
+        <Card
+          variant="glass"
+          className={styles.configCard}
+          onClick={() => navigate('/configuracion/sitio-web')}
+        >
+          <div className={styles.cardHeader}>
+            <div className={`${styles.iconWrapper} ${styles.sitioWebIcon}`}>
+              <Globe size={32} />
+            </div>
+            <div className={styles.badge}>Público</div>
+          </div>
+          <div className={styles.cardContent}>
+            <h2>Sitio Web</h2>
+            <p>
+              Administración de la galería de trabajos realizados, estadísticas de visitas y consultas recibidas.
+            </p>
+          </div>
+          <div className={styles.cardFooter}>
+            <span>Administrar sitio web</span>
+            <ChevronRight size={18} className={styles.arrow} />
+          </div>
+        </Card>
+
+        {/* Tarjeta 3: Apariencia */}
         <Card
           variant="glass"
           className={styles.configCard}
