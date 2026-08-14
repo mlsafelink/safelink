@@ -122,6 +122,22 @@ export const landingService = {
       console.warn('Error creando evento de notificación:', e);
     }
 
+    // Enviar notificación por email mediante Edge Function (send-email)
+    try {
+      await supabase.functions.invoke('send-email', {
+        body: {
+          nombre: data.nombre,
+          whatsapp: data.whatsapp,
+          servicio: data.servicio,
+          descripcion: data.descripcion,
+          monto_cotizado: data.monto_cotizado ?? null,
+          consulta_id: consulta.id,
+        },
+      });
+    } catch (e) {
+      console.warn('Error al invocar Edge Function send-email:', e);
+    }
+
     return consulta as ConsultaWeb;
   },
 
