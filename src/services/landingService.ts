@@ -85,22 +85,37 @@ export const landingService = {
    * una notificación en eventos_sistema.
    */
   async createConsulta(data: ConsultaInsert): Promise<ConsultaWeb> {
-    const { data: consulta, error } = await supabase
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+
+    const { error } = await supabase
       .from('consultas_web')
       .insert({
+        id,
         nombre: data.nombre,
         whatsapp: data.whatsapp,
         servicio: data.servicio,
         descripcion: data.descripcion,
         monto_cotizado: data.monto_cotizado ?? null,
-      })
-      .select()
-      .single();
+      });
 
     if (error) {
       console.error('Error creando consulta:', error);
       throw error;
     }
+
+    const consulta: ConsultaWeb = {
+      id,
+      nombre: data.nombre,
+      whatsapp: data.whatsapp,
+      servicio: data.servicio,
+      descripcion: data.descripcion,
+      monto_cotizado: data.monto_cotizado ?? null,
+      estado: 'pendiente',
+      origen: 'sitio_web',
+      created_at: now,
+      updated_at: now,
+    };
 
     // Crear notificación en el sistema existente
     try {
@@ -112,7 +127,7 @@ export const landingService = {
           servicio: data.servicio,
           descripcion: data.descripcion,
           monto_cotizado: data.monto_cotizado ?? null,
-          consulta_id: consulta.id,
+          consulta_id: id,
           origen: 'sitio_web',
           estado: 'pendiente',
         },
@@ -131,14 +146,14 @@ export const landingService = {
           servicio: data.servicio,
           descripcion: data.descripcion,
           monto_cotizado: data.monto_cotizado ?? null,
-          consulta_id: consulta.id,
+          consulta_id: id,
         },
       });
     } catch (e) {
       console.warn('Error al invocar Edge Function send-email:', e);
     }
 
-    return consulta as ConsultaWeb;
+    return consulta;
   },
 
   /**
