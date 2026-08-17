@@ -75,3 +75,10 @@ CREATE POLICY "Public Read Galeria Storage" ON storage.objects
 -- Acceso total del bucket para autenticados
 CREATE POLICY "Auth All Galeria Storage" ON storage.objects
   FOR ALL TO authenticated USING (bucket_id = 'galeria-trabajos');
+
+-- =====================================================
+-- DETALLE DE VISITANTES: Ampliar visitas_web
+-- =====================================================
+ALTER TABLE visitas_web ADD COLUMN IF NOT EXISTS dispositivo TEXT;
+ALTER TABLE visitas_web ADD COLUMN IF NOT EXISTS zona TEXT;
+

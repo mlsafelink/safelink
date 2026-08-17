@@ -38,9 +38,96 @@ export type EstadisticasSitio = {
   conversion: number;
 };
 
+export type VisitaDetalle = {
+  id: string;
+  session_id: string;
+  created_at: string;
+  dispositivo?: 'PC' | 'Notebook' | 'Móvil' | 'Tablet' | string | null;
+  zona?: string | null;
+};
+
+export type ResumenDispositivos = {
+  pc: number;
+  notebook: number;
+  movil: number;
+  tablet: number;
+};
+
+export type ResumenGeograficoItem = {
+  zona: string;
+  visitas: number;
+};
+
 // Clave de sessionStorage para evitar doble conteo
 const SESSION_VISIT_KEY = 'sl_visit_registered';
 const VISIT_COOLDOWN_MS = 30 * 60 * 1000; // 30 minutos
+
+// ── Helpers para detección de dispositivo y zona ──────────────
+function detectDeviceType(): 'PC' | 'Notebook' | 'Móvil' | 'Tablet' {
+  const ua = navigator.userAgent;
+  const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  const isTablet = /iPad|Tablet|PlayBook|Silk/i.test(ua) || (navigator.maxTouchPoints > 0 && /Macintosh/i.test(ua) && screen.width <= 1024);
+
+  if (isTablet) return 'Tablet';
+  if (isMobile) return 'Móvil';
+
+  const isNotebookScreen = window.screen.width <= 1536 && window.screen.height <= 900;
+  const hasBattery = 'getBattery' in navigator;
+  const hasTouch = navigator.maxTouchPoints > 0;
+
+  if (hasBattery || (isNotebookScreen && hasTouch)) {
+    return 'Notebook';
+  }
+  return isNotebookScreen ? 'Notebook' : 'PC';
+}
+
+async function getZonaAproximada(): Promise<string> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+    const res = await fetch('https://ipwho.is/', { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.success !== false) {
+        const parts = [data.city, data.region, data.country].filter(Boolean);
+        if (parts.length > 0) return parts.join(', ');
+      }
+    }
+  } catch {
+    // Fallback
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+    const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && !data.error) {
+        const parts = [data.city, data.region, data.country_name].filter(Boolean);
+        if (parts.length > 0) return parts.join(', ');
+      }
+    }
+  } catch {
+    // Fallback
+  }
+
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz.includes('Buenos_Aires') || tz.includes('Argentina')) {
+      return 'Buenos Aires, Argentina';
+    }
+    return tz.replace(/_/g, ' ');
+  } catch {
+    return 'Desconocida';
+  }
+}
 
 // ────────────────────────────────────────────────────────────
 // SERVICIO
@@ -67,9 +154,16 @@ export const landingService = {
         sessionStorage.setItem('sl_session_id', sessionId);
       }
 
+      const dispositivo = detectDeviceType();
+      const zona = await getZonaAproximada();
+
       const { error } = await supabase
         .from('visitas_web')
-        .insert({ session_id: sessionId });
+        .insert({
+          session_id: sessionId,
+          dispositivo,
+          zona,
+        });
 
       if (!error) {
         sessionStorage.setItem(SESSION_VISIT_KEY, now.toString());
@@ -237,5 +331,62 @@ export const landingService = {
       return [];
     }
     return data as ConsultaWeb[];
+  },
+
+  /**
+   * Obtiene el detalle de visitantes (dispositivo, zona, fecha) para el admin.
+   */
+  async getDetalleVisitantes(): Promise<{
+    visitas: VisitaDetalle[];
+    resumenDispositivos: ResumenDispositivos;
+    resumenGeografico: ResumenGeograficoItem[];
+  }> {
+    const { data, error } = await supabase
+      .from('visitas_web')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (error) {
+      console.error('Error al obtener detalle de visitantes:', error);
+      return {
+        visitas: [],
+        resumenDispositivos: { pc: 0, notebook: 0, movil: 0, tablet: 0 },
+        resumenGeografico: [],
+      };
+    }
+
+    const visitas = (data as VisitaDetalle[]) || [];
+
+    const resumenDispositivos: ResumenDispositivos = {
+      pc: 0,
+      notebook: 0,
+      movil: 0,
+      tablet: 0,
+    };
+
+    const geoMap: Record<string, number> = {};
+
+    visitas.forEach(v => {
+      const disp = (v.dispositivo || '').toLowerCase();
+      if (disp === 'pc') resumenDispositivos.pc++;
+      else if (disp === 'notebook') resumenDispositivos.notebook++;
+      else if (disp === 'móvil' || disp === 'movil') resumenDispositivos.movil++;
+      else if (disp === 'tablet') resumenDispositivos.tablet++;
+
+      const z = v.zona || 'Desconocida';
+      geoMap[z] = (geoMap[z] || 0) + 1;
+    });
+
+    const resumenGeografico: ResumenGeograficoItem[] = Object.entries(geoMap)
+      .map(([zona, count]) => ({ zona, visitas: count }))
+      .sort((a, b) => b.visitas - a.visitas)
+      .slice(0, 5);
+
+    return {
+      visitas,
+      resumenDispositivos,
+      resumenGeografico,
+    };
   },
 };

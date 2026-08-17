@@ -516,3 +516,120 @@
   transform: translateY(-1px);
   box-shadow: 0 8px 24px rgba(124, 58, 237, 0.45);
 }
+
+/* ══════════════════════════════════════════════════════════
+   DETALLE DE VISITANTES
+   ══════════════════════════════════════════════════════════ */
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.visitantesTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.visitantesTable th {
+  padding: 0.875rem 1.25rem;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.visitantesTable td {
+  padding: 0.875rem 1.25rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--glass-border);
+  white-space: nowrap;
+}
+
+.visitantesTable tr:last-child td {
+  border-bottom: none;
+}
+
+.emptyCell {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 2rem !important;
+}
+
+.badgeDispositivo {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(139, 92, 246, 0.12);
+  color: #8b5cf6;
+}
+
+.badge_pc { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+.badge_notebook { background: rgba(168, 85, 247, 0.12); color: #a855f7; }
+.badge_movil { background: rgba(34, 197, 94, 0.12); color: #22c55e; }
+.badge_tablet { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+
+.resumenesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.resumenCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.resumenCard h4 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin: 0;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 0.5rem;
+}
+
+.resumenList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.resumenRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+}
+
+.resumenValue {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.emptyText {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+

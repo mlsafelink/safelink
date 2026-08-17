@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { galeriaService, type GaleriaItem } from '@/services/galeriaService';
-import { landingService, type EstadisticasSitio } from '@/services/landingService';
+import { landingService, type EstadisticasSitio, type VisitaDetalle, type ResumenDispositivos, type ResumenGeograficoItem } from '@/services/landingService';
 import { useToast } from '@/components/ui/Toast/ToastContext';
 import {
   ArrowLeft, Globe, Image, BarChart3, Upload, Trash2,
@@ -30,6 +30,17 @@ function saveSiteConfig(cfg: SiteConfig) {
   localStorage.setItem(SITE_CONFIG_KEY, JSON.stringify(cfg));
 }
 
+function formatFechaHora(isoDate: string) {
+  try {
+    const d = new Date(isoDate);
+    const fecha = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const hora = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    return `${fecha} ${hora}`;
+  } catch {
+    return isoDate;
+  }
+}
+
 // ── Helpers ─────────────────────────────────────────────────────
 function StatCard({
   icon: Icon, label, value, accent, sub,
@@ -51,11 +62,20 @@ function StatCard({
 // ── Tab de Estadísticas ──────────────────────────────────────────
 function EstadisticasTab() {
   const [stats, setStats] = useState<EstadisticasSitio | null>(null);
+  const [detalleData, setDetalleData] = useState<{
+    visitas: VisitaDetalle[];
+    resumenDispositivos: ResumenDispositivos;
+    resumenGeografico: ResumenGeograficoItem[];
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    landingService.getEstadisticas().then(s => {
+    Promise.all([
+      landingService.getEstadisticas(),
+      landingService.getDetalleVisitantes(),
+    ]).then(([s, d]) => {
       setStats(s);
+      setDetalleData(d);
       setIsLoading(false);
     });
   }, []);
@@ -65,6 +85,10 @@ function EstadisticasTab() {
   }
 
   if (!stats) return null;
+
+  const detalleVisitantes = detalleData?.visitas || [];
+  const resumenDispositivos = detalleData?.resumenDispositivos || { pc: 0, notebook: 0, movil: 0, tablet: 0 };
+  const resumenGeografico = detalleData?.resumenGeografico || [];
 
   return (
     <div className={styles.statsSection}>
@@ -90,6 +114,84 @@ function EstadisticasTab() {
         <StatCard icon={BarChart3} label="Iluminación" value={stats.consultas_por_servicio.iluminacion} accent="#fbbf24" />
         <StatCard icon={BarChart3} label="Redes" value={stats.consultas_por_servicio.redes} accent="#34d399" />
         <StatCard icon={BarChart3} label="Otro" value={stats.consultas_por_servicio.otro} accent="#94a3b8" />
+      </div>
+
+      <h3 className={styles.statsGroupTitle}>DETALLE DE VISITANTES</h3>
+
+      <div className={styles.tableContainer}>
+        <table className={styles.visitantesTable}>
+          <thead>
+            <tr>
+              <th>Fecha y hora</th>
+              <th>Zona</th>
+              <th>Dispositivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {detalleVisitantes.length === 0 ? (
+              <tr>
+                <td colSpan={3} className={styles.emptyCell}>
+                  No hay detalle de visitantes registrado aún.
+                </td>
+              </tr>
+            ) : (
+              detalleVisitantes.map((v) => {
+                const dispClass = `badge_${(v.dispositivo || 'PC').toLowerCase().replace('ó', 'o')}`;
+                return (
+                  <tr key={v.id}>
+                    <td>{formatFechaHora(v.created_at)}</td>
+                    <td>{v.zona || 'Desconocida'}</td>
+                    <td>
+                      <span className={`${styles.badgeDispositivo} ${styles[dispClass] || ''}`}>
+                        {v.dispositivo || 'PC'}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className={styles.resumenesGrid}>
+        <div className={styles.resumenCard}>
+          <h4>RESUMEN DE DISPOSITIVOS</h4>
+          <div className={styles.resumenList}>
+            <div className={styles.resumenRow}>
+              <span>PC</span>
+              <span className={styles.resumenValue}>{resumenDispositivos.pc}</span>
+            </div>
+            <div className={styles.resumenRow}>
+              <span>Notebook</span>
+              <span className={styles.resumenValue}>{resumenDispositivos.notebook}</span>
+            </div>
+            <div className={styles.resumenRow}>
+              <span>Móvil</span>
+              <span className={styles.resumenValue}>{resumenDispositivos.movil}</span>
+            </div>
+            <div className={styles.resumenRow}>
+              <span>Tablet</span>
+              <span className={styles.resumenValue}>{resumenDispositivos.tablet}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.resumenCard}>
+          <h4>RESUMEN GEOGRÁFICO</h4>
+          <div className={styles.resumenList}>
+            {resumenGeografico.length === 0 ? (
+              <p className={styles.emptyText}>Sin datos geográficos aún</p>
+            ) : (
+              resumenGeografico.map((item, idx) => (
+                <div key={idx} className={styles.resumenRow}>
+                  <span>{item.zona}</span>
+                  <span className={styles.resumenValue}>{item.visitas} visitas</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
