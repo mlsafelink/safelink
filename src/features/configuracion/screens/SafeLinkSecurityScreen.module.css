@@ -60,6 +60,39 @@
   margin-top: 0.2rem;
 }
 
+.refreshBtn {
+  margin-left: auto;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.refreshBtn:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.refreshBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* ── Tarjeta Estado de seguridad ── */
 .estadoCard {
   background: var(--glass-bg);
@@ -118,6 +151,25 @@
 .estadoBadgeOk    { background: rgba(34, 197, 94, 0.12);  color: #22c55e; }
 .estadoBadgeAlerta { background: rgba(249, 115, 22, 0.12); color: #ea580c; }
 
+.unblockBtn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.unblockBtn:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.25);
+}
+
 .estadoMeta {
   display: flex;
   flex-wrap: wrap;
@@ -143,6 +195,23 @@
   font-weight: 500;
 }
 
+.textAlerta {
+  color: #ea580c !important;
+  font-weight: 700 !important;
+}
+
+.estadoZona {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  width: fit-content;
+}
+
 /* ── Secciones ── */
 .section {
   display: flex;
@@ -160,6 +229,14 @@
   letter-spacing: 0.08em;
   color: var(--text-secondary);
   margin: 0;
+}
+
+.savingIndicator {
+  font-size: 0.75rem;
+  text-transform: none;
+  font-weight: 500;
+  color: #38bdf8;
+  margin-left: 0.5rem;
 }
 
 /* ── Grid de indicadores de actividad ── */
@@ -215,7 +292,92 @@
 .cardBorderSospechoso   { border-left-color: #ea580c; }
 .cardBorderAutomatizado { border-left-color: #dc2626; }
 
-/* ── Eventos de seguridad ── */
+/* ── Historial de eventos / Tabla ── */
+.tableContainer {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  overflow-x: auto;
+}
+
+.historialTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+.historialTable th {
+  padding: 0.9rem 1.25rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.historialTable td {
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--glass-border);
+  color: var(--text-primary);
+}
+
+.historialTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.historialTable tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tdFecha {
+  font-size: 0.82rem;
+  color: var(--text-secondary) !important;
+  white-space: nowrap;
+}
+
+.tdZona {
+  font-size: 0.85rem;
+}
+
+.tdDevice {
+  font-size: 0.82rem;
+  color: var(--text-secondary) !important;
+}
+
+/* Badges de nivel de riesgo */
+.riskBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badgeNormal       { background: rgba(34, 197, 94, 0.12); color: #22c55e; }
+.badgeInusual      { background: rgba(202, 138, 4, 0.15); color: #ca8a04; }
+.badgeSospechoso   { background: rgba(234, 88, 12, 0.15); color: #ea580c; }
+.badgeAutomatizado { background: rgba(220, 38, 38, 0.15); color: #dc2626; }
+
+/* Badges de estado de acción */
+.statusBadge {
+  display: inline-flex;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.statusAllowed  { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+.statusRejected { background: rgba(249, 115, 22, 0.1); color: #f97316; }
+.statusBlocked  { background: rgba(220, 38, 38, 0.15); color: #ef4444; }
+
+/* ── Eventos Card Vacio ── */
 .eventosCard {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -252,28 +414,6 @@
   margin: 0;
   max-width: 480px;
   line-height: 1.6;
-}
-
-.eventosTipos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem 1.25rem;
-}
-
-.eventoTipo {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-}
-
-.eventoTipoDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--glass-border);
-  flex-shrink: 0;
 }
 
 /* ── Protección de cuenta ── */
@@ -324,6 +464,64 @@
 .badgeActivo  { background: rgba(34, 197, 94, 0.12); color: #22c55e; }
 .badgeProximo { background: rgba(148, 163, 184, 0.12); color: var(--text-secondary); }
 
+/* ── Configuración SLS ── */
+.configCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.configItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--glass-border);
+  gap: 1rem;
+}
+
+.configItem:last-child { border-bottom: none; }
+
+.configItemText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.configItemLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.configItemDesc {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.toggleBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: transform 0.15s;
+}
+
+.toggleBtn:hover:not(:disabled) {
+  transform: scale(1.1);
+}
+
+.toggleBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggleOn { color: #22c55e; }
+.toggleOff { color: var(--text-secondary); opacity: 0.4; }
+
 /* ── Alertas de seguridad ── */
 .alertasCard {
   background: var(--glass-bg);
@@ -360,6 +558,7 @@
 @media (max-width: 640px) {
   .actividadGrid { grid-template-columns: repeat(2, 1fr); }
   .estadoMeta { flex-direction: column; gap: 0.75rem; }
+  .thHideSm { display: none; }
 }
 
 @media (max-width: 400px) {

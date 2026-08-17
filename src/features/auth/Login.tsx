@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { securityService } from '@/services/securityService';
 import { Button } from '@/components/ui/Button/Button';
 import { Card } from '@/components/ui/Card/Card';
 import { Input } from '@/components/ui/Input/Input';
@@ -33,7 +34,7 @@ export function Login() {
     setError(null);
     setIsLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -42,7 +43,21 @@ export function Login() {
 
     if (error) {
       setError(traducirError(error.message));
+      // ── SLS: registrar intento fallido (fire-and-forget) ────────
+      securityService.recordEvent({
+        event_type: 'LOGIN_FAILED',
+        user_email: email,
+        metadata: { error_code: error.status ?? 'unknown' },
+      });
     } else {
+      // ── SLS: registrar login exitoso (fire-and-forget) ──────────
+      const userId = authData?.user?.id;
+      const userEmail = authData?.user?.email ?? email;
+      securityService.recordEvent({
+        event_type:  'LOGIN_SUCCESS',
+        user_id:     userId,
+        user_email:  userEmail,
+      });
       navigate('/dashboard');
     }
   };
