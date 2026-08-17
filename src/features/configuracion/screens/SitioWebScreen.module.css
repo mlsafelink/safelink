@@ -633,3 +633,137 @@
   margin: 0;
 }
 
+/* ══════════════════════════════════════════════════════════
+   DETALLE DE VISITANTES — FILAS INTERACTIVAS
+   ══════════════════════════════════════════════════════════ */
+
+/* Columnas — control responsive */
+.tdFecha      { white-space: nowrap; }
+.tdZona       { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+.tdDispositivo { white-space: nowrap; }
+.tdSO         { white-space: nowrap; }
+.tdNavegador  { white-space: nowrap; }
+.tdOrigen     { white-space: nowrap; }
+.tdActividad  { white-space: nowrap; }
+.tdExpand     { width: 28px; text-align: center; color: var(--text-secondary); }
+.thExpand     { width: 28px; }
+
+/* Fila interactiva */
+.visitaRow {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.visitaRow:hover {
+  background: rgba(129, 140, 248, 0.06);
+}
+.visitaRowExpanded {
+  background: rgba(129, 140, 248, 0.08);
+}
+
+/* Panel expandible */
+.detallePanelRow td {
+  padding: 0 !important;
+  border-bottom: 1px solid var(--glass-border);
+}
+.detallePanel {
+  padding: 1rem 1.5rem 1.25rem;
+  background: rgba(0, 0, 0, 0.06);
+  animation: slideDown 0.18s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.detallePanelGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem 1.5rem;
+}
+
+.detalleItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.detalleLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
+}
+
+.detalleValor {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+}
+
+/* ── Badges de nivel de actividad ── */
+.nivelBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.nivelNormal        { background: rgba(34, 197, 94, 0.12);  color: #22c55e; }
+.nivelInusual       { background: rgba(234, 179, 8, 0.14);  color: #ca8a04; }
+.nivelSospechoso    { background: rgba(249, 115, 22, 0.14); color: #ea580c; }
+.nivelAutomatizado  { background: rgba(239, 68, 68, 0.14);  color: #dc2626; }
+.nivelSinDeterminar { background: rgba(148, 163, 184, 0.14); color: var(--text-secondary); }
+
+/* ── Resumen de actividad (parte superior) ── */
+.actividadResumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.actividadBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  flex: 1 1 auto;
+  min-width: 160px;
+}
+
+.actividadEmoji { font-size: 1rem; }
+
+.actividadLabel { flex: 1; }
+
+.actividadCount {
+  font-size: 1.1rem;
+  font-weight: 800;
+  min-width: 1.5rem;
+  text-align: right;
+}
+
+.resumenBadgeNormal       { background: rgba(34, 197, 94, 0.08);  color: #22c55e; border-color: rgba(34, 197, 94, 0.2); }
+.resumenBadgeInusual      { background: rgba(234, 179, 8, 0.08);  color: #ca8a04; border-color: rgba(234, 179, 8, 0.2); }
+.resumenBadgeSospechoso   { background: rgba(249, 115, 22, 0.08); color: #ea580c; border-color: rgba(249, 115, 22, 0.2); }
+.resumenBadgeAutomatizado { background: rgba(239, 68, 68, 0.08);  color: #dc2626; border-color: rgba(239, 68, 68, 0.2); }
+
+/* ── Responsive: ocultar columnas en pantallas pequeñas ── */
+@media (max-width: 900px) {
+  .thHideSm, .tdSO, .tdOrigen { display: none; }
+}
+
+@media (max-width: 640px) {
+  .thHideXs, .tdSO, .tdNavegador { display: none; }
+  .visitantesTable th,
+  .visitantesTable td { padding: 0.65rem 0.75rem; }
+  .actividadBadge { min-width: 120px; }
+}

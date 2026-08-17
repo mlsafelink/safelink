@@ -77,8 +77,16 @@ CREATE POLICY "Auth All Galeria Storage" ON storage.objects
   FOR ALL TO authenticated USING (bucket_id = 'galeria-trabajos');
 
 -- =====================================================
--- DETALLE DE VISITANTES: Ampliar visitas_web
+-- DETALLE DE VISITANTES v1: Ampliar visitas_web
 -- =====================================================
 ALTER TABLE visitas_web ADD COLUMN IF NOT EXISTS dispositivo TEXT;
 ALTER TABLE visitas_web ADD COLUMN IF NOT EXISTS zona TEXT;
 
+-- =====================================================
+-- DETALLE DE VISITANTES v2: Campos enriquecidos
+-- =====================================================
+ALTER TABLE visitas_web ADD COLUMN IF NOT EXISTS pais TEXT;
+ALTER TABLE visitas_web ADD COLUMN IF NOT EXISTS sistema_operativo TEXT;
+ALTER TABLE visitas_web ADD COLUMN IF NOT EXISTS navegador TEXT;
+ALTER TABLE visitas_web ADD COLUMN IF NOT EXISTS origen TEXT;
+ALTER TABLE visitas_web ADD COLUMN IF NOT EXISTS nivel_actividad TEXT DEFAULT 'normal';

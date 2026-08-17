@@ -1,0 +1,367 @@
+/* ── Contenedor principal ── */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-family: inherit;
+  padding: 0;
+  transition: color 0.2s;
+  width: fit-content;
+}
+.backBtn:hover { color: var(--text-primary); }
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.headerIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #dc2626, #7f1d1d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.35);
+  flex-shrink: 0;
+}
+
+.headerTitle h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.headerTitle p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
+}
+
+/* ── Tarjeta Estado de seguridad ── */
+.estadoCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.estadoHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.estadoIconWrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iconOk    { color: #22c55e; }
+.iconAlerta { color: #ea580c; }
+
+.estadoInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.estadoTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.estadoBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.estadoBadgeOk    { background: rgba(34, 197, 94, 0.12);  color: #22c55e; }
+.estadoBadgeAlerta { background: rgba(249, 115, 22, 0.12); color: #ea580c; }
+
+.estadoMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 1.25rem;
+}
+
+.estadoMetaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.estadoMetaLabel {
+  font-weight: 600;
+}
+
+.estadoMetaValor {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* ── Secciones ── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ── Grid de indicadores de actividad ── */
+.actividadGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.actividadCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-left-width: 4px;
+  transition: transform 0.2s;
+}
+
+.actividadCard:hover { transform: translateY(-2px); }
+
+.actividadTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.actividadEmoji { font-size: 1.3rem; }
+
+.actividadCount {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.actividadLabel {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Colores de los contadores */
+.countNormal       { color: #22c55e; }
+.countInusual      { color: #ca8a04; }
+.countSospechoso   { color: #ea580c; }
+.countAutomatizado { color: #dc2626; }
+
+/* Bordes laterales de las tarjetas */
+.cardBorderNormal       { border-left-color: #22c55e; }
+.cardBorderInusual      { border-left-color: #ca8a04; }
+.cardBorderSospechoso   { border-left-color: #ea580c; }
+.cardBorderAutomatizado { border-left-color: #dc2626; }
+
+/* ── Eventos de seguridad ── */
+.eventosCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.eventosProximamente {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.6rem;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
+}
+
+.eventosIcon { color: var(--text-secondary); opacity: 0.5; }
+
+.eventosProximamenteTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.eventosProximamenteSub {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+.eventosTipos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.25rem;
+}
+
+.eventoTipo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.eventoTipoDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--glass-border);
+  flex-shrink: 0;
+}
+
+/* ── Protección de cuenta ── */
+.proteccionCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.proteccionItem {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--glass-border);
+  transition: background 0.15s;
+}
+
+.proteccionItem:last-child { border-bottom: none; }
+.proteccionItem:hover { background: rgba(0, 0, 0, 0.03); }
+
+.proteccionDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dotActivo  { background: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2); }
+.dotProximo { background: var(--text-secondary); opacity: 0.3; }
+
+.proteccionLabel {
+  flex: 1;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+}
+
+.proteccionBadge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+}
+
+.badgeActivo  { background: rgba(34, 197, 94, 0.12); color: #22c55e; }
+.badgeProximo { background: rgba(148, 163, 184, 0.12); color: var(--text-secondary); }
+
+/* ── Alertas de seguridad ── */
+.alertasCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.alertaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--glass-border);
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  transition: background 0.15s;
+}
+
+.alertaItem:last-child { border-bottom: none; }
+.alertaItem:hover { background: rgba(0, 0, 0, 0.03); }
+
+.alertaIcon { color: var(--text-secondary); flex-shrink: 0; }
+
+.alertaItem span:nth-child(2) { flex: 1; }
+
+/* ── Loading ── */
+.loading {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .actividadGrid { grid-template-columns: repeat(2, 1fr); }
+  .estadoMeta { flex-direction: column; gap: 0.75rem; }
+}
+
+@media (max-width: 400px) {
+  .actividadGrid { grid-template-columns: 1fr; }
+}

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/Card/Card';
-import { Cloud, Palette, Globe, Settings, ChevronRight } from 'lucide-react';
+import { Cloud, Palette, Globe, Settings, Shield, ChevronRight } from 'lucide-react';
 import styles from './ConfiguracionPage.module.css';
 
 export function ConfiguracionPage() {
@@ -89,6 +89,30 @@ export function ConfiguracionPage() {
           </div>
           <div className={styles.cardFooter}>
             <span>Personalizar interfaz</span>
+            <ChevronRight size={18} className={styles.arrow} />
+          </div>
+        </Card>
+
+        {/* Tarjeta 4: SafeLink Security */}
+        <Card
+          variant="glass"
+          className={styles.configCard}
+          onClick={() => navigate('/configuracion/security')}
+        >
+          <div className={styles.cardHeader}>
+            <div className={`${styles.iconWrapper} ${styles.securityIcon}`}>
+              <Shield size={32} />
+            </div>
+            <div className={styles.badge}>Seguridad</div>
+          </div>
+          <div className={styles.cardContent}>
+            <h2>SafeLink Security</h2>
+            <p>
+              Centro de seguridad y monitoreo de accesos. Indicadores de actividad, eventos y protección de cuenta.
+            </p>
+          </div>
+          <div className={styles.cardFooter}>
+            <span>Abrir panel de seguridad</span>
             <ChevronRight size={18} className={styles.arrow} />
           </div>
         </Card>

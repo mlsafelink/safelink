@@ -2,12 +2,19 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { galeriaService, type GaleriaItem } from '@/services/galeriaService';
-import { landingService, type EstadisticasSitio, type VisitaDetalle, type ResumenDispositivos, type ResumenGeograficoItem } from '@/services/landingService';
+import {
+  landingService,
+  type EstadisticasSitio,
+  type VisitaDetalle,
+  type ResumenDispositivos,
+  type ResumenGeograficoItem,
+} from '@/services/landingService';
 import { useToast } from '@/components/ui/Toast/ToastContext';
 import {
   ArrowLeft, Globe, Image, BarChart3, Upload, Trash2,
   Eye, EyeOff, GripVertical, MessageCircle, Share2,
   Save, TrendingUp, Users, Calendar, CheckCircle2, Clock,
+  ChevronDown, ChevronUp,
 } from 'lucide-react';
 import styles from './SitioWebScreen.module.css';
 
@@ -41,6 +48,16 @@ function formatFechaHora(isoDate: string) {
   }
 }
 
+function nivelLabel(nivel: string | null | undefined): { emoji: string; label: string; className: string } {
+  switch (nivel) {
+    case 'automatizado': return { emoji: '🔴', label: 'Potencialmente automatizado', className: styles.nivelAutomatizado };
+    case 'sospechoso':   return { emoji: '🟠', label: 'Actividad sospechosa',         className: styles.nivelSospechoso };
+    case 'inusual':      return { emoji: '🟡', label: 'Actividad inusual',             className: styles.nivelInusual };
+    case 'sin_determinar': return { emoji: '⬜', label: 'Sin determinar',              className: styles.nivelSinDeterminar };
+    default:             return { emoji: '🟢', label: 'Normal',                        className: styles.nivelNormal };
+  }
+}
+
 // ── Helpers ─────────────────────────────────────────────────────
 function StatCard({
   icon: Icon, label, value, accent, sub,
@@ -58,6 +75,93 @@ function StatCard({
     </div>
   );
 }
+
+// ── Panel de detalle expandible ──────────────────────────────────
+function DetallePanel({ visita }: { visita: VisitaDetalle }) {
+  const nivel = nivelLabel(visita.nivel_actividad);
+  return (
+    <div className={styles.detallePanel}>
+      <div className={styles.detallePanelGrid}>
+        <div className={styles.detalleItem}>
+          <span className={styles.detalleLabel}>Zona</span>
+          <span className={styles.detalleValor}>{visita.zona || 'Desconocida'}</span>
+        </div>
+        {visita.pais && (
+          <div className={styles.detalleItem}>
+            <span className={styles.detalleLabel}>País</span>
+            <span className={styles.detalleValor}>{visita.pais}</span>
+          </div>
+        )}
+        <div className={styles.detalleItem}>
+          <span className={styles.detalleLabel}>Dispositivo</span>
+          <span className={styles.detalleValor}>{visita.dispositivo || 'Desconocido'}</span>
+        </div>
+        <div className={styles.detalleItem}>
+          <span className={styles.detalleLabel}>Sistema operativo</span>
+          <span className={styles.detalleValor}>{visita.sistema_operativo || 'Desconocido'}</span>
+        </div>
+        <div className={styles.detalleItem}>
+          <span className={styles.detalleLabel}>Navegador</span>
+          <span className={styles.detalleValor}>{visita.navegador || 'Desconocido'}</span>
+        </div>
+        <div className={styles.detalleItem}>
+          <span className={styles.detalleLabel}>Origen</span>
+          <span className={styles.detalleValor}>{visita.origen || 'Directo'}</span>
+        </div>
+        <div className={styles.detalleItem}>
+          <span className={styles.detalleLabel}>Evaluación</span>
+          <span className={`${styles.nivelBadge} ${nivel.className}`}>
+            {nivel.emoji} {nivel.label}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Fila de tabla con expansión ───────────────────────────────────
+function VisitaRow({ visita }: { visita: VisitaDetalle }) {
+  const [expanded, setExpanded] = useState(false);
+  const dispKey = `badge_${(visita.dispositivo || 'PC').toLowerCase().replace('ó', 'o')}`;
+  const nivel = nivelLabel(visita.nivel_actividad);
+
+  return (
+    <>
+      <tr
+        className={`${styles.visitaRow} ${expanded ? styles.visitaRowExpanded : ''}`}
+        onClick={() => setExpanded(e => !e)}
+        title="Click para ver detalle"
+      >
+        <td className={styles.tdFecha}>{formatFechaHora(visita.created_at)}</td>
+        <td className={styles.tdZona}>{visita.zona || 'Desconocida'}</td>
+        <td className={styles.tdDispositivo}>
+          <span className={`${styles.badgeDispositivo} ${styles[dispKey] || ''}`}>
+            {visita.dispositivo || 'PC'}
+          </span>
+        </td>
+        <td className={styles.tdSO}>{visita.sistema_operativo || '—'}</td>
+        <td className={styles.tdNavegador}>{visita.navegador || '—'}</td>
+        <td className={styles.tdOrigen}>{visita.origen || 'Directo'}</td>
+        <td className={styles.tdActividad}>
+          <span className={`${styles.nivelBadge} ${nivel.className}`}>
+            {nivel.emoji} {nivel.label}
+          </span>
+        </td>
+        <td className={styles.tdExpand}>
+          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </td>
+      </tr>
+      {expanded && (
+        <tr className={styles.detallePanelRow}>
+          <td colSpan={8}>
+            <DetallePanel visita={visita} />
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
 
 // ── Tab de Estadísticas ──────────────────────────────────────────
 function EstadisticasTab() {
@@ -92,88 +196,72 @@ function EstadisticasTab() {
 
   return (
     <div className={styles.statsSection}>
+      {/* ── Estadísticas existentes (sin cambios) ── */}
       <h3 className={styles.statsGroupTitle}>Visitas al sitio</h3>
       <div className={styles.statsGrid}>
-        <StatCard icon={Users} label="Visitas totales" value={stats.visitas_total} accent="#818cf8" />
-        <StatCard icon={Calendar} label="Hoy" value={stats.visitas_hoy} accent="#34d399" />
-        <StatCard icon={TrendingUp} label="Esta semana" value={stats.visitas_semana} accent="#fbbf24" />
-        <StatCard icon={BarChart3} label="Este mes" value={stats.visitas_mes} accent="#60a5fa" />
+        <StatCard icon={Users}     label="Visitas totales" value={stats.visitas_total}  accent="#818cf8" />
+        <StatCard icon={Calendar}  label="Hoy"             value={stats.visitas_hoy}    accent="#34d399" />
+        <StatCard icon={TrendingUp} label="Esta semana"    value={stats.visitas_semana} accent="#fbbf24" />
+        <StatCard icon={BarChart3} label="Este mes"        value={stats.visitas_mes}    accent="#60a5fa" />
       </div>
 
       <h3 className={styles.statsGroupTitle}>Consultas recibidas</h3>
       <div className={styles.statsGrid}>
-        <StatCard icon={MessageCircle} label="Total" value={stats.consultas_total} accent="#a78bfa" />
-        <StatCard icon={Clock} label="Pendientes" value={stats.consultas_pendientes} accent="#fb923c" />
-        <StatCard icon={CheckCircle2} label="Atendidas" value={stats.consultas_atendidas} accent="#4ade80" />
-        <StatCard icon={TrendingUp} label="Conversión" value={`${stats.conversion}%`} accent="#f472b6" sub="consultas / visitas" />
+        <StatCard icon={MessageCircle} label="Total"       value={stats.consultas_total}      accent="#a78bfa" />
+        <StatCard icon={Clock}         label="Pendientes"  value={stats.consultas_pendientes} accent="#fb923c" />
+        <StatCard icon={CheckCircle2}  label="Atendidas"   value={stats.consultas_atendidas}  accent="#4ade80" />
+        <StatCard icon={TrendingUp}    label="Conversión"  value={`${stats.conversion}%`}     accent="#f472b6" sub="consultas / visitas" />
       </div>
 
       <h3 className={styles.statsGroupTitle}>Consultas por servicio</h3>
       <div className={styles.statsGrid}>
-        <StatCard icon={BarChart3} label="Cámaras" value={stats.consultas_por_servicio.camaras} accent="#818cf8" />
+        <StatCard icon={BarChart3} label="Cámaras"     value={stats.consultas_por_servicio.camaras}     accent="#818cf8" />
         <StatCard icon={BarChart3} label="Iluminación" value={stats.consultas_por_servicio.iluminacion} accent="#fbbf24" />
-        <StatCard icon={BarChart3} label="Redes" value={stats.consultas_por_servicio.redes} accent="#34d399" />
-        <StatCard icon={BarChart3} label="Otro" value={stats.consultas_por_servicio.otro} accent="#94a3b8" />
+        <StatCard icon={BarChart3} label="Redes"       value={stats.consultas_por_servicio.redes}       accent="#34d399" />
+        <StatCard icon={BarChart3} label="Otro"        value={stats.consultas_por_servicio.otro}        accent="#94a3b8" />
       </div>
 
+      {/* ── DETALLE DE VISITANTES ── */}
       <h3 className={styles.statsGroupTitle}>DETALLE DE VISITANTES</h3>
 
+      {/* Tabla principal */}
       <div className={styles.tableContainer}>
         <table className={styles.visitantesTable}>
           <thead>
             <tr>
-              <th>Fecha y hora</th>
-              <th>Zona</th>
-              <th>Dispositivo</th>
+              <th className={styles.tdFecha}>Fecha y hora</th>
+              <th className={styles.tdZona}>Zona</th>
+              <th className={styles.tdDispositivo}>Dispositivo</th>
+              <th className={styles.thHideXs}>SO</th>
+              <th className={styles.thHideXs}>Navegador</th>
+              <th className={styles.thHideSm}>Origen</th>
+              <th>Actividad</th>
+              <th className={styles.thExpand}></th>
             </tr>
           </thead>
           <tbody>
             {detalleVisitantes.length === 0 ? (
               <tr>
-                <td colSpan={3} className={styles.emptyCell}>
+                <td colSpan={8} className={styles.emptyCell}>
                   No hay detalle de visitantes registrado aún.
                 </td>
               </tr>
             ) : (
-              detalleVisitantes.map((v) => {
-                const dispClass = `badge_${(v.dispositivo || 'PC').toLowerCase().replace('ó', 'o')}`;
-                return (
-                  <tr key={v.id}>
-                    <td>{formatFechaHora(v.created_at)}</td>
-                    <td>{v.zona || 'Desconocida'}</td>
-                    <td>
-                      <span className={`${styles.badgeDispositivo} ${styles[dispClass] || ''}`}>
-                        {v.dispositivo || 'PC'}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })
+              detalleVisitantes.map(v => <VisitaRow key={v.id} visita={v} />)
             )}
           </tbody>
         </table>
       </div>
 
+      {/* Resúmenes inferiores */}
       <div className={styles.resumenesGrid}>
         <div className={styles.resumenCard}>
           <h4>RESUMEN DE DISPOSITIVOS</h4>
           <div className={styles.resumenList}>
-            <div className={styles.resumenRow}>
-              <span>PC</span>
-              <span className={styles.resumenValue}>{resumenDispositivos.pc}</span>
-            </div>
-            <div className={styles.resumenRow}>
-              <span>Notebook</span>
-              <span className={styles.resumenValue}>{resumenDispositivos.notebook}</span>
-            </div>
-            <div className={styles.resumenRow}>
-              <span>Móvil</span>
-              <span className={styles.resumenValue}>{resumenDispositivos.movil}</span>
-            </div>
-            <div className={styles.resumenRow}>
-              <span>Tablet</span>
-              <span className={styles.resumenValue}>{resumenDispositivos.tablet}</span>
-            </div>
+            <div className={styles.resumenRow}><span>PC</span><span className={styles.resumenValue}>{resumenDispositivos.pc}</span></div>
+            <div className={styles.resumenRow}><span>Notebook</span><span className={styles.resumenValue}>{resumenDispositivos.notebook}</span></div>
+            <div className={styles.resumenRow}><span>Móvil</span><span className={styles.resumenValue}>{resumenDispositivos.movil}</span></div>
+            <div className={styles.resumenRow}><span>Tablet</span><span className={styles.resumenValue}>{resumenDispositivos.tablet}</span></div>
           </div>
         </div>
 

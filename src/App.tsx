@@ -25,6 +25,7 @@ import { ConfiguracionPage } from '@/features/configuracion/ConfiguracionPage';
 import { BackupScreen } from '@/features/configuracion/screens/BackupScreen';
 import { AparienciaScreen } from '@/features/configuracion/screens/AparienciaScreen';
 import { SitioWebScreen } from '@/features/configuracion/screens/SitioWebScreen';
+import { SafeLinkSecurityScreen } from '@/features/configuracion/screens/SafeLinkSecurityScreen';
 import { LandingPage } from '@/features/landing/LandingPage';
 import { SafeLinkMonitorPage } from '@/features/monitor/SafeLinkMonitorPage';
 
@@ -63,6 +64,7 @@ function App() {
             <Route path="/configuracion/backup"     element={<BackupScreen />} />
             <Route path="/configuracion/apariencia"  element={<AparienciaScreen />} />
             <Route path="/configuracion/sitio-web"   element={<SitioWebScreen />} />
+            <Route path="/configuracion/security"    element={<SafeLinkSecurityScreen />} />
           </Route>
         </Route>
 

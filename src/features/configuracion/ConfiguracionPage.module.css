@@ -96,6 +96,10 @@
   background: linear-gradient(135deg, #10b981, #047857);
 }
 
+.securityIcon {
+  background: linear-gradient(135deg, #dc2626, #7f1d1d);
+}
+
 .badge {
   font-size: 0.72rem;
   font-weight: 700;
