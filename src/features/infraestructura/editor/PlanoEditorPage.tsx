@@ -1,20 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { infraestructuraService } from '@/services/infraestructuraService';
 import { ElementoDetalleModal } from '../components/ElementoDetalleModal';
 import { CompartirPlanoModal } from '../components/CompartirPlanoModal';
 import { Button } from '@/components/ui/Button/Button';
-import { Card } from '@/components/ui/Card/Card';
 import { useToast } from '@/components/ui/Toast/ToastContext';
 import {
-  ArrowLeft, ZoomIn, ZoomOut, Maximize2, RotateCcw,
-  Save, Share2, Plus, Network, Video, Wifi,
-  Server, Shield, Check, Info, Trash2, Edit3,
-  ExternalLink, Eye, ArrowRight,
+  ArrowLeft, ZoomIn, ZoomOut, RotateCcw,
+  Save, Share2, Network, Video, Wifi,
+  Server, Shield, Info, Trash2, Edit3,
+  Eye, ArrowRight,
 } from 'lucide-react';
 import type {
-  PlanoInfraestructura,
   ElementoPlano,
   ElementoTipo,
 } from '@/types/infraestructura';
@@ -67,10 +65,10 @@ export function PlanoEditorPage() {
       queryClient.invalidateQueries({ queryKey: ['infra-plans'] });
       queryClient.invalidateQueries({ queryKey: ['infra-summary'] });
       setHasUnsavedChanges(false);
-      showToast({ title: 'Guardado', message: 'Los elementos técnicos han sido guardados con éxito.', type: 'success' });
+      showToast('Los elementos técnicos han sido guardados con éxito.', 'success');
     },
     onError: (err: any) => {
-      showToast({ title: 'Error', message: err?.message || 'No se pudieron guardar los cambios.', type: 'error' });
+      showToast(err?.message || 'No se pudieron guardar los cambios.', 'error');
     },
   });
 
@@ -152,7 +150,7 @@ export function PlanoEditorPage() {
     setSelectedElementId(newElement.id);
     setAddingType(null);
     setHasUnsavedChanges(true);
-    showToast({ title: 'Elemento Agregado', message: `Se colocó ${newElement.codigo} sobre el plano. Podés configurarlo ahora.`, type: 'info' });
+    showToast(`Se colocó ${newElement.codigo} sobre el plano. Podés configurarlo ahora.`, 'info');
   };
 
   const handleUpdateElement = (updated: ElementoPlano) => {
@@ -164,10 +162,6 @@ export function PlanoEditorPage() {
     setElements(prev => prev.filter(el => el.id !== elemId));
     if (selectedElementId === elemId) setSelectedElementId(null);
     setHasUnsavedChanges(true);
-  };
-
-  const handleCopyLink = () => {
-    setIsShareModalOpen(true);
   };
 
   const selectedElement = elements.find(el => el.id === selectedElementId);

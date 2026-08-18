@@ -1,13 +1,12 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { infraestructuraService } from '@/services/infraestructuraService';
 import logoImg from '@/assets/logo.png';
 import {
   ZoomIn, ZoomOut, RotateCcw, Shield,
-  ArrowRight, Building, Layers,
+  ArrowRight, Building,
 } from 'lucide-react';
-import type { ElementoPlano } from '@/types/infraestructura';
 import styles from './PublicPlanoViewer.module.css';
 
 export function PublicPlanoViewer() {

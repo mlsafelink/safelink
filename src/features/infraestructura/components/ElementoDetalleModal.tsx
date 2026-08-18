@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card/Card';
 import { Button } from '@/components/ui/Button/Button';
 import { Input } from '@/components/ui/Input/Input';
@@ -6,11 +6,10 @@ import { SwitchPortGrid } from './SwitchPortGrid';
 import { DVRChannelGrid } from './DVRChannelGrid';
 import {
   X, Trash2, Save,
-  ArrowRight, ShieldCheck,
+  ArrowRight,
 } from 'lucide-react';
 import type {
   ElementoPlano,
-  ElementoTipo,
   ElementoEstado,
   SwitchProperties,
   BocaProperties,

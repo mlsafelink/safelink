@@ -48,7 +48,7 @@ export function InfraestructuraPage() {
   const handlePlanCreated = (newPlan: PlanoInfraestructura) => {
     queryClient.invalidateQueries({ queryKey: ['infra-plans'] });
     queryClient.invalidateQueries({ queryKey: ['infra-summary'] });
-    showToast({ title: 'Plano Creado', message: `El plano "${newPlan.nombre}" se creó con éxito.`, type: 'success' });
+    showToast(`El plano "${newPlan.nombre}" se creó con éxito.`, 'success');
     navigate(`/infraestructura/plano/${newPlan.id}`);
   };
 
@@ -63,7 +63,7 @@ export function InfraestructuraPage() {
       await infraestructuraService.delete(id);
       queryClient.invalidateQueries({ queryKey: ['infra-plans'] });
       queryClient.invalidateQueries({ queryKey: ['infra-summary'] });
-      showToast({ title: 'Plano Eliminado', message: `El plano "${name}" ha sido removido.`, type: 'info' });
+      showToast(`El plano "${name}" ha sido removido.`, 'info');
     }
   };
 

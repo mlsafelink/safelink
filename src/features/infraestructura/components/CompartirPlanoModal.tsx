@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { copyToClipboard } from '@/utils/clipboard';
 import { useToast } from '@/components/ui/Toast/ToastContext';
 import { Button } from '@/components/ui/Button/Button';
@@ -31,18 +31,10 @@ export function CompartirPlanoModal({
     const ok = await copyToClipboard(publicUrl);
     if (ok) {
       setCopied(true);
-      showToast({
-        title: 'Enlace Copiado',
-        message: 'El enlace de cliente ha sido copiado al portapapeles.',
-        type: 'success',
-      });
+      showToast('El enlace de cliente ha sido copiado al portapapeles.', 'success');
       setTimeout(() => setCopied(false), 2500);
     } else {
-      showToast({
-        title: 'Atención',
-        message: 'No se pudo copiar automáticamente. Por favor selecciónalo manualmente.',
-        type: 'warning',
-      });
+      showToast('No se pudo copiar automáticamente. Por favor selecciónalo manualmente.', 'warning');
     }
   };
 

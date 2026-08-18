@@ -390,7 +390,7 @@ export const infraestructuraService = {
    */
   async getByPublicId(publicId: string): Promise<PlanoInfraestructura | null> {
     try {
-      let { data: plan, error } = await supabase
+      let { data: plan } = await supabase
         .from('infrastructure_plans')
         .select(`
           *,
