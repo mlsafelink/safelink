@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Building, FileText, LogOut, UserCheck, Bell, StickyNote, Bot, DollarSign, Lock, Settings, Radio } from 'lucide-react';
+import { LayoutDashboard, Building2, Building, FileText, LogOut, UserCheck, Bell, StickyNote, Bot, DollarSign, Lock, Settings, Radio, Layers } from 'lucide-react';
 import logoImg from '@/assets/logo.png';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useSafeLinkNote } from '@/features/safeLinkNote/SafeLinkNoteContext';
@@ -111,6 +111,15 @@ export function Sidebar() {
         >
           <Radio size={20} />
           <span>SafeLink Mónitor</span>
+        </NavLink>
+
+        {/* ── Infraestructura técnica ── */}
+        <NavLink
+          to="/infraestructura"
+          className={({ isActive }) => clsx(styles.navItem, isActive && styles.active)}
+        >
+          <Layers size={20} />
+          <span>Infraestructura técnica</span>
         </NavLink>
 
         {/* ── Configuración ── */}
