@@ -6,7 +6,7 @@ import { SwitchPortGrid } from './SwitchPortGrid';
 import { DVRChannelGrid } from './DVRChannelGrid';
 import {
   X, Trash2, Save,
-  ArrowRight, Zap,
+  ArrowRight, Zap, Network, Globe,
 } from 'lucide-react';
 import type {
   ElementoPlano,
@@ -16,6 +16,7 @@ import type {
   APProperties,
   DVRProperties,
   CamaraProperties,
+  ModemProperties,
   PoeVoltage,
   PoeInjectorProperties,
 } from '@/types/infraestructura';
@@ -50,12 +51,18 @@ export function ElementoDetalleModal({
 
   if (!isOpen || !formData) return null;
 
-  // Filtrar switches y DVRs disponibles en este plano para asociar
+  // Filtrar switches, DVRs y módems disponibles en este plano para asociar
   const availableSwitches = todosElementos.filter(e => e.tipo === 'switch' && e.id !== formData.id);
   const availableDVRs = todosElementos.filter(e => e.tipo === 'dvr' && e.id !== formData.id);
+  const availableModems = todosElementos.filter(e => e.tipo === 'modem' && e.id !== formData.id);
 
   // Elementos hijos conectados a este switch o DVR
   const connectedEndpoints = todosElementos.filter(e => e.parent_element_id === formData.id);
+
+  // Switches conectados a este módem (si el elemento es un módem)
+  const connectedSwitchesToModem = todosElementos.filter(
+    e => e.tipo === 'switch' && (e.parent_element_id === formData.id || (e.propiedades as SwitchProperties)?.modemId === formData.id)
+  );
 
   const handlePropertyChange = (key: string, value: any) => {
     setFormData(prev => {
@@ -79,6 +86,20 @@ export function ElementoDetalleModal({
         propiedades: {
           ...prev.propiedades,
           switchId: switchId || undefined,
+        },
+      };
+    });
+  };
+
+  const handleSwitchModemChange = (modemId: string) => {
+    setFormData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        parent_element_id: modemId || null,
+        propiedades: {
+          ...prev.propiedades,
+          modemId: modemId || null,
         },
       };
     });
@@ -112,6 +133,11 @@ export function ElementoDetalleModal({
   const apProps = (formData.propiedades as APProperties) || {};
   const dvrProps = (formData.propiedades as DVRProperties) || { cantidadCanales: 16 };
   const camProps = (formData.propiedades as CamaraProperties) || {};
+  const modemProps = (formData.propiedades as ModemProperties) || {};
+
+  // Módem asociado al Switch actual
+  const currentModemId = switchProps.modemId || (formData.parent_element_id && todosElementos.find(e => e.id === formData.parent_element_id && e.tipo === 'modem')?.id) || '';
+  const selectedModem = todosElementos.find(e => e.id === currentModemId);
 
   // PoE Injector Properties
   const poeProps = (formData.propiedades as PoeInjectorProperties) || {};
@@ -120,6 +146,16 @@ export function ElementoDetalleModal({
 
   // Encontrar equipo padre si existe
   const parentEquipo = todosElementos.find(e => e.id === formData.parent_element_id);
+
+  // Módem del Switch padre para dispositivos de red (Boca / AP)
+  const modemOfParentSwitch =
+    parentEquipo && parentEquipo.tipo === 'switch'
+      ? todosElementos.find(
+          e =>
+            e.tipo === 'modem' &&
+            (e.id === parentEquipo.parent_element_id || e.id === (parentEquipo.propiedades as SwitchProperties)?.modemId)
+        )
+      : null;
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -143,8 +179,10 @@ export function ElementoDetalleModal({
 
           {/* Formulario */}
           <form onSubmit={handleSubmit} className={styles.modalForm}>
-            {/* Trazado Visual de Conexión si está enlazado */}
-            {parentEquipo && (
+            {/* ── Trazado Visual de Conexión Dinámico ── */}
+
+            {/* CASO A: Dispositivo final (Boca / AP) conectado a Switch */}
+            {parentEquipo && (formData.tipo === 'boca' || formData.tipo === 'ap') && (
               <div className={styles.connectionTraceBox}>
                 <span className={styles.traceTag}>Trazado de Conexión:</span>
                 <div className={styles.traceFlow}>
@@ -178,12 +216,112 @@ export function ElementoDetalleModal({
                     <strong>{parentEquipo.codigo}</strong>
                     <span>{parentEquipo.nombre}</span>
                   </div>
+
                   <ArrowRight size={16} className={styles.traceArrow} />
                   <div className={styles.traceNode}>
                     <strong style={{ color: '#38bdf8' }}>
-                      {formData.tipo === 'camara' ? `Canal ${formData.puerto_canal || 'CH01'}` : `Puerto ${formData.puerto_canal || '01'}`}
+                      Puerto {formData.puerto_canal || '01'}
                     </strong>
                     <span>Conexión Física</span>
+                  </div>
+
+                  {/* Nodo Módem & Internet si el switch tiene Uplink */}
+                  {modemOfParentSwitch && (
+                    <>
+                      <ArrowRight size={16} className={styles.traceArrow} />
+                      <div className={`${styles.traceNode} ${styles.traceNodeModem}`}>
+                        <strong style={{ color: '#eab308' }}>{modemOfParentSwitch.codigo}</strong>
+                        <span>{(modemOfParentSwitch.propiedades as ModemProperties)?.proveedor || 'Módem ISP'}</span>
+                      </div>
+
+                      <ArrowRight size={16} className={styles.traceArrow} />
+                      <div className={`${styles.traceNode} ${styles.traceNodeInternet}`}>
+                        <strong style={{ color: '#0ea5e9' }}>Internet</strong>
+                        <span>WAN Online</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* CASO B: Switch */}
+            {formData.tipo === 'switch' && (
+              <div className={styles.connectionTraceBox}>
+                <span className={styles.traceTag}>Trazado de Conexión:</span>
+                <div className={styles.traceFlow}>
+                  {selectedModem && (
+                    <>
+                      <div className={`${styles.traceNode} ${styles.traceNodeInternet}`}>
+                        <strong style={{ color: '#0ea5e9' }}>Internet</strong>
+                        <span>WAN / ISP</span>
+                      </div>
+                      <ArrowRight size={16} className={styles.traceArrow} />
+                      <div className={`${styles.traceNode} ${styles.traceNodeModem}`}>
+                        <strong style={{ color: '#eab308' }}>{selectedModem.codigo}</strong>
+                        <span>{(selectedModem.propiedades as ModemProperties)?.proveedor || 'Módem Principal'}</span>
+                      </div>
+                      <ArrowRight size={16} className={styles.traceArrow} />
+                    </>
+                  )}
+
+                  <div className={styles.traceNode}>
+                    <strong>{formData.codigo}</strong>
+                    <span>{formData.nombre}</span>
+                  </div>
+
+                  <ArrowRight size={16} className={styles.traceArrow} />
+                  <div className={styles.traceNode}>
+                    <strong style={{ color: '#38bdf8' }}>{connectedEndpoints.length} Dispositivos</strong>
+                    <span>Puertos Asignados</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* CASO C: Módem */}
+            {formData.tipo === 'modem' && (
+              <div className={styles.connectionTraceBox}>
+                <span className={styles.traceTag}>Trazado de Conexión:</span>
+                <div className={styles.traceFlow}>
+                  <div className={`${styles.traceNode} ${styles.traceNodeInternet}`}>
+                    <strong style={{ color: '#0ea5e9' }}>Internet</strong>
+                    <span>WAN Online</span>
+                  </div>
+                  <ArrowRight size={16} className={styles.traceArrow} />
+                  <div className={`${styles.traceNode} ${styles.traceNodeModem}`}>
+                    <strong style={{ color: '#eab308' }}>{formData.codigo}</strong>
+                    <span>{(formData.propiedades as ModemProperties)?.proveedor || 'Proveedor ISP'}</span>
+                  </div>
+                  <ArrowRight size={16} className={styles.traceArrow} />
+                  <div className={styles.traceNode}>
+                    <strong style={{ color: '#38bdf8' }}>{connectedSwitchesToModem.length} Switches</strong>
+                    <span>Enlaces LAN</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* CASO D: Cámara conectada a DVR */}
+            {parentEquipo && formData.tipo === 'camara' && (
+              <div className={styles.connectionTraceBox}>
+                <span className={styles.traceTag}>Trazado de Conexión:</span>
+                <div className={styles.traceFlow}>
+                  <div className={styles.traceNode}>
+                    <strong>{formData.codigo}</strong>
+                    <span>{formData.nombre}</span>
+                  </div>
+                  <ArrowRight size={16} className={styles.traceArrow} />
+                  <div className={styles.traceNode}>
+                    <strong>{parentEquipo.codigo}</strong>
+                    <span>{parentEquipo.nombre}</span>
+                  </div>
+                  <ArrowRight size={16} className={styles.traceArrow} />
+                  <div className={styles.traceNode}>
+                    <strong style={{ color: '#38bdf8' }}>
+                      Canal {formData.puerto_canal || 'CH01'}
+                    </strong>
+                    <span>Conexión CCTV</span>
                   </div>
                 </div>
               </div>
@@ -257,7 +395,7 @@ export function ElementoDetalleModal({
                     <input
                       type="text"
                       className={styles.textInput}
-                      placeholder="Ej: Ubiquiti UniFi USW-24-POE"
+                      placeholder="Ej: Ubiquiti UniFi USW-16-PoE"
                       value={switchProps.modelo || ''}
                       onChange={e => handlePropertyChange('modelo', e.target.value)}
                       disabled={readOnly}
@@ -287,6 +425,61 @@ export function ElementoDetalleModal({
                       <option value="24">24 Puertos</option>
                       <option value="48">48 Puertos</option>
                     </select>
+                  </div>
+                </div>
+
+                {/* Uplink / Conexión a Módem */}
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Conectado a módem (Acceso / WAN)</label>
+                    <select
+                      className={styles.selectInput}
+                      value={currentModemId}
+                      onChange={e => handleSwitchModemChange(e.target.value)}
+                      disabled={readOnly}
+                    >
+                      <option value="">-- Ninguno (Sin módem asociado) --</option>
+                      {availableModems.map(modem => {
+                        const prov = (modem.propiedades as ModemProperties)?.proveedor;
+                        return (
+                          <option key={modem.id} value={modem.id}>
+                            {modem.codigo} — {modem.nombre} {prov ? `(${prov})` : ''}
+                          </option>
+                        );
+                      })}
+                    </select>
+
+                    {availableModems.length === 0 && (
+                      <div className={styles.noModemHint}>
+                        <span>No hay módems registrados en este plano. Podés crear uno desde la barra de herramientas.</span>
+                      </div>
+                    )}
+
+                    {selectedModem && (
+                      <div className={styles.modemInfoCard}>
+                        <div className={styles.modemInfoRow}>
+                          <div className={styles.modemInfoItem}>
+                            <Globe size={14} style={{ color: '#eab308' }} />
+                            <span className={styles.modemInfoLabel}>Módem:</span>
+                            <span className={styles.modemInfoVal}>{selectedModem.codigo}</span>
+                          </div>
+                          <div className={styles.modemInfoItem}>
+                            <span className={styles.modemInfoLabel}>Proveedor:</span>
+                            <span className={styles.modemInfoVal}>{(selectedModem.propiedades as ModemProperties)?.proveedor || 'Fibertel'}</span>
+                          </div>
+                          <div className={styles.modemInfoItem}>
+                            <span className={styles.modemInfoLabel}>IP Gateway:</span>
+                            <span className={styles.modemInfoVal}>{(selectedModem.propiedades as ModemProperties)?.ip || '192.168.1.1'}</span>
+                          </div>
+                          {(selectedModem.propiedades as ModemProperties)?.tipoConexion && (
+                            <div className={styles.modemInfoItem}>
+                              <span className={styles.modemInfoLabel}>Tipo:</span>
+                              <span className={styles.modemInfoVal}>{(selectedModem.propiedades as ModemProperties)?.tipoConexion}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -792,6 +985,126 @@ export function ElementoDetalleModal({
               </div>
             )}
 
+            {/* ── 6. CAMPOS ESPECÍFICOS: MÓDEM DE ACCESO (ISP / WAN) ── */}
+            {formData.tipo === 'modem' && (
+              <div className={styles.equipmentSection}>
+                <h3 className={styles.sectionHeading}>Configuración del Módem de Acceso (ISP / WAN)</h3>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Proveedor de Internet (ISP)</label>
+                    <input
+                      type="text"
+                      className={styles.textInput}
+                      placeholder="Ej: Fibertel, Claro, Telecentro, iPlan"
+                      value={modemProps.proveedor || ''}
+                      onChange={e => handlePropertyChange('proveedor', e.target.value)}
+                      disabled={readOnly}
+                    />
+                  </div>
+                  <div className={styles.formGroup} style={{ width: '180px' }}>
+                    <label className={styles.label}>Tipo de Conexión</label>
+                    <select
+                      className={styles.selectInput}
+                      value={modemProps.tipoConexion || 'Fibra'}
+                      onChange={e => handlePropertyChange('tipoConexion', e.target.value)}
+                      disabled={readOnly}
+                    >
+                      <option value="Fibra">Fibra Óptica (FTTH)</option>
+                      <option value="Cable">Cablemódem (HFC)</option>
+                      <option value="DSL">ADSL / VDSL</option>
+                      <option value="Inalámbrico">Inalámbrico / 4G/5G</option>
+                      <option value="Otro">Otro</option>
+                    </select>
+                  </div>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Dirección IP / Gateway</label>
+                    <input
+                      type="text"
+                      className={styles.textInput}
+                      placeholder="Ej: 192.168.1.1 o 192.168.0.1"
+                      value={modemProps.ip || ''}
+                      onChange={e => handlePropertyChange('ip', e.target.value)}
+                      disabled={readOnly}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Marca</label>
+                    <input
+                      type="text"
+                      className={styles.textInput}
+                      placeholder="Ej: Sagemcom, Huawei, ZTE"
+                      value={modemProps.marca || ''}
+                      onChange={e => handlePropertyChange('marca', e.target.value)}
+                      disabled={readOnly}
+                    />
+                  </div>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Modelo</label>
+                    <input
+                      type="text"
+                      className={styles.textInput}
+                      placeholder="Ej: Fast 5655v2 / EchoLife HG8245W5"
+                      value={modemProps.modelo || ''}
+                      onChange={e => handlePropertyChange('modelo', e.target.value)}
+                      disabled={readOnly}
+                    />
+                  </div>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Dirección MAC</label>
+                    <input
+                      type="text"
+                      className={styles.textInput}
+                      placeholder="Ej: 00:1A:2B:3C:4D:5E"
+                      value={modemProps.mac || ''}
+                      onChange={e => handlePropertyChange('mac', e.target.value)}
+                      disabled={readOnly}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Número de Serie</label>
+                    <input
+                      type="text"
+                      className={styles.textInput}
+                      placeholder="Ej: SN-20268841-FIB"
+                      value={modemProps.numeroSerie || ''}
+                      onChange={e => handlePropertyChange('numeroSerie', e.target.value)}
+                      disabled={readOnly}
+                    />
+                  </div>
+                </div>
+
+                {/* Lista de Switches conectados a este módem */}
+                <div className={styles.switchesListSection}>
+                  <span className={styles.sectionHeading} style={{ fontSize: '0.85rem' }}>
+                    Switches Conectados a este Módem ({connectedSwitchesToModem.length}):
+                  </span>
+                  {connectedSwitchesToModem.length === 0 ? (
+                    <p className={styles.noModemHint}>
+                      No hay switches conectados a este módem aún. Para asociar uno, editá el switch y seleccionalo en "Conectado a módem".
+                    </p>
+                  ) : (
+                    <div className={styles.switchesGrid}>
+                      {connectedSwitchesToModem.map(sw => (
+                        <div key={sw.id} className={styles.switchCardItem}>
+                          <Network size={16} className={styles.switchCardIcon} />
+                          <div>
+                            <strong>{sw.codigo}</strong>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{sw.nombre}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Observaciones */}
             <div className={styles.formGroup}>
               <label className={styles.label}>Observaciones Técnicas</label>
@@ -812,10 +1125,28 @@ export function ElementoDetalleModal({
                   type="button"
                   className={styles.deleteBtn}
                   onClick={() => {
-                    if (window.confirm(`¿Eliminar elemento ${formData.codigo}?`)) {
-                      onDelete(formData.id);
-                      onClose();
+                    if (formData.tipo === 'modem') {
+                      if (connectedSwitchesToModem.length > 0) {
+                        const switchNames = connectedSwitchesToModem.map(s => s.codigo).join(', ');
+                        if (
+                          !window.confirm(
+                            `Este módem está asociado a ${connectedSwitchesToModem.length} switch(es) (${switchNames}). Si continúa, los switches quedarán sin módem asignado.\n\n¿Desea continuar y eliminar el módem ${formData.codigo}?`
+                          )
+                        ) {
+                          return;
+                        }
+                      } else {
+                        if (!window.confirm(`¿Eliminar módem ${formData.codigo}?`)) {
+                          return;
+                        }
+                      }
+                    } else {
+                      if (!window.confirm(`¿Eliminar elemento ${formData.codigo}?`)) {
+                        return;
+                      }
                     }
+                    onDelete(formData.id);
+                    onClose();
                   }}
                 >
                   <Trash2 size={16} />

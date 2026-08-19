@@ -2,7 +2,7 @@
 
 export type PlanoTipo = 'redes' | 'camaras' | 'mixto';
 
-export type ElementoTipo = 'switch' | 'boca' | 'ap' | 'dvr' | 'camara';
+export type ElementoTipo = 'switch' | 'boca' | 'ap' | 'dvr' | 'camara' | 'modem';
 
 export type ElementoEstado = 'activo' | 'inactivo' | 'mantenimiento' | 'planificado';
 
@@ -16,6 +16,18 @@ export interface PoeInjectorProperties {
   poe_notes?: string | null;
 }
 
+export interface ModemProperties {
+  marca?: string;
+  modelo?: string;
+  numeroSerie?: string;
+  mac?: string;
+  ip?: string;
+  proveedor?: string; // ej: Fibertel, Claro, Telecentro, iPlan, Personal, Movistar
+  tipoConexion?: string; // Fibra, Cablemódem, DSL, Inalámbrico, Otro
+  ubicacion?: string;
+  observaciones?: string;
+}
+
 // Propiedades específicas por tipo de equipo
 export interface SwitchProperties {
   marca?: string;
@@ -24,6 +36,7 @@ export interface SwitchProperties {
   ubicacion?: string;
   cantidadPuertos: number; // ej: 8, 16, 24, 48
   puertosOcupados?: number;
+  modemId?: string | null; // ID del modem al que se conecta
   observaciones?: string;
 }
 
@@ -77,6 +90,7 @@ export type PropiedadesEquipo =
   | APProperties
   | DVRProperties
   | CamaraProperties
+  | ModemProperties
   | Record<string, unknown>;
 
 export interface ElementoPlano {

@@ -5,7 +5,7 @@ import { infraestructuraService } from '@/services/infraestructuraService';
 import logoImg from '@/assets/logo.png';
 import {
   ZoomIn, ZoomOut, RotateCcw, Shield,
-  ArrowRight, Building, Zap,
+  ArrowRight, Building, Zap, Globe,
 } from 'lucide-react';
 import styles from './PublicPlanoViewer.module.css';
 
@@ -13,6 +13,8 @@ export function PublicPlanoViewer() {
   const { publicId } = useParams<{ publicId: string }>();
 
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+
+  // Zoom y Pan
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -20,13 +22,56 @@ export function PublicPlanoViewer() {
 
   const canvasRef = useRef<HTMLDivElement>(null);
 
+  // Cargar Plano por ID público
   const { data: plan, isLoading, isError } = useQuery({
-    queryKey: ['public-infra-plan', publicId],
+    queryKey: ['infra-public-plan', publicId],
     queryFn: () => infraestructuraService.getByPublicId(publicId!),
     enabled: !!publicId,
-    retry: false,
   });
 
+  const elements = plan?.elementos || [];
+  const selectedElement = elements.find(el => el.id === selectedElementId);
+  const parentElement = selectedElement?.parent_element_id
+    ? elements.find(el => el.id === selectedElement.parent_element_id)
+    : null;
+
+  // Módem padre del switch (si el seleccionado es un switch)
+  const modemOfCurrentSwitch =
+    selectedElement?.tipo === 'switch'
+      ? elements.find(
+          el =>
+            el.tipo === 'modem' &&
+            (el.id === selectedElement.parent_element_id || el.id === (selectedElement.propiedades as any)?.modemId)
+        )
+      : null;
+
+  // Módem del switch padre (si el seleccionado es boca o ap)
+  const modemOfParentSwitch =
+    parentElement && parentElement.tipo === 'switch'
+      ? elements.find(
+          el =>
+            el.tipo === 'modem' &&
+            (el.id === parentElement.parent_element_id || el.id === (parentElement.propiedades as any)?.modemId)
+        )
+      : null;
+
+  // Switches conectados a este módem (si el seleccionado es un módem)
+  const switchesConnectedToModem =
+    selectedElement?.tipo === 'modem'
+      ? elements.filter(
+          el =>
+            el.tipo === 'switch' &&
+            (el.parent_element_id === selectedElement.id || (el.propiedades as any)?.modemId === selectedElement.id)
+        )
+      : [];
+
+  // Elementos conectados a este switch
+  const endpointsConnectedToSwitch =
+    selectedElement?.tipo === 'switch'
+      ? elements.filter(el => el.parent_element_id === selectedElement.id)
+      : [];
+
+  // Controles de Zoom
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.2, 3));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.2, 0.4));
   const handleResetZoom = () => {
@@ -51,17 +96,11 @@ export function PublicPlanoViewer() {
     setIsPanning(false);
   };
 
-  const elements = plan?.elementos || [];
-  const selectedElement = elements.find(el => el.id === selectedElementId);
-  const parentElement = selectedElement?.parent_element_id
-    ? elements.find(el => el.id === selectedElement.parent_element_id)
-    : null;
-
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.spinner} />
-        <span>Cargando plano de infraestructura...</span>
+        <p>Cargando visor técnico de SafeLink...</p>
       </div>
     );
   }
@@ -70,52 +109,50 @@ export function PublicPlanoViewer() {
     return (
       <div className={styles.errorContainer}>
         <Shield size={48} className={styles.errorIcon} />
-        <h2>Documento no encontrado</h2>
-        <p>El enlace de infraestructura puede ser incorrecto o ya no se encuentra disponible.</p>
+        <h2>Plano no disponible</h2>
+        <p>El enlace ingresado no es válido o ha expirado.</p>
       </div>
     );
   }
 
-  const clientName =
-    plan.consorcio?.nombre ||
-    plan.particular?.nombre ||
-    'Cliente SafeLink';
-
   return (
-    <div className={styles.publicViewerLayout}>
-      {/* Header Institucional Seguro */}
-      <header className={styles.header}>
-        <div className={styles.logoWrap}>
-          <img src={logoImg} alt="SafeLink Logo" className={styles.logoImage} />
-          <div className={styles.logoText}>
-            <h2>SafeLink</h2>
-            <span>Infraestructura Técnica</span>
+    <div className={styles.viewerPage}>
+      {/* ── Top Bar Institucional SafeLink ── */}
+      <header className={styles.topBar}>
+        <div className={styles.topLeft}>
+          <div className={styles.brandBadge}>
+            <img src={logoImg} alt="SafeLink Logo" className={styles.brandLogo} />
+            <span className={styles.brandTitle}>SAFElink</span>
+            <span className={styles.brandDivider}>|</span>
+            <span className={styles.brandModule}>Infraestructura</span>
+          </div>
+
+          <div className={styles.planInfo}>
+            <h1>{plan.nombre}</h1>
+            <div className={styles.subInfo}>
+              <Building size={14} className={styles.subIcon} />
+              <span>{plan.consorcio?.nombre || plan.particular?.nombre || 'Instalación Técnica'}</span>
+              <span className={styles.bullet}>•</span>
+              <span
+                className={`${styles.typeBadge} ${
+                  plan.tipo === 'redes' ? styles.badgeRedes : plan.tipo === 'camaras' ? styles.badgeCamaras : styles.badgeMixto
+                }`}
+              >
+                {plan.tipo.toUpperCase()}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className={styles.planHeaderInfo}>
-          <div className={styles.titleBadgeRow}>
-            <h1>{plan.nombre}</h1>
-            <span
-              className={`${styles.typeBadge} ${
-                plan.tipo === 'redes'
-                  ? styles.badgeRedes
-                  : plan.tipo === 'camaras'
-                  ? styles.badgeCamaras
-                  : styles.badgeMixto
-              }`}
-            >
-              {plan.tipo.toUpperCase()}
-            </span>
-          </div>
-          <div className={styles.clientSubtitle}>
-            <Building size={14} />
-            <span>{clientName}</span>
+        <div className={styles.topRight}>
+          <div className={styles.deviceCounter}>
+            <strong>{elements.length}</strong>
+            <span>equipos relevados</span>
           </div>
         </div>
       </header>
 
-      {/* Workspace de Visualización de Solo Lectura */}
+      {/* ── Área del Plano Interactivo ── */}
       <div className={styles.viewerWorkspace}>
         <main
           className={`${styles.canvasViewport} ${isPanning ? styles.cursorGrabbing : styles.cursorGrab}`}
@@ -125,7 +162,6 @@ export function PublicPlanoViewer() {
           onMouseUp={handleMouseUpCanvas}
           onMouseLeave={handleMouseUpCanvas}
         >
-          {/* Contenedor con Transform (Zoom & Pan) */}
           <div
             className={styles.canvasTransformWrapper}
             style={{
@@ -134,7 +170,6 @@ export function PublicPlanoViewer() {
             }}
           >
             <div className={styles.planImageContainer}>
-              {/* Imagen / Plano PDF de Fondo */}
               <img
                 src={plan.archivo_url}
                 alt={plan.nombre}
@@ -146,7 +181,6 @@ export function PublicPlanoViewer() {
                 }}
               />
 
-              {/* Marcadores Técnicos Interactivos (Solo Lectura) */}
               {elements.map(elem => {
                 const isSelected = selectedElementId === elem.id;
                 const isParentOfSelected = selectedElement?.parent_element_id === elem.id;
@@ -168,7 +202,8 @@ export function PublicPlanoViewer() {
                     title={`${elem.codigo} — ${elem.nombre}`}
                   >
                     <div className={styles.markerBadge}>
-                      {elem.tipo === 'switch' ? '🌐' :
+                      {elem.tipo === 'modem' ? '🌐' :
+                       elem.tipo === 'switch' ? '🖧' :
                        elem.tipo === 'boca' ? '🔌' :
                        elem.tipo === 'ap' ? '📡' :
                        elem.tipo === 'dvr' ? '🖥️' : '📹'}
@@ -180,7 +215,6 @@ export function PublicPlanoViewer() {
             </div>
           </div>
 
-          {/* Controles Flotantes de Zoom */}
           <div className={styles.zoomControls}>
             <button className={styles.zoomBtn} onClick={handleZoomIn} title="Acercar">
               <ZoomIn size={18} />
@@ -195,7 +229,6 @@ export function PublicPlanoViewer() {
           </div>
         </main>
 
-        {/* Inspector de Elemento Seleccionado (Solo Lectura) */}
         {selectedElement && (
           <aside className={styles.inspectorSidebar}>
             <div className={styles.inspectorHeader}>
@@ -217,14 +250,17 @@ export function PublicPlanoViewer() {
                 <p className={styles.inspectorName}>{selectedElement.nombre}</p>
               </div>
 
-              {/* Trazado / Conexión Física */}
-              {parentElement && (
+              {/* ── Trazado de Conexión en Inspector ── */}
+
+              {/* CASO A: Dispositivo (Boca / AP) conectado a Switch */}
+              {parentElement && (selectedElement.tipo === 'boca' || selectedElement.tipo === 'ap') && (
                 <div className={styles.inspectorTraceCard}>
                   <span className={styles.traceMiniTag}>Trazado de Conexión:</span>
                   <div className={styles.traceMiniRow}>
-                    {(selectedElement.propiedades as any)?.use_poe_injector ? (
+                    <span className={styles.traceNodeBadgeMini}>{selectedElement.codigo}</span>
+
+                    {(selectedElement.propiedades as any)?.use_poe_injector && (
                       <>
-                        <span className={styles.traceNodeBadgeMini}>{selectedElement.codigo}</span>
                         <ArrowRight size={12} className={styles.traceMiniArrow} />
                         <span
                           className={`${styles.poeMiniBadge} ${
@@ -236,19 +272,40 @@ export function PublicPlanoViewer() {
                           <Zap size={10} />
                           PoE {(selectedElement.propiedades as any)?.poe_voltage || '24V'}
                         </span>
-                        <ArrowRight size={12} className={styles.traceMiniArrow} />
-                        <span className={styles.traceNodeBadgeMini}>{parentElement.codigo}</span>
-                        <ArrowRight size={12} className={styles.traceMiniArrow} />
-                        <span className={styles.tracePortHighlight}>
-                          Puerto {selectedElement.puerto_canal || '01'}
-                        </span>
                       </>
-                    ) : (
+                    )}
+
+                    <ArrowRight size={12} className={styles.traceMiniArrow} />
+                    <span
+                      className={styles.traceNodeBadgeMini}
+                      style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                      onClick={() => setSelectedElementId(parentElement.id)}
+                      title="Ver Switch"
+                    >
+                      {parentElement.codigo}
+                    </span>
+
+                    <ArrowRight size={12} className={styles.traceMiniArrow} />
+                    <span className={styles.tracePortHighlight}>
+                      Puerto {selectedElement.puerto_canal || '01'}
+                    </span>
+
+                    {modemOfParentSwitch && (
                       <>
-                        <strong>{parentElement.codigo}</strong>
-                        <ArrowRight size={14} />
-                        <span className={styles.tracePortHighlight}>
-                          {selectedElement.tipo === 'camara' ? `Canal ${selectedElement.puerto_canal}` : `Puerto ${selectedElement.puerto_canal}`}
+                        <ArrowRight size={12} className={styles.traceMiniArrow} />
+                        <span
+                          className={styles.modemMiniBadge}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => setSelectedElementId(modemOfParentSwitch.id)}
+                          title="Ver Módem"
+                        >
+                          <Globe size={10} />
+                          {modemOfParentSwitch.codigo}
+                        </span>
+
+                        <ArrowRight size={12} className={styles.traceMiniArrow} />
+                        <span className={styles.internetMiniBadge}>
+                          Internet
                         </span>
                       </>
                     )}
@@ -257,8 +314,97 @@ export function PublicPlanoViewer() {
                 </div>
               )}
 
+              {/* CASO B: Switch */}
+              {selectedElement.tipo === 'switch' && (
+                <div className={styles.inspectorTraceCard}>
+                  <span className={styles.traceMiniTag}>Trazado de Conexión:</span>
+                  <div className={styles.traceMiniRow}>
+                    {modemOfCurrentSwitch && (
+                      <>
+                        <span className={styles.internetMiniBadge}>Internet</span>
+                        <ArrowRight size={12} className={styles.traceMiniArrow} />
+                        <span
+                          className={styles.modemMiniBadge}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => setSelectedElementId(modemOfCurrentSwitch.id)}
+                          title="Ver Módem"
+                        >
+                          <Globe size={10} />
+                          {modemOfCurrentSwitch.codigo}
+                        </span>
+                        <ArrowRight size={12} className={styles.traceMiniArrow} />
+                      </>
+                    )}
+                    <span className={styles.traceNodeBadgeMini}>{selectedElement.codigo}</span>
+                    <ArrowRight size={12} className={styles.traceMiniArrow} />
+                    <span className={styles.tracePortHighlight}>
+                      {endpointsConnectedToSwitch.length} Dispositivos
+                    </span>
+                  </div>
+                  <span className={styles.traceMiniSub}>
+                    {modemOfCurrentSwitch ? `Uplink a ${modemOfCurrentSwitch.codigo} (${(modemOfCurrentSwitch.propiedades as any)?.proveedor || 'ISP'})` : 'Sin módem asociado'}
+                  </span>
+                </div>
+              )}
+
+              {/* CASO C: Módem */}
+              {selectedElement.tipo === 'modem' && (
+                <div className={styles.inspectorTraceCard}>
+                  <span className={styles.traceMiniTag}>Trazado de Conexión:</span>
+                  <div className={styles.traceMiniRow}>
+                    <span className={styles.internetMiniBadge}>Internet</span>
+                    <ArrowRight size={12} className={styles.traceMiniArrow} />
+                    <span className={styles.modemMiniBadge}>
+                      <Globe size={10} />
+                      {selectedElement.codigo}
+                    </span>
+                    <ArrowRight size={12} className={styles.traceMiniArrow} />
+                    <span className={styles.tracePortHighlight}>
+                      {switchesConnectedToModem.length} Switches
+                    </span>
+                  </div>
+                  <span className={styles.traceMiniSub}>
+                    {(selectedElement.propiedades as any)?.proveedor || 'Proveedor ISP'} • {(selectedElement.propiedades as any)?.tipoConexion || 'Fibra'}
+                  </span>
+                </div>
+              )}
+
+              {/* CASO D: Cámara conectada a DVR */}
+              {parentElement && selectedElement.tipo === 'camara' && (
+                <div className={styles.inspectorTraceCard}>
+                  <span className={styles.traceMiniTag}>Conectado a DVR:</span>
+                  <div className={styles.traceMiniRow}>
+                    <strong
+                      style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                      onClick={() => setSelectedElementId(parentElement.id)}
+                    >
+                      {parentElement.codigo}
+                    </strong>
+                    <ArrowRight size={14} />
+                    <span className={styles.tracePortHighlight}>
+                      Canal {selectedElement.puerto_canal || 'CH01'}
+                    </span>
+                  </div>
+                  <span className={styles.traceMiniSub}>{parentElement.nombre}</span>
+                </div>
+              )}
+
               {/* Propiedades */}
               <div className={styles.inspectorPropsList}>
+                {(selectedElement.propiedades as any)?.proveedor && (
+                  <div className={styles.propRow}>
+                    <span className={styles.propLabel}>Proveedor:</span>
+                    <span className={styles.propValue} style={{ color: '#f59e0b', fontWeight: 700 }}>
+                      {(selectedElement.propiedades as any).proveedor}
+                    </span>
+                  </div>
+                )}
+                {(selectedElement.propiedades as any)?.tipoConexion && (
+                  <div className={styles.propRow}>
+                    <span className={styles.propLabel}>Conexión:</span>
+                    <span className={styles.propValue}>{(selectedElement.propiedades as any).tipoConexion}</span>
+                  </div>
+                )}
                 {(selectedElement.propiedades as any)?.ubicacion && (
                   <div className={styles.propRow}>
                     <span className={styles.propLabel}>Ubicación:</span>
@@ -269,6 +415,22 @@ export function PublicPlanoViewer() {
                   <div className={styles.propRow}>
                     <span className={styles.propLabel}>Modelo:</span>
                     <span className={styles.propValue}>{(selectedElement.propiedades as any).modelo}</span>
+                  </div>
+                )}
+                {(selectedElement.propiedades as any)?.ip && (
+                  <div className={styles.propRow}>
+                    <span className={styles.propLabel}>IP:</span>
+                    <span className={styles.propValue} style={{ fontFamily: 'monospace' }}>
+                      {(selectedElement.propiedades as any).ip}
+                    </span>
+                  </div>
+                )}
+                {(selectedElement.propiedades as any)?.mac && (
+                  <div className={styles.propRow}>
+                    <span className={styles.propLabel}>MAC:</span>
+                    <span className={styles.propValue} style={{ fontFamily: 'monospace' }}>
+                      {(selectedElement.propiedades as any).mac}
+                    </span>
                   </div>
                 )}
                 {selectedElement.tipo === 'switch' && (

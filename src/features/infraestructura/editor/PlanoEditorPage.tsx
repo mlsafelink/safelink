@@ -10,7 +10,7 @@ import {
   ArrowLeft, ZoomIn, ZoomOut, RotateCcw,
   Save, Share2, Network, Video, Wifi,
   Server, Shield, Info, Trash2, Edit3,
-  Eye, ArrowRight, Zap,
+  Eye, ArrowRight, Zap, Globe,
 } from 'lucide-react';
 import type {
   ElementoPlano,
@@ -128,6 +128,7 @@ export function PlanoEditorPage() {
     // Contar cuántos hay de este tipo para el código automático
     const countType = elements.filter(el => el.tipo === addingType).length + 1;
     const prefix =
+      addingType === 'modem' ? 'MODEM' :
       addingType === 'switch' ? 'SW' :
       addingType === 'boca' ? 'P' :
       addingType === 'ap' ? 'AP' :
@@ -139,11 +140,24 @@ export function PlanoEditorPage() {
       plan_id: id!,
       tipo: addingType,
       codigo: autoCode,
-      nombre: `${prefix === 'SW' ? 'Switch' : prefix === 'P' ? 'Puesto de Red' : prefix === 'AP' ? 'Access Point' : prefix === 'DVR' ? 'Grabador DVR/NVR' : 'Cámara'} ${countType}`,
+      nombre: `${
+        prefix === 'MODEM' ? 'Módem ISP' :
+        prefix === 'SW' ? 'Switch' :
+        prefix === 'P' ? 'Puesto de Red' :
+        prefix === 'AP' ? 'Access Point' :
+        prefix === 'DVR' ? 'Grabador DVR/NVR' : 'Cámara'
+      } ${countType}`,
       pos_x: Math.round(xPercent * 10) / 10,
       pos_y: Math.round(yPercent * 10) / 10,
       estado: 'activo',
-      propiedades: addingType === 'switch' ? { cantidadPuertos: 24 } : addingType === 'dvr' ? { cantidadCanales: 16 } : {},
+      propiedades:
+        addingType === 'modem'
+          ? { proveedor: 'Fibertel', tipoConexion: 'Fibra', ip: '192.168.1.1' }
+          : addingType === 'switch'
+          ? { cantidadPuertos: 24 }
+          : addingType === 'dvr'
+          ? { cantidadCanales: 16 }
+          : {},
     };
 
     setElements(prev => [...prev, newElement]);
@@ -159,15 +173,70 @@ export function PlanoEditorPage() {
   };
 
   const handleDeleteElement = (elemId: string) => {
-    setElements(prev => prev.filter(el => el.id !== elemId));
+    setElements(prev =>
+      prev
+        .filter(el => el.id !== elemId)
+        .map(el => {
+          if (el.parent_element_id === elemId) {
+            const props = { ...(el.propiedades as any) };
+            delete props.modemId;
+            delete props.switchId;
+            delete props.dvrId;
+            return { ...el, parent_element_id: null, propiedades: props };
+          }
+          if ((el.propiedades as any)?.modemId === elemId) {
+            const props = { ...(el.propiedades as any) };
+            delete props.modemId;
+            return { ...el, propiedades: props };
+          }
+          return el;
+        })
+    );
     if (selectedElementId === elemId) setSelectedElementId(null);
     setHasUnsavedChanges(true);
+    showToast('Elemento eliminado del plano.', 'info');
   };
 
   const selectedElement = elements.find(el => el.id === selectedElementId);
   const parentElement = selectedElement?.parent_element_id
     ? elements.find(el => el.id === selectedElement.parent_element_id)
     : null;
+
+  // Módem padre del switch (si el seleccionado es un switch)
+  const modemOfCurrentSwitch =
+    selectedElement?.tipo === 'switch'
+      ? elements.find(
+          el =>
+            el.tipo === 'modem' &&
+            (el.id === selectedElement.parent_element_id || el.id === (selectedElement.propiedades as any)?.modemId)
+        )
+      : null;
+
+  // Módem del switch padre (si el seleccionado es boca o ap)
+  const modemOfParentSwitch =
+    parentElement && parentElement.tipo === 'switch'
+      ? elements.find(
+          el =>
+            el.tipo === 'modem' &&
+            (el.id === parentElement.parent_element_id || el.id === (parentElement.propiedades as any)?.modemId)
+        )
+      : null;
+
+  // Switches conectados a este módem (si el seleccionado es un módem)
+  const switchesConnectedToModem =
+    selectedElement?.tipo === 'modem'
+      ? elements.filter(
+          el =>
+            el.tipo === 'switch' &&
+            (el.parent_element_id === selectedElement.id || (el.propiedades as any)?.modemId === selectedElement.id)
+        )
+      : [];
+
+  // Elementos conectados a este switch
+  const endpointsConnectedToSwitch =
+    selectedElement?.tipo === 'switch'
+      ? elements.filter(el => el.parent_element_id === selectedElement.id)
+      : [];
 
   if (isLoading) {
     return (
@@ -259,6 +328,21 @@ export function PlanoEditorPage() {
 
           <div className={styles.toolsGroup}>
             <span className={styles.toolsGroupLabel}>Redes</span>
+
+            <button
+              className={`${styles.toolBtn} ${addingType === 'modem' ? styles.toolBtnActive : ''}`}
+              onClick={() => setAddingType(addingType === 'modem' ? null : 'modem')}
+              title="Colocar Módem de Acceso (ISP / WAN)"
+            >
+              <div className={`${styles.toolIconWrap} ${styles.iconWrapAmber}`}>
+                <Globe size={18} />
+              </div>
+              <div className={styles.toolBtnText}>
+                <strong>+ Módem</strong>
+                <span>Equipo de acceso</span>
+              </div>
+            </button>
+
             <button
               className={`${styles.toolBtn} ${addingType === 'switch' ? styles.toolBtnActive : ''}`}
               onClick={() => setAddingType(addingType === 'switch' ? null : 'switch')}
@@ -417,7 +501,8 @@ export function PlanoEditorPage() {
                     title={`${elem.codigo} — ${elem.nombre}`}
                   >
                     <div className={styles.markerBadge}>
-                      {elem.tipo === 'switch' ? '🌐' :
+                      {elem.tipo === 'modem' ? '🌐' :
+                       elem.tipo === 'switch' ? '🖧' :
                        elem.tipo === 'boca' ? '🔌' :
                        elem.tipo === 'ap' ? '📡' :
                        elem.tipo === 'dvr' ? '🖥️' : '📹'}
@@ -466,14 +551,17 @@ export function PlanoEditorPage() {
                 <p className={styles.inspectorName}>{selectedElement.nombre}</p>
               </div>
 
-              {/* Trazado / Conexión */}
-              {parentElement && (
+              {/* ── Trazado de Conexión en Inspector ── */}
+
+              {/* CASO A: Dispositivo (Boca / AP) conectado a Switch */}
+              {parentElement && (selectedElement.tipo === 'boca' || selectedElement.tipo === 'ap') && (
                 <div className={styles.inspectorTraceCard}>
                   <span className={styles.traceMiniTag}>Trazado de Conexión:</span>
                   <div className={styles.traceMiniRow}>
-                    {(selectedElement.propiedades as any)?.use_poe_injector ? (
+                    <span className={styles.traceNodeBadgeMini}>{selectedElement.codigo}</span>
+
+                    {(selectedElement.propiedades as any)?.use_poe_injector && (
                       <>
-                        <span className={styles.traceNodeBadgeMini}>{selectedElement.codigo}</span>
                         <ArrowRight size={12} className={styles.traceMiniArrow} />
                         <span
                           className={`${styles.poeMiniBadge} ${
@@ -485,19 +573,40 @@ export function PlanoEditorPage() {
                           <Zap size={10} />
                           PoE {(selectedElement.propiedades as any)?.poe_voltage || '24V'}
                         </span>
-                        <ArrowRight size={12} className={styles.traceMiniArrow} />
-                        <span className={styles.traceNodeBadgeMini}>{parentElement.codigo}</span>
-                        <ArrowRight size={12} className={styles.traceMiniArrow} />
-                        <span className={styles.tracePortHighlight}>
-                          Puerto {selectedElement.puerto_canal || '01'}
-                        </span>
                       </>
-                    ) : (
+                    )}
+
+                    <ArrowRight size={12} className={styles.traceMiniArrow} />
+                    <span
+                      className={styles.traceNodeBadgeMini}
+                      style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                      onClick={() => setSelectedElementId(parentElement.id)}
+                      title="Ver Switch"
+                    >
+                      {parentElement.codigo}
+                    </span>
+
+                    <ArrowRight size={12} className={styles.traceMiniArrow} />
+                    <span className={styles.tracePortHighlight}>
+                      Puerto {selectedElement.puerto_canal || '01'}
+                    </span>
+
+                    {modemOfParentSwitch && (
                       <>
-                        <strong>{parentElement.codigo}</strong>
-                        <ArrowRight size={14} />
-                        <span className={styles.tracePortHighlight}>
-                          {selectedElement.tipo === 'camara' ? `Canal ${selectedElement.puerto_canal}` : `Puerto ${selectedElement.puerto_canal}`}
+                        <ArrowRight size={12} className={styles.traceMiniArrow} />
+                        <span
+                          className={styles.modemMiniBadge}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => setSelectedElementId(modemOfParentSwitch.id)}
+                          title="Ver Módem"
+                        >
+                          <Globe size={10} />
+                          {modemOfParentSwitch.codigo}
+                        </span>
+
+                        <ArrowRight size={12} className={styles.traceMiniArrow} />
+                        <span className={styles.internetMiniBadge}>
+                          Internet
                         </span>
                       </>
                     )}
@@ -506,8 +615,97 @@ export function PlanoEditorPage() {
                 </div>
               )}
 
+              {/* CASO B: Switch */}
+              {selectedElement.tipo === 'switch' && (
+                <div className={styles.inspectorTraceCard}>
+                  <span className={styles.traceMiniTag}>Trazado de Conexión:</span>
+                  <div className={styles.traceMiniRow}>
+                    {modemOfCurrentSwitch && (
+                      <>
+                        <span className={styles.internetMiniBadge}>Internet</span>
+                        <ArrowRight size={12} className={styles.traceMiniArrow} />
+                        <span
+                          className={styles.modemMiniBadge}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => setSelectedElementId(modemOfCurrentSwitch.id)}
+                          title="Ver Módem"
+                        >
+                          <Globe size={10} />
+                          {modemOfCurrentSwitch.codigo}
+                        </span>
+                        <ArrowRight size={12} className={styles.traceMiniArrow} />
+                      </>
+                    )}
+                    <span className={styles.traceNodeBadgeMini}>{selectedElement.codigo}</span>
+                    <ArrowRight size={12} className={styles.traceMiniArrow} />
+                    <span className={styles.tracePortHighlight}>
+                      {endpointsConnectedToSwitch.length} Dispositivos
+                    </span>
+                  </div>
+                  <span className={styles.traceMiniSub}>
+                    {modemOfCurrentSwitch ? `Uplink a ${modemOfCurrentSwitch.codigo} (${(modemOfCurrentSwitch.propiedades as any)?.proveedor || 'ISP'})` : 'Sin módem asociado'}
+                  </span>
+                </div>
+              )}
+
+              {/* CASO C: Módem */}
+              {selectedElement.tipo === 'modem' && (
+                <div className={styles.inspectorTraceCard}>
+                  <span className={styles.traceMiniTag}>Trazado de Conexión:</span>
+                  <div className={styles.traceMiniRow}>
+                    <span className={styles.internetMiniBadge}>Internet</span>
+                    <ArrowRight size={12} className={styles.traceMiniArrow} />
+                    <span className={styles.modemMiniBadge}>
+                      <Globe size={10} />
+                      {selectedElement.codigo}
+                    </span>
+                    <ArrowRight size={12} className={styles.traceMiniArrow} />
+                    <span className={styles.tracePortHighlight}>
+                      {switchesConnectedToModem.length} Switches
+                    </span>
+                  </div>
+                  <span className={styles.traceMiniSub}>
+                    {(selectedElement.propiedades as any)?.proveedor || 'Proveedor ISP'} • {(selectedElement.propiedades as any)?.tipoConexion || 'Fibra'}
+                  </span>
+                </div>
+              )}
+
+              {/* CASO D: Cámara conectada a DVR */}
+              {parentElement && selectedElement.tipo === 'camara' && (
+                <div className={styles.inspectorTraceCard}>
+                  <span className={styles.traceMiniTag}>Conectado a DVR:</span>
+                  <div className={styles.traceMiniRow}>
+                    <strong
+                      style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                      onClick={() => setSelectedElementId(parentElement.id)}
+                    >
+                      {parentElement.codigo}
+                    </strong>
+                    <ArrowRight size={14} />
+                    <span className={styles.tracePortHighlight}>
+                      Canal {selectedElement.puerto_canal || 'CH01'}
+                    </span>
+                  </div>
+                  <span className={styles.traceMiniSub}>{parentElement.nombre}</span>
+                </div>
+              )}
+
               {/* Propiedades Clave */}
               <div className={styles.inspectorPropsList}>
+                {(selectedElement.propiedades as any)?.proveedor && (
+                  <div className={styles.propRow}>
+                    <span className={styles.propLabel}>Proveedor:</span>
+                    <span className={styles.propValue} style={{ color: '#f59e0b', fontWeight: 700 }}>
+                      {(selectedElement.propiedades as any).proveedor}
+                    </span>
+                  </div>
+                )}
+                {(selectedElement.propiedades as any)?.tipoConexion && (
+                  <div className={styles.propRow}>
+                    <span className={styles.propLabel}>Conexión:</span>
+                    <span className={styles.propValue}>{(selectedElement.propiedades as any).tipoConexion}</span>
+                  </div>
+                )}
                 {(selectedElement.propiedades as any)?.ubicacion && (
                   <div className={styles.propRow}>
                     <span className={styles.propLabel}>Ubicación:</span>
@@ -523,7 +721,17 @@ export function PlanoEditorPage() {
                 {(selectedElement.propiedades as any)?.ip && (
                   <div className={styles.propRow}>
                     <span className={styles.propLabel}>IP:</span>
-                    <span className={styles.propValue}>{(selectedElement.propiedades as any).ip}</span>
+                    <span className={styles.propValue} style={{ fontFamily: 'monospace' }}>
+                      {(selectedElement.propiedades as any).ip}
+                    </span>
+                  </div>
+                )}
+                {(selectedElement.propiedades as any)?.mac && (
+                  <div className={styles.propRow}>
+                    <span className={styles.propLabel}>MAC:</span>
+                    <span className={styles.propValue} style={{ fontFamily: 'monospace' }}>
+                      {(selectedElement.propiedades as any).mac}
+                    </span>
                   </div>
                 )}
                 {selectedElement.tipo === 'switch' && (
