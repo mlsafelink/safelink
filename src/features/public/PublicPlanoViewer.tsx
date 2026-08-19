@@ -5,7 +5,7 @@ import { infraestructuraService } from '@/services/infraestructuraService';
 import logoImg from '@/assets/logo.png';
 import {
   ZoomIn, ZoomOut, RotateCcw, Shield,
-  ArrowRight, Building,
+  ArrowRight, Building, Zap,
 } from 'lucide-react';
 import styles from './PublicPlanoViewer.module.css';
 
@@ -220,13 +220,38 @@ export function PublicPlanoViewer() {
               {/* Trazado / Conexión Física */}
               {parentElement && (
                 <div className={styles.inspectorTraceCard}>
-                  <span className={styles.traceMiniTag}>Conexión Física:</span>
+                  <span className={styles.traceMiniTag}>Trazado de Conexión:</span>
                   <div className={styles.traceMiniRow}>
-                    <strong>{parentElement.codigo}</strong>
-                    <ArrowRight size={14} />
-                    <span className={styles.tracePortHighlight}>
-                      {selectedElement.tipo === 'camara' ? `Canal ${selectedElement.puerto_canal}` : `Puerto ${selectedElement.puerto_canal}`}
-                    </span>
+                    {(selectedElement.propiedades as any)?.use_poe_injector ? (
+                      <>
+                        <span className={styles.traceNodeBadgeMini}>{selectedElement.codigo}</span>
+                        <ArrowRight size={12} className={styles.traceMiniArrow} />
+                        <span
+                          className={`${styles.poeMiniBadge} ${
+                            (selectedElement.propiedades as any)?.poe_voltage === '48V'
+                              ? styles.poe48Badge
+                              : styles.poe24Badge
+                          }`}
+                        >
+                          <Zap size={10} />
+                          PoE {(selectedElement.propiedades as any)?.poe_voltage || '24V'}
+                        </span>
+                        <ArrowRight size={12} className={styles.traceMiniArrow} />
+                        <span className={styles.traceNodeBadgeMini}>{parentElement.codigo}</span>
+                        <ArrowRight size={12} className={styles.traceMiniArrow} />
+                        <span className={styles.tracePortHighlight}>
+                          Puerto {selectedElement.puerto_canal || '01'}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <strong>{parentElement.codigo}</strong>
+                        <ArrowRight size={14} />
+                        <span className={styles.tracePortHighlight}>
+                          {selectedElement.tipo === 'camara' ? `Canal ${selectedElement.puerto_canal}` : `Puerto ${selectedElement.puerto_canal}`}
+                        </span>
+                      </>
+                    )}
                   </div>
                   <span className={styles.traceMiniSub}>{parentElement.nombre}</span>
                 </div>

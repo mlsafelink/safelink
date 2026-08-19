@@ -6,6 +6,16 @@ export type ElementoTipo = 'switch' | 'boca' | 'ap' | 'dvr' | 'camara';
 
 export type ElementoEstado = 'activo' | 'inactivo' | 'mantenimiento' | 'planificado';
 
+export type PoeVoltage = '24V' | '48V';
+
+export interface PoeInjectorProperties {
+  use_poe_injector?: boolean;
+  poe_voltage?: PoeVoltage | null;
+  poe_brand?: string | null;
+  poe_model?: string | null;
+  poe_notes?: string | null;
+}
+
 // Propiedades específicas por tipo de equipo
 export interface SwitchProperties {
   marca?: string;
@@ -17,7 +27,7 @@ export interface SwitchProperties {
   observaciones?: string;
 }
 
-export interface BocaProperties {
+export interface BocaProperties extends PoeInjectorProperties {
   piso?: string;
   ubicacion?: string;
   tipoCable?: string; // Cat 5e, Cat 6, Cat 6A, Fibra
@@ -26,7 +36,7 @@ export interface BocaProperties {
   observaciones?: string;
 }
 
-export interface APProperties {
+export interface APProperties extends PoeInjectorProperties {
   marca?: string;
   modelo?: string;
   ssid?: string;

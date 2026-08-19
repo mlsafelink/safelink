@@ -6,7 +6,7 @@ import { SwitchPortGrid } from './SwitchPortGrid';
 import { DVRChannelGrid } from './DVRChannelGrid';
 import {
   X, Trash2, Save,
-  ArrowRight,
+  ArrowRight, Zap,
 } from 'lucide-react';
 import type {
   ElementoPlano,
@@ -16,6 +16,8 @@ import type {
   APProperties,
   DVRProperties,
   CamaraProperties,
+  PoeVoltage,
+  PoeInjectorProperties,
 } from '@/types/infraestructura';
 import styles from './ElementoDetalleModal.module.css';
 
@@ -111,6 +113,11 @@ export function ElementoDetalleModal({
   const dvrProps = (formData.propiedades as DVRProperties) || { cantidadCanales: 16 };
   const camProps = (formData.propiedades as CamaraProperties) || {};
 
+  // PoE Injector Properties
+  const poeProps = (formData.propiedades as PoeInjectorProperties) || {};
+  const usePoeInjector = !!poeProps.use_poe_injector;
+  const poeVoltage = poeProps.poe_voltage || '24V';
+
   // Encontrar equipo padre si existe
   const parentEquipo = todosElementos.find(e => e.id === formData.parent_element_id);
 
@@ -145,6 +152,27 @@ export function ElementoDetalleModal({
                     <strong>{formData.codigo}</strong>
                     <span>{formData.nombre}</span>
                   </div>
+
+                  {/* Nodo Fuente PoE Opcional */}
+                  {usePoeInjector && (
+                    <>
+                      <ArrowRight size={16} className={styles.traceArrow} />
+                      <div className={`${styles.traceNode} ${styles.traceNodePoe}`}>
+                        <div className={styles.poeNodeHeader}>
+                          <Zap size={13} className={styles.poeZapIcon} />
+                          <strong>Fuente PoE</strong>
+                        </div>
+                        <span
+                          className={`${styles.poeVoltageBadge} ${
+                            poeVoltage === '48V' ? styles.poe48Badge : styles.poe24Badge
+                          }`}
+                        >
+                          {poeVoltage}
+                        </span>
+                      </div>
+                    </>
+                  )}
+
                   <ArrowRight size={16} className={styles.traceArrow} />
                   <div className={styles.traceNode}>
                     <strong>{parentEquipo.codigo}</strong>
@@ -338,6 +366,91 @@ export function ElementoDetalleModal({
                   />
                 </div>
 
+                {/* Opción Fuente PoE Individual */}
+                <div className={styles.poeSectionBox}>
+                  <label className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      className={styles.checkboxInput}
+                      checked={usePoeInjector}
+                      onChange={e => {
+                        const isChecked = e.target.checked;
+                        if (isChecked) {
+                          handlePropertyChange('use_poe_injector', true);
+                          if (!poeProps.poe_voltage) {
+                            handlePropertyChange('poe_voltage', '24V');
+                          }
+                        } else {
+                          handlePropertyChange('use_poe_injector', false);
+                          handlePropertyChange('poe_voltage', null);
+                          handlePropertyChange('poe_brand', null);
+                          handlePropertyChange('poe_model', null);
+                          handlePropertyChange('poe_notes', null);
+                        }
+                      }}
+                      disabled={readOnly}
+                    />
+                    <span className={styles.checkboxCustomText}>
+                      Utiliza fuente PoE individual
+                    </span>
+                  </label>
+
+                  {usePoeInjector && (
+                    <div className={styles.poeFieldsContainer}>
+                      <div className={styles.formRow}>
+                        <div className={styles.formGroup} style={{ width: '150px' }}>
+                          <label className={styles.label}>Tipo de fuente</label>
+                          <select
+                            className={styles.selectInput}
+                            value={poeVoltage}
+                            onChange={e => handlePropertyChange('poe_voltage', e.target.value as PoeVoltage)}
+                            disabled={readOnly}
+                          >
+                            <option value="24V">24V</option>
+                            <option value="48V">48V</option>
+                          </select>
+                        </div>
+
+                        <div className={styles.formGroup} style={{ flex: 1 }}>
+                          <label className={styles.label}>Marca</label>
+                          <input
+                            type="text"
+                            className={styles.textInput}
+                            placeholder="Opcional (Ej: Ubiquiti)"
+                            value={poeProps.poe_brand || ''}
+                            onChange={e => handlePropertyChange('poe_brand', e.target.value)}
+                            disabled={readOnly}
+                          />
+                        </div>
+
+                        <div className={styles.formGroup} style={{ flex: 1 }}>
+                          <label className={styles.label}>Modelo</label>
+                          <input
+                            type="text"
+                            className={styles.textInput}
+                            placeholder="Opcional (Ej: POE-24-12W-G)"
+                            value={poeProps.poe_model || ''}
+                            onChange={e => handlePropertyChange('poe_model', e.target.value)}
+                            disabled={readOnly}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.formGroup}>
+                        <label className={styles.label}>Observaciones</label>
+                        <input
+                          type="text"
+                          className={styles.textInput}
+                          placeholder="Opcional (Ej: Enchufe rack PB)"
+                          value={poeProps.poe_notes || ''}
+                          onChange={e => handlePropertyChange('poe_notes', e.target.value)}
+                          disabled={readOnly}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Si tiene un switch padre seleccionado, mostrar la matriz para elegir puerto interactivamente */}
                 {parentEquipo && parentEquipo.tipo === 'switch' && (
                   <div className={styles.gridPreviewWrap}>
@@ -420,6 +533,91 @@ export function ElementoDetalleModal({
                       disabled={readOnly}
                     />
                   </div>
+                </div>
+
+                {/* Opción Fuente PoE Individual en AP */}
+                <div className={styles.poeSectionBox}>
+                  <label className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      className={styles.checkboxInput}
+                      checked={usePoeInjector}
+                      onChange={e => {
+                        const isChecked = e.target.checked;
+                        if (isChecked) {
+                          handlePropertyChange('use_poe_injector', true);
+                          if (!poeProps.poe_voltage) {
+                            handlePropertyChange('poe_voltage', '24V');
+                          }
+                        } else {
+                          handlePropertyChange('use_poe_injector', false);
+                          handlePropertyChange('poe_voltage', null);
+                          handlePropertyChange('poe_brand', null);
+                          handlePropertyChange('poe_model', null);
+                          handlePropertyChange('poe_notes', null);
+                        }
+                      }}
+                      disabled={readOnly}
+                    />
+                    <span className={styles.checkboxCustomText}>
+                      Utiliza fuente PoE individual
+                    </span>
+                  </label>
+
+                  {usePoeInjector && (
+                    <div className={styles.poeFieldsContainer}>
+                      <div className={styles.formRow}>
+                        <div className={styles.formGroup} style={{ width: '150px' }}>
+                          <label className={styles.label}>Tipo de fuente</label>
+                          <select
+                            className={styles.selectInput}
+                            value={poeVoltage}
+                            onChange={e => handlePropertyChange('poe_voltage', e.target.value as PoeVoltage)}
+                            disabled={readOnly}
+                          >
+                            <option value="24V">24V</option>
+                            <option value="48V">48V</option>
+                          </select>
+                        </div>
+
+                        <div className={styles.formGroup} style={{ flex: 1 }}>
+                          <label className={styles.label}>Marca</label>
+                          <input
+                            type="text"
+                            className={styles.textInput}
+                            placeholder="Opcional (Ej: Ubiquiti)"
+                            value={poeProps.poe_brand || ''}
+                            onChange={e => handlePropertyChange('poe_brand', e.target.value)}
+                            disabled={readOnly}
+                          />
+                        </div>
+
+                        <div className={styles.formGroup} style={{ flex: 1 }}>
+                          <label className={styles.label}>Modelo</label>
+                          <input
+                            type="text"
+                            className={styles.textInput}
+                            placeholder="Opcional (Ej: POE-24-12W-G)"
+                            value={poeProps.poe_model || ''}
+                            onChange={e => handlePropertyChange('poe_model', e.target.value)}
+                            disabled={readOnly}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.formGroup}>
+                        <label className={styles.label}>Observaciones</label>
+                        <input
+                          type="text"
+                          className={styles.textInput}
+                          placeholder="Opcional (Ej: Enchufe rack PB)"
+                          value={poeProps.poe_notes || ''}
+                          onChange={e => handlePropertyChange('poe_notes', e.target.value)}
+                          disabled={readOnly}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
