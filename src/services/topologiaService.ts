@@ -642,52 +642,54 @@ export const topologiaService = {
         !n.is_intermediate_poe
     );
 
-    const centerX = 650;
+    const centerX = 600;
 
     // Fila 0: WAN
     wanNodes.forEach((n, idx) => {
-      const offset = (idx - (wanNodes.length - 1) / 2) * 200;
+      const offset = (idx - (wanNodes.length - 1) / 2) * 180;
       n.x = centerX + offset;
-      n.y = 60;
+      n.y = 80;
     });
 
     // Fila 1: Módems
     modemNodes.forEach((n, idx) => {
-      const offset = (idx - (modemNodes.length - 1) / 2) * 240;
+      const offset = (idx - (modemNodes.length - 1) / 2) * 200;
       n.x = centerX + offset;
-      n.y = 200;
+      n.y = 230;
     });
 
     // Fila 2: Routers
     routerNodes.forEach((n, idx) => {
-      const offset = (idx - (routerNodes.length - 1) / 2) * 240;
+      const offset = (idx - (routerNodes.length - 1) / 2) * 200;
       n.x = centerX + offset;
-      n.y = 320;
+      n.y = 360;
     });
 
     // Fila 3: Switches
-    const switchY = routerNodes.length > 0 ? 460 : 380;
+    const switchY = routerNodes.length > 0 ? 490 : 390;
     switchNodes.forEach((n, idx) => {
-      const offset = (idx - (switchNodes.length - 1) / 2) * 320;
+      const offset = (idx - (switchNodes.length - 1) / 2) * 280;
       n.x = centerX + offset;
       n.y = switchY;
     });
 
     // Fila 4 & 5: Dispositivos y sus fuentes PoE
-    const itemSpacing = 130;
+    // Spacing dinámico: min 120px, max 150px según cantidad de endpoints
+    const itemCount = Math.max(endpointNodes.length, 1);
+    const itemSpacing = Math.max(110, Math.min(150, 1200 / itemCount));
     const totalEndpoints = endpointNodes.length;
     const startX = centerX - ((totalEndpoints - 1) * itemSpacing) / 2;
 
     endpointNodes.forEach((n, idx) => {
       const xPos = startX + idx * itemSpacing;
-      n.x = Math.max(80, xPos);
-      n.y = switchY + 340;
+      n.x = Math.max(100, xPos);
+      n.y = switchY + 320;
 
       // Si tiene inyector PoE asociado, alinearlo verticalmente encima del endpoint
       const linkedPoe = poeNodes.find(p => p.id === `node-poe-${n.elemento_id}` || p.id === `node-poe-${n.id}`);
       if (linkedPoe) {
         linkedPoe.x = n.x;
-        linkedPoe.y = switchY + 180;
+        linkedPoe.y = switchY + 170;
       }
     });
 
@@ -695,7 +697,7 @@ export const topologiaService = {
     const unplacedPoe = poeNodes.filter(p => !endpointNodes.some(e => p.id === `node-poe-${e.elemento_id}` || p.id === `node-poe-${e.id}`));
     unplacedPoe.forEach((p, idx) => {
       p.x = startX + idx * itemSpacing;
-      p.y = switchY + 180;
+      p.y = switchY + 170;
     });
 
     return [...nodos];

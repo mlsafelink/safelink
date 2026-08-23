@@ -16,7 +16,7 @@ import {
   Save, Share2, FileText, Sparkles,
   GitBranch, Trash2, Edit3, Globe, Network,
   Wifi, Zap, Printer, Server, Shield, CircleDot,
-  ArrowRight,
+  ArrowRight, Maximize2,
 } from 'lucide-react';
 import type {
   TopologiaRed,
@@ -40,7 +40,7 @@ export function TopologiaEditorPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Zoom y Pan
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(0.8);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [startPan, setStartPan] = useState({ x: 0, y: 0 });
@@ -50,6 +50,42 @@ export function TopologiaEditorPage() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  // ── Función de Auto-Fit al viewport ──
+  const fitTopologyToViewport = useCallback((nodos: typeof nodes) => {
+    if (!nodos || nodos.length === 0 || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const canvasW = canvas.clientWidth || canvas.offsetWidth;
+    const canvasH = canvas.clientHeight || canvas.offsetHeight;
+    if (!canvasW || !canvasH) return;
+
+    // Bounding box de todos los nodos (asumimos ancho de nodo ~130px, alto ~80px)
+    const NODE_W = 140;
+    const NODE_H = 90;
+    const PADDING = 60; // margen alrededor
+
+    const minX = Math.min(...nodos.map(n => n.x)) - NODE_W / 2;
+    const maxX = Math.max(...nodos.map(n => n.x)) + NODE_W / 2;
+    const minY = Math.min(...nodos.map(n => n.y)) - NODE_H / 2;
+    const maxY = Math.max(...nodos.map(n => n.y)) + NODE_H / 2;
+
+    const topoW = maxX - minX + PADDING * 2;
+    const topoH = maxY - minY + PADDING * 2;
+
+    // Calcular zoom para que entre todo con margen
+    const scaleX = canvasW / topoW;
+    const scaleY = canvasH / topoH;
+    const newZoom = Math.max(0.35, Math.min(1.0, Math.min(scaleX, scaleY)));
+
+    // Centrar la topología en el canvas
+    const newPanX = (canvasW - (minX + maxX) * newZoom) / 2;
+    const newPanY = (canvasH - (minY + maxY) * newZoom) / 2;
+
+    setZoom(newZoom);
+    setPan({ x: newPanX, y: newPanY });
+  }, []);
+
 
   // 1. Cargar lista de clientes e instalaciones
   const { data: consorcios = [] } = useQuery({
@@ -126,6 +162,16 @@ export function TopologiaEditorPage() {
 
     loadTopology();
   }, [id, selectedClientId, planos]);
+
+  // Auto-fit al cargar la topología (100ms de delay para que el canvas se haya pintado)
+  useEffect(() => {
+    if (!topologia || topologia.nodos.length === 0) return;
+    const timer = setTimeout(() => {
+      fitTopologyToViewport(topologia.nodos);
+    }, 120);
+    return () => clearTimeout(timer);
+  }, [topologia?.id, fitTopologyToViewport]);
+
 
   // Selección de nodo y ruta de conexión activa
   const selectedNode = topologia?.nodos.find(n => n.id === selectedNodeId) || null;
@@ -673,17 +719,27 @@ export function TopologiaEditorPage() {
             <span className={styles.zoomPercent}>{Math.round(zoom * 100)}%</span>
             <button
               className={styles.zoomBtn}
-              onClick={() => setZoom(z => Math.max(z - 0.15, 0.4))}
+              onClick={() => setZoom(z => Math.max(z - 0.15, 0.25))}
               title="Alejar"
             >
               <ZoomOut size={16} />
             </button>
+            <div className={styles.zoomDivider} />
+            <button
+              className={styles.fitBtn}
+              onClick={() => fitTopologyToViewport(nodes)}
+              title="Encajar topología en pantalla"
+            >
+              <Maximize2 size={13} style={{ marginRight: '3px', display: 'inline' }} />
+              Encajar
+            </button>
+            <div className={styles.zoomDivider} />
             <button
               className={styles.zoomBtn}
               onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
-              title="Restablecer"
+              title="Restablecer zoom al 100%"
             >
-              <RotateCcw size={16} />
+              <RotateCcw size={15} />
             </button>
           </div>
         </main>
