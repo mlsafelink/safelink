@@ -96,7 +96,7 @@ export function InfraestructuraPage() {
           <Button
             variant="secondary"
             leftIcon={<GitBranch size={18} />}
-            onClick={() => navigate('/infraestructura/topologia')}
+            onClick={() => navigate('/infraestructura/topologias')}
             className={styles.headerBtn}
           >
             Topología de red
@@ -134,7 +134,7 @@ export function InfraestructuraPage() {
                 <Button
                   variant="secondary"
                   leftIcon={<GitBranch size={16} />}
-                  onClick={() => navigate('/infraestructura/topologia')}
+                  onClick={() => navigate('/infraestructura/topologias')}
                   className={styles.cardActionBtn}
                 >
                   Topología de red
@@ -168,11 +168,11 @@ export function InfraestructuraPage() {
               <div className={styles.footerMetricDivider} />
               <button
                 className={styles.footerNewLink}
-                onClick={() => navigate('/infraestructura/topologia')}
-                title="Abrir editor de topología"
+                onClick={() => navigate('/infraestructura/topologias')}
+                title="Abrir listado de topologías"
               >
                 <GitBranch size={14} />
-                <span>Topología de red</span>
+                <span>Topologías de red</span>
               </button>
             </div>
           </Card>

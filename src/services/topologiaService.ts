@@ -739,7 +739,49 @@ export const topologiaService = {
   },
 
   /**
-   * Elimina una topología
+   * Obtiene todas las topologías de un cliente (consorcio o particular)
+   */
+  async getByInstallation(consorcioId?: string | null, particularId?: string | null): Promise<TopologiaRed[]> {
+    const all = await this.getAll();
+    return all.filter(t => {
+      if (consorcioId) return t.consorcio_id === consorcioId;
+      if (particularId) return t.particular_id === particularId;
+      return false;
+    });
+  },
+
+  /**
+   * Duplica una topología creando una copia independiente con nuevo id y public_id.
+   * No afecta la topología original.
+   */
+  async duplicate(id: string): Promise<TopologiaRed | null> {
+    const original = await this.getById(id);
+    if (!original) return null;
+
+    const now = new Date().toISOString();
+    const copy: TopologiaRed = {
+      ...original,
+      id: `topo-${Date.now()}-copy`,
+      public_id: crypto.randomUUID(),
+      nombre: `${original.nombre} — Copia`,
+      // Reasignar IDs a nodos y conexiones para independencia total
+      nodos: original.nodos.map(n => ({ ...n, id: `${n.id}-c${Date.now()}` })),
+      conexiones: original.conexiones.map(c => ({
+        ...c,
+        id: `${c.id}-c${Date.now()}`,
+        source_id: `${c.source_id}-c${Date.now()}`,
+        target_id: `${c.target_id}-c${Date.now()}`,
+      })),
+      created_at: now,
+      updated_at: now,
+    };
+
+    // Guardar la copia
+    return this.save(copy);
+  },
+
+  /**
+   * Elimina una topología. No elimina los equipos de infraestructura asociados.
    */
   async delete(id: string): Promise<boolean> {
     try {

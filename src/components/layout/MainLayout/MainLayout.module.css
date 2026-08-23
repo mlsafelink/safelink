@@ -3,28 +3,45 @@
   min-height: 100vh;
   width: 100%;
   background-color: var(--bg-color);
+  position: relative;
 }
 
+/* ── Sidebar colapsable ── */
 .sidebar {
-  width: 280px;
+  width: 260px;
   flex-shrink: 0;
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-right: 1px solid var(--glass-border);
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
-  z-index: 10;
+  padding: 1.25rem 1rem;
+  z-index: 100;
+  overflow: hidden;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              padding 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s ease;
 }
 
+.sidebarCollapsed {
+  width: 0;
+  padding: 0;
+  border-right: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Main content ── */
 .main {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   position: relative;
+  transition: flex-grow 0.25s ease;
+  min-width: 0;
 }
 
 .container {
@@ -37,20 +54,84 @@
   gap: 1.5rem;
 }
 
-/* Responsive */
+/* ── Botón ☰ flotante (cuando el drawer está cerrado) ── */
+.menuToggleBtn {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 200;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.15s;
+}
+
+.menuToggleBtn:hover {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #3b82f6;
+}
+
+/* ── Mobile: overlay ── */
+.mobileOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 99;
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Responsive ── */
 @media (max-width: 768px) {
-  .layout {
-    flex-direction: column;
-  }
-  
   .sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--glass-border);
-    padding: 1rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px !important; /* override collapsed */
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    padding: 1.25rem 1rem !important;
+  }
+
+  .sidebarMobileOpen {
+    transform: translateX(0);
+  }
+
+  .mobileOverlay {
+    display: block;
   }
 
   .container {
     padding: 1rem;
+  }
+
+  /* El botón ☰ en mobile siempre visible */
+  .menuToggleBtn {
+    display: flex;
+  }
+}
+
+@media (min-width: 769px) {
+  .menuToggleBtn {
+    /* Solo visible cuando el drawer está cerrado */
   }
 }

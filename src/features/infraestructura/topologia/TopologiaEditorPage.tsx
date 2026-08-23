@@ -33,7 +33,7 @@ export function TopologiaEditorPage() {
 
   const [topologia, setTopologia] = useState<TopologiaRed | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [selectedClientId, setSelectedClientId] = useState<string>('c1'); // Default: Álvarez Thomas 774 / Avellaneda 229
+  const [selectedClientId] = useState<string>('c1'); // Default: Álvarez Thomas 774 / Avellaneda 229
   const [isConectarModalOpen, setIsConectarModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [editingElemento, setEditingElemento] = useState<ElementoPlano | null>(null);
@@ -400,38 +400,25 @@ export function TopologiaEditorPage() {
         <div className={styles.topLeft}>
           <button
             className={styles.backBtn}
-            onClick={() => navigate('/infraestructura')}
-            title="Volver a Infraestructura"
+            onClick={() => navigate('/infraestructura/topologias')}
+            title="Volver a Topologías de Red"
           >
             <ArrowLeft size={18} />
           </button>
 
           <div className={styles.clientSelectorWrap}>
-            <select
-              className={styles.clientSelect}
-              value={selectedClientId}
-              onChange={e => setSelectedClientId(e.target.value)}
-            >
-              <optgroup label="Consorcios">
-                {consorcios.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {c.nombre}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="Clientes Particulares">
-                {particulares.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.nombre}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <span style={{ fontSize: '1rem', fontWeight: 800, color: '#f8fafc' }}>
+                {topologia?.nombre || 'Topología de Red'}
+              </span>
+            </div>
 
             <div className={styles.clientSubInfo}>
-              <span>Instalación Técnica</span>
+              <span>{topologia?.consorcio?.nombre || topologia?.particular?.nombre || 'Instalación Técnica'}</span>
               <span className={styles.bullet}>•</span>
-              <span style={{ color: '#3b82f6', fontWeight: 700 }}>Topología de Red</span>
+              <span style={{ color: '#3b82f6', fontWeight: 700 }}>
+                {topologia?.tipo ? topologia.tipo.replace('_', ' ').toUpperCase() : 'RED GENERAL'}
+              </span>
               <span className={styles.bullet}>•</span>
               <span>{nodes.length} equipos relevados</span>
               {hasUnsavedChanges && (

@@ -3,6 +3,8 @@ import type { ElementoEstado, ElementoTipo, PropiedadesEquipo } from './infraest
 
 export type TipoConexionTopologia = 'datos' | 'poe' | 'inalambrico';
 
+export type TopologiaTipo = 'red_general' | 'wifi' | 'cctv' | 'enlaces' | 'otra';
+
 export interface TopologiaNodo {
   id: string;
   elemento_id?: string | null; // Referencia al ElementoPlano si existe
@@ -37,6 +39,7 @@ export interface TopologiaRed {
   public_id: string;
   nombre: string;
   descripcion?: string;
+  tipo?: TopologiaTipo; // Tipo de topología: red general, wifi, cctv, etc.
   consorcio?: {
     id: string;
     nombre: string;

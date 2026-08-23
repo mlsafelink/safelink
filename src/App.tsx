@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout/MainLayout';
 import { Sidebar } from '@/components/layout/Sidebar/Sidebar';
+import { DrawerProvider } from '@/contexts/DrawerContext';
 import { Login } from '@/features/auth/Login';
 import { PrivateRoute } from '@/features/auth/PrivateRoute';
 import { Dashboard } from '@/features/dashboard/Dashboard';
@@ -31,6 +32,7 @@ import { SafeLinkMonitorPage } from '@/features/monitor/SafeLinkMonitorPage';
 import { InfraestructuraPage } from '@/features/infraestructura/InfraestructuraPage';
 import { PlanoEditorPage } from '@/features/infraestructura/editor/PlanoEditorPage';
 import { TopologiaEditorPage } from '@/features/infraestructura/topologia/TopologiaEditorPage';
+import { TopologiasListPage } from '@/features/infraestructura/topologia/TopologiasListPage';
 import { PublicPlanoViewer } from '@/features/public/PublicPlanoViewer';
 import { PublicTopologiaViewer } from '@/features/public/PublicTopologiaViewer';
 
@@ -39,6 +41,7 @@ function App() {
     <ConfiguracionProvider>
     <ToastProvider>
     <SafeLinkNoteProvider>
+    <DrawerProvider>
       <Routes>
         {/* ---- RUTAS PÚBLICAS — sin login, sin sidebar, sin escape ---- */}
         <Route path="/" element={<LandingPage />} />
@@ -56,21 +59,30 @@ function App() {
         {/* ---- RUTAS PROTEGIDAS ---- */}
         <Route element={<PrivateRoute />}>
           <Route element={<MainLayout sidebar={<Sidebar />} />}>
-            <Route path="/dashboard"      element={<Dashboard />} />
+            <Route path="/dashboard"       element={<Dashboard />} />
             <Route path="/administraciones" element={<AdminPage />} />
-            <Route path="/consorcios"     element={<ConsorcioPage />} />
-            <Route path="/clientes"       element={<ParticularPage />} />
-            <Route path="/documentos"     element={<DocumentPage />} />
-            <Route path="/finanzas"       element={<FinanzasPage />} />
-            <Route path="/notificaciones" element={<NotificacionesPage />} />
-            <Route path="/safelink-note"  element={<SafeLinkNotePage />} />
-            <Route path="/safelink-ia"    element={<SafeLinkIAPage />} />
+            <Route path="/consorcios"      element={<ConsorcioPage />} />
+            <Route path="/clientes"        element={<ParticularPage />} />
+            <Route path="/documentos"      element={<DocumentPage />} />
+            <Route path="/finanzas"        element={<FinanzasPage />} />
+            <Route path="/notificaciones"  element={<NotificacionesPage />} />
+            <Route path="/safelink-note"   element={<SafeLinkNotePage />} />
+            <Route path="/safelink-ia"     element={<SafeLinkIAPage />} />
             <Route path="/boveda"          element={<BóvedaPage />} />
             <Route path="/monitor"         element={<SafeLinkMonitorPage />} />
+
+            {/* Infraestructura Técnica */}
             <Route path="/infraestructura"               element={<InfraestructuraPage />} />
             <Route path="/infraestructura/plano/:id"      element={<PlanoEditorPage />} />
-            <Route path="/infraestructura/topologia"     element={<TopologiaEditorPage />} />
-            <Route path="/infraestructura/topologia/:id" element={<TopologiaEditorPage />} />
+
+            {/* Topologías: listado → editor */}
+            <Route path="/infraestructura/topologias"        element={<TopologiasListPage />} />
+            <Route path="/infraestructura/topologias/nueva"  element={<TopologiasListPage />} />
+            <Route path="/infraestructura/topologia/:id"     element={<TopologiaEditorPage />} />
+            {/* Redirigir la ruta antigua sin :id al listado */}
+            <Route path="/infraestructura/topologia" element={<Navigate to="/infraestructura/topologias" replace />} />
+
+            {/* Configuración */}
             <Route path="/configuracion"            element={<ConfiguracionPage />} />
             <Route path="/configuracion/backup"     element={<BackupScreen />} />
             <Route path="/configuracion/apariencia"  element={<AparienciaScreen />} />
@@ -81,6 +93,7 @@ function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+    </DrawerProvider>
     </SafeLinkNoteProvider>
     </ToastProvider>
     </ConfiguracionProvider>
