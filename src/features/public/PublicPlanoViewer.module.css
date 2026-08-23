@@ -1,5 +1,6 @@
 /* ── Public Plano Viewer Styles (Client Read-Only) ── */
 
+.viewerPage,
 .publicViewerLayout {
   min-height: 100vh;
   display: flex;
@@ -8,31 +9,60 @@
   color: var(--text-primary);
 }
 
+.topBar,
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: var(--glass-bg);
   border-bottom: 1px solid var(--glass-border);
-  padding: 1rem 2rem;
+  padding: 0.75rem 1.5rem;
   backdrop-filter: blur(10px);
   gap: 1.5rem;
   flex-wrap: wrap;
 }
 
+.topLeft {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+/* Contenedor de tamaño controlado para el Logo */
+.brandBadge,
 .logoWrap {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: flex-start;
+  max-width: 160px;
+  max-height: 48px;
+  width: auto;
+  height: auto;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
+/* Logo con proporciones fijas y límites estrictos */
+.brandLogo,
 .logoImage {
-  width: 38px;
-  height: 38px;
+  max-width: 160px;
+  max-height: 48px;
+  width: auto;
+  height: auto;
   object-fit: contain;
+  display: block;
 }
 
-.logoText h2 {
+.planInfo,
+.planHeaderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.planInfo h1,
+.titleBadgeRow h1 {
   font-size: 1.15rem;
   font-weight: 800;
   color: var(--text-primary);
@@ -40,32 +70,22 @@
   line-height: 1.2;
 }
 
-.logoText span {
-  font-size: 0.72rem;
-  color: var(--primary-color);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.planHeaderInfo {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.2rem;
-}
-
-.titleBadgeRow {
+.subInfo,
+.clientSubtitle {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
 }
 
-.titleBadgeRow h1 {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin: 0;
+.subIcon {
+  color: var(--text-secondary);
+}
+
+.bullet {
+  color: var(--text-secondary);
+  opacity: 0.5;
 }
 
 .typeBadge {
@@ -80,12 +100,30 @@
 .badgeCamaras { background: rgba(124, 58, 237, 0.2); color: #7c3aed; }
 .badgeMixto   { background: rgba(99, 102, 241, 0.2); color: #6366f1; }
 
-.clientSubtitle {
+.topRight {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.78rem;
+  gap: 1rem;
+}
+
+.deviceCounter {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.deviceCounter strong {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  line-height: 1;
+}
+
+.deviceCounter span {
+  font-size: 0.68rem;
   color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 /* ── Workspace ── */
@@ -513,8 +551,17 @@
   to { transform: rotate(360deg); }
 }
 
-.errorIcon {
-  color: #ef4444;
+@media (max-width: 1024px) {
+  .brandBadge,
+  .logoWrap {
+    max-width: 140px;
+    max-height: 44px;
+  }
+  .brandLogo,
+  .logoImage {
+    max-width: 140px;
+    max-height: 44px;
+  }
 }
 
 @media (max-width: 900px) {
@@ -524,5 +571,30 @@
     top: 0;
     bottom: 0;
     z-index: 100;
+  }
+}
+
+@media (max-width: 640px) {
+  .topBar,
+  .header {
+    padding: 0.6rem 1rem;
+    gap: 0.75rem;
+  }
+  .topLeft {
+    gap: 0.75rem;
+  }
+  .brandBadge,
+  .logoWrap {
+    max-width: 120px;
+    max-height: 40px;
+  }
+  .brandLogo,
+  .logoImage {
+    max-width: 120px;
+    max-height: 40px;
+  }
+  .planInfo h1,
+  .titleBadgeRow h1 {
+    font-size: 1rem;
   }
 }

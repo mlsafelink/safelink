@@ -121,10 +121,7 @@ export function PublicPlanoViewer() {
       <header className={styles.topBar}>
         <div className={styles.topLeft}>
           <div className={styles.brandBadge}>
-            <img src={logoImg} alt="SafeLink Logo" className={styles.brandLogo} />
-            <span className={styles.brandTitle}>SAFElink</span>
-            <span className={styles.brandDivider}>|</span>
-            <span className={styles.brandModule}>Infraestructura</span>
+            <img src={logoImg} alt="SafeLink" className={styles.brandLogo} />
           </div>
 
           <div className={styles.planInfo}>
