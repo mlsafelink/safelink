@@ -12,7 +12,7 @@ import { useToast } from '@/components/ui/Toast/ToastContext';
 import {
   Network, Video, Plus, Layers, ArrowRight,
   ChevronRight, Calendar, Building, ExternalLink,
-  Trash2, Edit3, Share2, UploadCloud,
+  Trash2, Edit3, Share2, UploadCloud, GitBranch,
 } from 'lucide-react';
 import type { PlanoTipo, PlanoInfraestructura } from '@/types/infraestructura';
 import styles from './InfraestructuraPage.module.css';
@@ -92,7 +92,15 @@ export function InfraestructuraPage() {
             <p>Visualiza y gestiona la infraestructura técnica de tus instalaciones</p>
           </div>
         </div>
-        <div className={styles.headerRight}>
+        <div className={styles.headerRight} style={{ display: 'flex', gap: '0.6rem' }}>
+          <Button
+            variant="secondary"
+            leftIcon={<GitBranch size={18} />}
+            onClick={() => navigate('/infraestructura/topologia')}
+            className={styles.headerBtn}
+          >
+            Topología de red
+          </Button>
           <Button
             variant="primary"
             leftIcon={<Plus size={18} />}
@@ -122,14 +130,24 @@ export function InfraestructuraPage() {
                   </p>
                 </div>
               </div>
-              <Button
-                variant="secondary"
-                rightIcon={<ArrowRight size={16} />}
-                onClick={() => { setActiveFilter('redes'); }}
-                className={styles.cardActionBtn}
-              >
-                Ver planos de redes
-              </Button>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <Button
+                  variant="secondary"
+                  leftIcon={<GitBranch size={16} />}
+                  onClick={() => navigate('/infraestructura/topologia')}
+                  className={styles.cardActionBtn}
+                >
+                  Topología de red
+                </Button>
+                <Button
+                  variant="secondary"
+                  rightIcon={<ArrowRight size={16} />}
+                  onClick={() => { setActiveFilter('redes'); }}
+                  className={styles.cardActionBtn}
+                >
+                  Ver planos
+                </Button>
+              </div>
             </div>
 
             {/* Ilustración Vectorial del Switch */}
@@ -150,10 +168,11 @@ export function InfraestructuraPage() {
               <div className={styles.footerMetricDivider} />
               <button
                 className={styles.footerNewLink}
-                onClick={() => handleOpenNewModal('redes')}
+                onClick={() => navigate('/infraestructura/topologia')}
+                title="Abrir editor de topología"
               >
-                <Plus size={14} />
-                <span>Crear plano de red</span>
+                <GitBranch size={14} />
+                <span>Topología de red</span>
               </button>
             </div>
           </Card>
@@ -281,6 +300,19 @@ export function InfraestructuraPage() {
               <h3>Acciones rápidas</h3>
             </div>
             <div className={styles.quickActionsList}>
+              <button
+                className={styles.quickActionBtn}
+                onClick={() => navigate('/infraestructura/topologia')}
+              >
+                <div className={styles.quickActionIcon}>
+                  <GitBranch size={18} className={styles.colorBlue} />
+                </div>
+                <div className={styles.quickActionText}>
+                  <strong>Topología de red</strong>
+                  <span>Diagramar y conectar infraestructura lógica</span>
+                </div>
+              </button>
+
               <button
                 className={styles.quickActionBtn}
                 onClick={() => handleOpenNewModal('redes')}

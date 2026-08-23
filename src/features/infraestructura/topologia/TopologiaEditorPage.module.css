@@ -1,0 +1,569 @@
+/* ── Topologia Editor Styles ── */
+
+.editorPage {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 2rem);
+  gap: 0.75rem;
+  user-select: none;
+}
+
+/* ── Top Bar ── */
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 0.75rem 1.25rem;
+  backdrop-filter: blur(10px);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.topLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.backBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.backBtn:hover {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--primary-color);
+}
+
+.clientSelectorWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.clientSelect {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  outline: none;
+  cursor: pointer;
+}
+
+.clientSelect:focus {
+  border-color: #3b82f6;
+}
+
+.clientSubInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.bullet {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.topRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ── Workspace ── */
+.workspace {
+  display: flex;
+  flex: 1;
+  gap: 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Sidebar Izquierda: Herramientas ── */
+.toolsSidebar {
+  width: 230px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 1rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  backdrop-filter: blur(10px);
+  overflow-y: auto;
+}
+
+.sidebarSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sidebarHeading {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+  padding-left: 0.2rem;
+}
+
+.toolItem {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0.65rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.toolItem:hover {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.3);
+  transform: translateX(2px);
+}
+
+.toolItemActive {
+  background: rgba(59, 130, 246, 0.2) !important;
+  border-color: #3b82f6 !important;
+}
+
+.toolIconWrap {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iconModem   { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.iconSwitch  { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.iconAp      { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.iconBoca    { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+.iconPoe     { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
+.iconRouter  { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+.iconServer  { background: rgba(244, 63, 94, 0.15); color: #f43f5e; }
+.iconPrinter { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
+.iconOther   { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+
+.toolText {
+  display: flex;
+  flex-direction: column;
+}
+
+.toolTitle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.toolSub {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+}
+
+/* Leyenda de Referencias */
+.legendBox {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.legendLineDatos       { color: #60a5fa; font-weight: 800; }
+.legendLinePoe         { color: #06b6d4; font-weight: 800; }
+.legendLineInalambrico { color: #a78bfa; font-weight: 800; }
+
+/* ── Lienzo Central ── */
+.canvasViewport {
+  flex: 1;
+  background: #090d16;
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 24px 24px, 120px 120px, 120px 120px;
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.cursorGrab { cursor: grab; }
+.cursorGrabbing { cursor: grabbing; }
+
+.canvasContainer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.canvasSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* Conexiones SVG */
+.connLine {
+  stroke-width: 2.5;
+  transition: all 0.2s ease;
+}
+
+.connDatos {
+  stroke: #3b82f6;
+}
+
+.connPoe {
+  stroke: #06b6d4;
+  stroke-dasharray: 6, 4;
+}
+
+.connInalambrico {
+  stroke: #a855f7;
+  stroke-dasharray: 3, 3;
+}
+
+.connHighlighted {
+  stroke-width: 4 !important;
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
+.connDimmed {
+  opacity: 0.15;
+}
+
+.connBadge {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: monospace;
+  fill: #93c5fd;
+  text-anchor: middle;
+}
+
+/* Controles de Zoom Flotantes */
+.zoomControls {
+  position: absolute;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  padding: 0.3rem 0.5rem;
+  gap: 0.35rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+}
+
+.zoomBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.zoomBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--primary-color);
+}
+
+.zoomPercent {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  min-width: 42px;
+  text-align: center;
+}
+
+/* ── Panel Lateral Derecho: Inspector Técnico ── */
+.inspectorSidebar {
+  width: 310px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  z-index: 40;
+}
+
+.inspectorHeader {
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.inspectorTag {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #3b82f6;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.closeInspectorBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0 0.3rem;
+  line-height: 1;
+}
+
+.closeInspectorBtn:hover {
+  color: #fff;
+}
+
+.inspectorContent {
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+}
+
+.inspectorCodeHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.typeBadge {
+  align-self: flex-start;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.typeBadge_modem   { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+.typeBadge_switch  { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+.typeBadge_ap      { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+.typeBadge_boca    { background: rgba(99, 102, 241, 0.2); color: #6366f1; }
+.typeBadge_fuente_poe { background: rgba(6, 182, 212, 0.2); color: #06b6d4; }
+.typeBadge_router  { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
+.typeBadge_servidor{ background: rgba(244, 63, 94, 0.2); color: #f43f5e; }
+.typeBadge_impresora{ background: rgba(251, 146, 60, 0.2); color: #fb923c; }
+.typeBadge_otro    { background: rgba(148, 163, 184, 0.2); color: #94a3b8; }
+
+.inspectorCodeHeader h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.inspectorName {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Trazado de Conexión en Inspector */
+.traceCard {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.traceLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.tracePathRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  font-size: 0.72rem;
+}
+
+.traceNodePill {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.tracePoePill {
+  background: rgba(6, 182, 212, 0.2);
+  color: #22d3ee;
+  font-weight: 800;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.tracePortPill {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  font-weight: 800;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+/* Lista de Propiedades */
+.propsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 0.75rem;
+}
+
+.propRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+}
+
+.propLabel {
+  color: var(--text-secondary);
+}
+
+.propValue {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.propMono {
+  font-family: monospace;
+}
+
+/* Mapeo de Puertos de Switch */
+.switchPortsTable {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 0.5rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.portRowItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.portRowNumber {
+  font-family: monospace;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.portRowTarget {
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.inspectorActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 0.75rem;
+}
+
+/* Estado Vacío */
+.emptyTopologyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  gap: 1.25rem;
+  text-align: center;
+}
+
+.emptyIcon {
+  color: #3b82f6;
+  opacity: 0.6;
+}
+
+.emptyTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.emptySubtitle {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  max-width: 420px;
+  margin: 0;
+}

@@ -30,7 +30,9 @@ import { LandingPage } from '@/features/landing/LandingPage';
 import { SafeLinkMonitorPage } from '@/features/monitor/SafeLinkMonitorPage';
 import { InfraestructuraPage } from '@/features/infraestructura/InfraestructuraPage';
 import { PlanoEditorPage } from '@/features/infraestructura/editor/PlanoEditorPage';
+import { TopologiaEditorPage } from '@/features/infraestructura/topologia/TopologiaEditorPage';
 import { PublicPlanoViewer } from '@/features/public/PublicPlanoViewer';
+import { PublicTopologiaViewer } from '@/features/public/PublicTopologiaViewer';
 
 function App() {
   return (
@@ -46,6 +48,7 @@ function App() {
         <Route path="/p/reporte-trabajo/:publicId" element={<PublicReporteTrabajoViewer />} />
         <Route path="/p/factura/:publicId" element={<PublicFacturaViewer />} />
         <Route path="/p/plano/:publicId" element={<PublicPlanoViewer />} />
+        <Route path="/p/topologia/:publicId" element={<PublicTopologiaViewer />} />
 
         {/* ---- AUTENTICACIÓN ---- */}
         <Route path="/login" element={<Login />} />
@@ -64,8 +67,10 @@ function App() {
             <Route path="/safelink-ia"    element={<SafeLinkIAPage />} />
             <Route path="/boveda"          element={<BóvedaPage />} />
             <Route path="/monitor"         element={<SafeLinkMonitorPage />} />
-            <Route path="/infraestructura"          element={<InfraestructuraPage />} />
-            <Route path="/infraestructura/plano/:id" element={<PlanoEditorPage />} />
+            <Route path="/infraestructura"               element={<InfraestructuraPage />} />
+            <Route path="/infraestructura/plano/:id"      element={<PlanoEditorPage />} />
+            <Route path="/infraestructura/topologia"     element={<TopologiaEditorPage />} />
+            <Route path="/infraestructura/topologia/:id" element={<TopologiaEditorPage />} />
             <Route path="/configuracion"            element={<ConfiguracionPage />} />
             <Route path="/configuracion/backup"     element={<BackupScreen />} />
             <Route path="/configuracion/apariencia"  element={<AparienciaScreen />} />

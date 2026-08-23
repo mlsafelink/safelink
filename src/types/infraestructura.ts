@@ -2,7 +2,18 @@
 
 export type PlanoTipo = 'redes' | 'camaras' | 'mixto';
 
-export type ElementoTipo = 'switch' | 'boca' | 'ap' | 'dvr' | 'camara' | 'modem';
+export type ElementoTipo =
+  | 'switch'
+  | 'boca'
+  | 'ap'
+  | 'dvr'
+  | 'camara'
+  | 'modem'
+  | 'router'
+  | 'servidor'
+  | 'impresora'
+  | 'fuente_poe'
+  | 'otro';
 
 export type ElementoEstado = 'activo' | 'inactivo' | 'mantenimiento' | 'planificado';
 
