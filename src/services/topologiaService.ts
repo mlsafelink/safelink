@@ -322,8 +322,7 @@ export const topologiaService = {
         .from('infrastructure_topologies')
         .select(`
           *,
-          consorcios ( id, nombre, direccion ),
-          particulares ( id, nombre, direccion )
+          consorcios ( id, nombre, direccion )
         `)
         .order('updated_at', { ascending: false });
 
@@ -331,7 +330,7 @@ export const topologiaService = {
         return data.map((t: any) => ({
           ...t,
           consorcio: t.consorcios,
-          particular: t.particulares,
+          particular: t.particular_id ? t.consorcios : null,
           nodos: t.nodos || [],
           conexiones: t.conexiones || [],
         }));
@@ -351,8 +350,7 @@ export const topologiaService = {
         .from('infrastructure_topologies')
         .select(`
           *,
-          consorcios ( id, nombre, direccion ),
-          particulares ( id, nombre, direccion )
+          consorcios ( id, nombre, direccion )
         `)
         .eq('id', id)
         .maybeSingle();
@@ -361,7 +359,7 @@ export const topologiaService = {
         return {
           ...data,
           consorcio: data.consorcios,
-          particular: data.particulares,
+          particular: data.particular_id ? data.consorcios : null,
           nodos: data.nodos || [],
           conexiones: data.conexiones || [],
         };
@@ -379,21 +377,35 @@ export const topologiaService = {
    */
   async getByPublicId(publicId: string): Promise<TopologiaRed | null> {
     try {
-      const { data, error } = await supabase
+      let { data } = await supabase
         .from('infrastructure_topologies')
         .select(`
           *,
-          consorcios ( id, nombre, direccion ),
-          particulares ( id, nombre, direccion )
+          consorcios ( id, nombre, direccion )
         `)
         .eq('public_id', publicId)
+        .is('deleted_at', null)
         .maybeSingle();
 
-      if (!error && data) {
+      // Si no se encuentra por public_id, intentar por id directo
+      if (!data) {
+        const fallbackRes = await supabase
+          .from('infrastructure_topologies')
+          .select(`
+            *,
+            consorcios ( id, nombre, direccion )
+          `)
+          .eq('id', publicId)
+          .is('deleted_at', null)
+          .maybeSingle();
+        data = fallbackRes.data;
+      }
+
+      if (data) {
         return {
           ...data,
           consorcio: data.consorcios,
-          particular: data.particulares,
+          particular: data.particular_id ? data.consorcios : null,
           nodos: data.nodos || [],
           conexiones: data.conexiones || [],
         };
@@ -708,9 +720,12 @@ export const topologiaService = {
    */
   async save(topologia: TopologiaRed): Promise<TopologiaRed> {
     topologia.updated_at = new Date().toISOString();
+    if (!topologia.public_id) {
+      topologia.public_id = crypto.randomUUID();
+    }
 
     try {
-      await supabase.from('infrastructure_topologies').upsert({
+      const { error } = await supabase.from('infrastructure_topologies').upsert({
         id: topologia.id,
         plan_id: topologia.plan_id || null,
         consorcio_id: topologia.consorcio_id || null,
@@ -718,12 +733,17 @@ export const topologiaService = {
         public_id: topologia.public_id,
         nombre: topologia.nombre,
         descripcion: topologia.descripcion || null,
-        nodos: topologia.nodos,
-        conexiones: topologia.conexiones,
+        tipo: topologia.tipo || 'redes',
+        nodos: topologia.nodos || [],
+        conexiones: topologia.conexiones || [],
         updated_at: topologia.updated_at,
       });
+
+      if (error) {
+        console.error('[TopologiaService] Error guardando en Supabase:', error);
+      }
     } catch (e) {
-      console.warn('[TopologiaService] Error saving to Supabase:', e);
+      console.warn('[TopologiaService] Excepción guardando en Supabase:', e);
     }
 
     const local = getLocalTopologias();

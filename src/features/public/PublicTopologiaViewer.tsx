@@ -86,6 +86,25 @@ export function PublicTopologiaViewer() {
     setIsPanning(false);
   };
 
+  const handleTouchStartCanvas = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      setIsPanning(true);
+      setStartPan({ x: touch.clientX - pan.x, y: touch.clientY - pan.y });
+    }
+  };
+
+  const handleTouchMoveCanvas = (e: React.TouchEvent) => {
+    if (isPanning && e.touches.length === 1) {
+      const touch = e.touches[0];
+      setPan({ x: touch.clientX - startPan.x, y: touch.clientY - startPan.y });
+    }
+  };
+
+  const handleTouchEndCanvas = () => {
+    setIsPanning(false);
+  };
+
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
@@ -161,6 +180,9 @@ export function PublicTopologiaViewer() {
           onMouseDown={handleMouseDownCanvas}
           onMouseMove={handleMouseMoveCanvas}
           onMouseUp={handleMouseUpCanvas}
+          onTouchStart={handleTouchStartCanvas}
+          onTouchMove={handleTouchMoveCanvas}
+          onTouchEnd={handleTouchEndCanvas}
         >
           <div
             className={styles.canvasContainer}
