@@ -17,6 +17,68 @@ interface Props {
 
 const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
+export const ESTADOS_CONFIG: Record<string, {
+  label: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  dotColor: string;
+}> = {
+  pagado: {
+    label: 'Pagado',
+    color: '#4ade80',
+    bgColor: 'rgba(34, 197, 94, 0.15)',
+    borderColor: 'rgba(34, 197, 94, 0.35)',
+    dotColor: '#22c55e',
+  },
+  pendiente: {
+    label: 'Pendiente',
+    color: '#fbbf24',
+    bgColor: 'rgba(245, 158, 11, 0.15)',
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+    dotColor: '#f59e0b',
+  },
+  parcial: {
+    label: 'Parcial',
+    color: '#38bdf8',
+    bgColor: 'rgba(56, 189, 248, 0.15)',
+    borderColor: 'rgba(56, 189, 248, 0.35)',
+    dotColor: '#0ea5e9',
+  },
+  vencida: {
+    label: 'Vencida',
+    color: '#f87171',
+    bgColor: 'rgba(239, 68, 68, 0.15)',
+    borderColor: 'rgba(239, 68, 68, 0.35)',
+    dotColor: '#ef4444',
+  },
+  vencido: {
+    label: 'Vencido',
+    color: '#f87171',
+    bgColor: 'rgba(239, 68, 68, 0.15)',
+    borderColor: 'rgba(239, 68, 68, 0.35)',
+    dotColor: '#ef4444',
+  },
+  cancelado: {
+    label: 'Cancelado',
+    color: '#94a3b8',
+    bgColor: 'rgba(148, 163, 184, 0.15)',
+    borderColor: 'rgba(148, 163, 184, 0.35)',
+    dotColor: '#64748b',
+  },
+};
+
+export function getEstadoConfig(estado?: string) {
+  const key = estado?.toLowerCase() || 'pendiente';
+  return ESTADOS_CONFIG[key] || {
+    label: estado ? estado.charAt(0).toUpperCase() + estado.slice(1) : 'Pendiente',
+    color: '#fbbf24',
+    bgColor: 'rgba(245, 158, 11, 0.15)',
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+    dotColor: '#f59e0b',
+  };
+}
+
 function formatDateKey(year: number, month: number, day: number): string {
   const m = String(month + 1).padStart(2, '0');
   const d = String(day).padStart(2, '0');
@@ -151,6 +213,19 @@ export function CalendarioIngresos({ facturas }: Props) {
     return facturasDelDiaSeleccionado.reduce((acc, f) => acc + f.monto_total, 0);
   }, [facturasDelDiaSeleccionado]);
 
+  // Subtotales del día seleccionado por estado
+  const subtotalesDiaSeleccionado = useMemo(() => {
+    let pagado = 0;
+    let pendiente = 0;
+    let otros = 0;
+    facturasDelDiaSeleccionado.forEach(f => {
+      if (f.estado === 'pagado') pagado += f.monto_total;
+      else if (f.estado === 'pendiente') pendiente += f.monto_total;
+      else otros += f.monto_total;
+    });
+    return { pagado, pendiente, otros };
+  }, [facturasDelDiaSeleccionado]);
+
   // Mutación para guardar/crear un ingreso
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -283,6 +358,37 @@ export function CalendarioIngresos({ facturas }: Props) {
           const tieneActividad = facturasDia.length > 0;
           const esHoy = cell.dateStr === todayStr;
 
+          // Determinación visual según estados reales de cada factura
+          let badgeClass = styles.calCellBadgePagado;
+          let cellActiveClass = styles.calCellActivePagado;
+
+          if (tieneActividad) {
+            const estadosUnicos = new Set(facturasDia.map(f => (f.estado || 'pendiente').toLowerCase()));
+            if (estadosUnicos.size === 1) {
+              const [unicoEstado] = Array.from(estadosUnicos);
+              if (unicoEstado === 'pagado') {
+                badgeClass = styles.calCellBadgePagado;
+                cellActiveClass = styles.calCellActivePagado;
+              } else if (unicoEstado === 'pendiente') {
+                badgeClass = styles.calCellBadgePendiente;
+                cellActiveClass = styles.calCellActivePendiente;
+              } else if (unicoEstado === 'vencida' || unicoEstado === 'vencido') {
+                badgeClass = styles.calCellBadgeVencido;
+                cellActiveClass = styles.calCellActive;
+              } else if (unicoEstado === 'parcial') {
+                badgeClass = styles.calCellBadgeParcial;
+                cellActiveClass = styles.calCellActive;
+              } else {
+                badgeClass = styles.calCellBadgePagado;
+                cellActiveClass = styles.calCellActive;
+              }
+            } else {
+              // Múltiples ingresos con estados combinados
+              badgeClass = styles.calCellBadgeMixto;
+              cellActiveClass = styles.calCellActiveMixto;
+            }
+          }
+
           return (
             <div
               key={cell.dateStr}
@@ -291,7 +397,7 @@ export function CalendarioIngresos({ facturas }: Props) {
                 ${styles.calCell}
                 ${!cell.isCurrentMonth ? styles.calCellOtherMonth : ''}
                 ${esHoy ? styles.calCellToday : ''}
-                ${tieneActividad ? styles.calCellActive : ''}
+                ${tieneActividad ? cellActiveClass : ''}
               `}
             >
               <div className={styles.calCellNum} style={esHoy ? { color: '#60a5fa' } : undefined}>
@@ -300,9 +406,31 @@ export function CalendarioIngresos({ facturas }: Props) {
 
               {tieneActividad && (
                 <div>
-                  <div className={styles.calCellBadge}>
+                  <div className={`${styles.calCellBadge} ${badgeClass}`}>
                     {formatMonto(totalDia)}
                   </div>
+
+                  {/* Indicadores visuales de estado combinados (puntos de estado) */}
+                  <div className={styles.calDotsRow}>
+                    {facturasDia.slice(0, 5).map((f, idx) => {
+                      const conf = getEstadoConfig(f.estado);
+                      return (
+                        <span
+                          key={f.id || idx}
+                          className={styles.calStatusDot}
+                          style={{
+                            backgroundColor: conf.dotColor,
+                            boxShadow: `0 0 5px ${conf.dotColor}99`,
+                          }}
+                          title={`${conf.label}: ${formatMonto(f.monto_total)}`}
+                        />
+                      );
+                    })}
+                    {facturasDia.length > 5 && (
+                      <span className={styles.calDotsMore}>+{facturasDia.length - 5}</span>
+                    )}
+                  </div>
+
                   <div className={styles.calCellCount}>
                     {facturasDia.length} ingreso{facturasDia.length > 1 ? 's' : ''}
                   </div>
@@ -348,12 +476,24 @@ export function CalendarioIngresos({ facturas }: Props) {
               {!showForm ? (
                 <div>
                   {/* Resumen del día */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', background: 'rgba(255,255,255,0.04)', padding: '0.75rem 1rem', borderRadius: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', background: 'rgba(255,255,255,0.04)', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
                     <div>
                       <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Total registrado el día:</span>
-                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#4ade80' }}>
+                      <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#fff', marginTop: '0.1rem' }}>
                         {formatMonto(totalDiaSeleccionado)}
                       </div>
+                      {(subtotalesDiaSeleccionado.pagado > 0 && subtotalesDiaSeleccionado.pendiente > 0) && (
+                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.35rem', fontSize: '0.75rem', fontWeight: 600 }}>
+                          <span style={{ color: '#4ade80', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block' }} />
+                            Pagado: {formatMonto(subtotalesDiaSeleccionado.pagado)}
+                          </span>
+                          <span style={{ color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block' }} />
+                            Pendiente: {formatMonto(subtotalesDiaSeleccionado.pendiente)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <button
                       onClick={handleNuevoIngreso}
@@ -379,7 +519,7 @@ export function CalendarioIngresos({ facturas }: Props) {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                       {facturasDelDiaSeleccionado.map(f => {
                         const clienteNombre = (f.consorcios as any)?.nombre ?? 'Cliente N/A';
-                        const esPagado = f.estado === 'pagado';
+                        const conf = getEstadoConfig(f.estado);
                         return (
                           <div
                             key={f.id}
@@ -389,11 +529,33 @@ export function CalendarioIngresos({ facturas }: Props) {
                               <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.9rem' }}>
                                 {clienteNombre}
                               </div>
-                              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.2rem', display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
                                 <span>{f.numero_factura}</span>
                                 <span>•</span>
-                                <span style={{ color: esPagado ? '#4ade80' : '#f87171', fontWeight: 600 }}>
-                                  {esPagado ? '🟢 Pagado' : '🔴 Pendiente'}
+                                <span
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.35rem',
+                                    color: conf.color,
+                                    background: conf.bgColor,
+                                    border: `1px solid ${conf.borderColor}`,
+                                    padding: '0.15rem 0.5rem',
+                                    borderRadius: '5px',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      width: '6px',
+                                      height: '6px',
+                                      borderRadius: '50%',
+                                      backgroundColor: conf.dotColor,
+                                      boxShadow: `0 0 5px ${conf.dotColor}`,
+                                    }}
+                                  />
+                                  {conf.label}
                                 </span>
                               </div>
                             </div>
@@ -502,9 +664,10 @@ export function CalendarioIngresos({ facturas }: Props) {
                         value={formData.estado}
                         onChange={e => setFormData(prev => ({ ...prev, estado: e.target.value as FacturaEstado }))}
                       >
-                        <option value="pagado">🟢 Pagado (Cobrado)</option>
-                        <option value="pendiente">🔴 Pendiente (A cobrar)</option>
-                        <option value="parcial">🟡 Parcial</option>
+                        <option value="pagado">Pagado (Acreditado)</option>
+                        <option value="pendiente">Pendiente (A cobrar)</option>
+                        <option value="parcial">Pago Parcial</option>
+                        <option value="vencida">Vencida</option>
                       </select>
                     </div>
                   </div>
