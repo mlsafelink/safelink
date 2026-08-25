@@ -19,6 +19,7 @@ import { EstadisticasMes } from './components/EstadisticasMes';
 import { EstadisticasAnuales } from './components/EstadisticasAnuales';
 import { MonotributoCard, MonotributoBanner } from './components/MonotributoCard';
 import { CalendarioIngresos } from './components/CalendarioIngresos';
+import { DatosPagoCard } from './components/DatosPagoCard';
 import styles from './FinanzasPage.module.css';
 import dashStyles from './components/FinanzasDashboard.module.css';
 
@@ -242,6 +243,7 @@ export function FinanzasPage() {
             <DashboardSemanal facturas={facturas} />
             <EstadisticasMes facturas={facturas} />
             <CalendarioIngresos facturas={facturas} />
+            <DatosPagoCard />
           </div>
         </>
       )}

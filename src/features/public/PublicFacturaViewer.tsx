@@ -1,12 +1,14 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { facturaService } from '@/services/facturaService';
+import { datosPagoService } from '@/services/datosPagoService';
 import { notificacionService } from '@/services/notificacionService';
 import { useAuth } from '@/features/auth/AuthContext';
 import {
   Shield, Download, DollarSign,
   CheckCircle2, XCircle, MinusCircle, AlertCircle, Calendar, Hash,
+  Landmark, Copy, Check,
 } from 'lucide-react';
 import styles from './PublicFacturaViewer.module.css';
 
@@ -39,6 +41,7 @@ const ESTADO_CONFIG = {
 export function PublicFacturaViewer() {
   const { publicId } = useParams<{ publicId: string }>();
   const { user } = useAuth();
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const { data: factura, isLoading, isError } = useQuery({
     queryKey: ['public-factura', publicId],
@@ -46,6 +49,18 @@ export function PublicFacturaViewer() {
     enabled: !!publicId,
     retry: false,
   });
+
+  const { data: datosPago } = useQuery({
+    queryKey: ['public-datos-pago'],
+    queryFn: () => datosPagoService.getDatosPago(),
+  });
+
+  const handleCopy = (text: string, key: string) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
 
   // Registrar evento de descarga solo si no es el admin
   useEffect(() => {
@@ -89,6 +104,7 @@ export function PublicFacturaViewer() {
   const EstIcon = est.icon;
 
   const consorcioNombre = (factura.consorcios as any)?.nombre ?? '—';
+  const isDatosPagoConfigurado = datosPagoService.isConfigurado(datosPago);
 
   return (
     <div className={styles.page}>
@@ -185,6 +201,91 @@ export function PublicFacturaViewer() {
           {factura.observaciones && (
             <div className={styles.observaciones}>
               <p>{factura.observaciones}</p>
+            </div>
+          )}
+
+          {/* ── DATOS PARA REALIZAR EL PAGO ── */}
+          {isDatosPagoConfigurado && datosPago && (
+            <div className={styles.pagoSection}>
+              <div className={styles.pagoHeader}>
+                <div className={styles.pagoIconWrap}>
+                  <Landmark size={18} />
+                </div>
+                <div>
+                  <h2 className={styles.pagoTitle}>Datos para realizar el pago</h2>
+                  <p className={styles.pagoSubtitle}>
+                    Transferencia bancaria para la acreditación de esta factura.
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.pagoGrid}>
+                {/* Entidad Bancaria */}
+                <div className={styles.pagoItem}>
+                  <span className={styles.pagoLabel}>Entidad bancaria</span>
+                  <span className={styles.pagoValor}>{datosPago.banco}</span>
+                </div>
+
+                {/* Titular */}
+                <div className={styles.pagoItem}>
+                  <span className={styles.pagoLabel}>Titular de la cuenta</span>
+                  <span className={styles.pagoValor}>{datosPago.titular}</span>
+                </div>
+
+                {/* Número de cuenta */}
+                <div className={styles.pagoItem}>
+                  <span className={styles.pagoLabel}>Número de cuenta</span>
+                  <div className={styles.pagoCopyRow}>
+                    <span className={`${styles.pagoValor} ${styles.pagoMono}`}>
+                      {datosPago.numero_cuenta}
+                    </span>
+                    <button
+                      type="button"
+                      className={`${styles.copyBtn} ${copiedKey === 'cuenta' ? styles.copyBtnSuccess : ''}`}
+                      onClick={() => handleCopy(datosPago.numero_cuenta, 'cuenta')}
+                    >
+                      {copiedKey === 'cuenta' ? <Check size={13} /> : <Copy size={13} />}
+                      <span>{copiedKey === 'cuenta' ? 'Copiado' : 'Copiar'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* CBU */}
+                <div className={styles.pagoItem}>
+                  <span className={styles.pagoLabel}>CBU</span>
+                  <div className={styles.pagoCopyRow}>
+                    <span className={`${styles.pagoValor} ${styles.pagoMono}`}>
+                      {datosPago.cbu}
+                    </span>
+                    <button
+                      type="button"
+                      className={`${styles.copyBtn} ${copiedKey === 'cbu' ? styles.copyBtnSuccess : ''}`}
+                      onClick={() => handleCopy(datosPago.cbu, 'cbu')}
+                    >
+                      {copiedKey === 'cbu' ? <Check size={13} /> : <Copy size={13} />}
+                      <span>{copiedKey === 'cbu' ? 'Copiado' : 'Copiar'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Alias */}
+                <div className={styles.pagoItem}>
+                  <span className={styles.pagoLabel}>Alias</span>
+                  <div className={styles.pagoCopyRow}>
+                    <span className={`${styles.pagoValor} ${styles.pagoMono} ${styles.pagoAlias}`}>
+                      {datosPago.alias}
+                    </span>
+                    <button
+                      type="button"
+                      className={`${styles.copyBtn} ${copiedKey === 'alias' ? styles.copyBtnSuccess : ''}`}
+                      onClick={() => handleCopy(datosPago.alias, 'alias')}
+                    >
+                      {copiedKey === 'alias' ? <Check size={13} /> : <Copy size={13} />}
+                      <span>{copiedKey === 'alias' ? 'Copiado' : 'Copiar'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
