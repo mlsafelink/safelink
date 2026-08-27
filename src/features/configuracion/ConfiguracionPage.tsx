@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/Card/Card';
-import { Cloud, Palette, Globe, Settings, Shield, ChevronRight } from 'lucide-react';
+import { Cloud, Palette, Globe, Settings, Shield, ChevronRight, Sparkles } from 'lucide-react';
 import styles from './ConfiguracionPage.module.css';
 
 export function ConfiguracionPage() {
@@ -45,7 +45,31 @@ export function ConfiguracionPage() {
           </div>
         </Card>
 
-        {/* Tarjeta 2: Sitio Web */}
+        {/* Tarjeta 2: Galería de Trabajos Multimedia */}
+        <Card
+          variant="glass"
+          className={styles.configCard}
+          onClick={() => navigate('/configuracion/galeria-trabajos')}
+        >
+          <div className={styles.cardHeader}>
+            <div className={`${styles.iconWrapper} ${styles.galeriaIcon}`}>
+              <Sparkles size={32} />
+            </div>
+            <div className={styles.badge}>Multimedia</div>
+          </div>
+          <div className={styles.cardContent}>
+            <h2>Galería de Trabajos</h2>
+            <p>
+              Administración de fotos y videos de trabajos realizados en Iluminación, Redes y Seguridad para la landing pública.
+            </p>
+          </div>
+          <div className={styles.cardFooter}>
+            <span>Administrar galería multimedia</span>
+            <ChevronRight size={18} className={styles.arrow} />
+          </div>
+        </Card>
+
+        {/* Tarjeta 3: Sitio Web */}
         <Card
           variant="glass"
           className={styles.configCard}
@@ -60,7 +84,7 @@ export function ConfiguracionPage() {
           <div className={styles.cardContent}>
             <h2>Sitio Web</h2>
             <p>
-              Administración de la galería de trabajos realizados, estadísticas de visitas y consultas recibidas.
+              Estadísticas de visitas, consultas recibidas de la landing y configuración de enlaces de contacto.
             </p>
           </div>
           <div className={styles.cardFooter}>

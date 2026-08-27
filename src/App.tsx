@@ -27,6 +27,7 @@ import { BackupScreen } from '@/features/configuracion/screens/BackupScreen';
 import { AparienciaScreen } from '@/features/configuracion/screens/AparienciaScreen';
 import { SitioWebScreen } from '@/features/configuracion/screens/SitioWebScreen';
 import { SafeLinkSecurityScreen } from '@/features/configuracion/screens/SafeLinkSecurityScreen';
+import { GaleriaTrabajosScreen } from '@/features/configuracion/screens/GaleriaTrabajosScreen';
 import { LandingPage } from '@/features/landing/LandingPage';
 import { SafeLinkMonitorPage } from '@/features/monitor/SafeLinkMonitorPage';
 import { InfraestructuraPage } from '@/features/infraestructura/InfraestructuraPage';
@@ -83,11 +84,13 @@ function App() {
             <Route path="/infraestructura/topologia" element={<Navigate to="/infraestructura/topologias" replace />} />
 
             {/* Configuración */}
-            <Route path="/configuracion"            element={<ConfiguracionPage />} />
-            <Route path="/configuracion/backup"     element={<BackupScreen />} />
-            <Route path="/configuracion/apariencia"  element={<AparienciaScreen />} />
-            <Route path="/configuracion/sitio-web"   element={<SitioWebScreen />} />
-            <Route path="/configuracion/security"    element={<SafeLinkSecurityScreen />} />
+            <Route path="/configuracion"                  element={<ConfiguracionPage />} />
+            <Route path="/configuracion/backup"           element={<BackupScreen />} />
+            <Route path="/configuracion/apariencia"        element={<AparienciaScreen />} />
+            <Route path="/configuracion/sitio-web"         element={<SitioWebScreen />} />
+            <Route path="/configuracion/security"          element={<SafeLinkSecurityScreen />} />
+            <Route path="/configuracion/galeria-trabajos"  element={<GaleriaTrabajosScreen />} />
+            <Route path="/configuracion/galeria"           element={<Navigate to="/configuracion/galeria-trabajos" replace />} />
           </Route>
         </Route>
 

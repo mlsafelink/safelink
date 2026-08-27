@@ -1,16 +1,19 @@
+/* ── GaleriaCarrusel — paleta cálida ── */
+
 .wrapper {
   overflow: hidden;
   position: relative;
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
+  padding: 8px 0;
 }
 
 .wrapper:active {
   cursor: grabbing;
 }
 
-/* Fade edges */
+/* Fade edges — crema del fondo */
 .wrapper::before,
 .wrapper::after {
   content: '';
@@ -24,12 +27,12 @@
 
 .wrapper::before {
   left: 0;
-  background: linear-gradient(to right, #0a0f1e, transparent);
+  background: linear-gradient(to right, #fffdf9, transparent);
 }
 
 .wrapper::after {
   right: 0;
-  background: linear-gradient(to left, #0a0f1e, transparent);
+  background: linear-gradient(to left, #fffdf9, transparent);
 }
 
 .track {
@@ -41,18 +44,18 @@
 .slide {
   flex-shrink: 0;
   position: relative;
-  width: 280px;
-  height: 200px;
-  border-radius: 16px;
+  width: 300px;
+  height: 220px;
+  border-radius: 13px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border: 1px solid #e7dccb;
+  box-shadow: 0 8px 24px rgba(61, 39, 13, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .slide:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 16px 36px rgba(61, 39, 13, 0.18);
 }
 
 .img {
@@ -68,10 +71,10 @@
   left: 0;
   right: 0;
   padding: 0.5rem 0.875rem;
-  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-  color: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(to top, rgba(20, 16, 11, 0.78), transparent);
+  color: rgba(255, 255, 255, 0.92);
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.3;
 }
 
@@ -80,18 +83,19 @@
   display: flex;
   gap: 1.25rem;
   overflow: hidden;
+  padding: 8px 0;
 }
 
 .skeleton {
   flex-shrink: 0;
-  width: 280px;
-  height: 200px;
-  border-radius: 16px;
+  width: 300px;
+  height: 220px;
+  border-radius: 13px;
   background: linear-gradient(
     90deg,
-    rgba(255,255,255,0.04) 0%,
-    rgba(255,255,255,0.08) 50%,
-    rgba(255,255,255,0.04) 100%
+    #f0e8da 0%,
+    #e7dccb 50%,
+    #f0e8da 100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
@@ -105,6 +109,6 @@
 .empty {
   text-align: center;
   padding: 3rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: #a89880;
   font-size: 0.9rem;
 }

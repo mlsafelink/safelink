@@ -287,6 +287,7 @@ function EstadisticasTab() {
 
 // ── Tab de Galería ───────────────────────────────────────────────
 function GaleriaTab() {
+  const navigate = useNavigate();
   const toast = useToast();
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
@@ -375,6 +376,47 @@ function GaleriaTab() {
 
   return (
     <div className={styles.galeriaSection}>
+      {/* Banner de acceso a Galería Multimedia */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(79, 70, 229, 0.15))',
+          border: '1px solid rgba(124, 58, 237, 0.35)',
+          borderRadius: '12px',
+          padding: '1.25rem 1.5rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '1rem',
+          flexWrap: 'wrap',
+          marginBottom: '1.5rem',
+        }}
+      >
+        <div>
+          <h4 style={{ color: '#f1f5f9', margin: '0 0 4px', fontSize: '1rem', fontWeight: 700 }}>
+            ✨ Galería de Trabajos Multimedia (Fotos + Videos)
+          </h4>
+          <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.85rem' }}>
+            Gestioná proyectos completos con fotos múltiples, videos cortos y epígrafes por categoría para la landing.
+          </p>
+        </div>
+        <button
+          onClick={() => navigate('/configuracion/galeria-trabajos')}
+          style={{
+            background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+            border: 'none',
+            color: '#fff',
+            fontWeight: 700,
+            fontSize: '0.88rem',
+            padding: '10px 18px',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
+          }}
+        >
+          Abrir Galería de Trabajos →
+        </button>
+      </div>
+
       {/* Upload */}
       <div className={styles.uploadCard}>
         <div className={styles.uploadIcon}><Image size={28} /></div>

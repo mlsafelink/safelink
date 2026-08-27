@@ -1,0 +1,209 @@
+/* ══════════════════════════════════════════════════════════
+   Lightbox — Visor Fotográfico y de Video Full-Screen
+   ══════════════════════════════════════════════════════════ */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(10, 8, 6, 0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1rem;
+  animation: fadeIn 0.25s ease-out forwards;
+  user-select: none;
+  touch-action: pan-y;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Barra superior */
+.topBar {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+  padding-bottom: 0.5rem;
+}
+
+.counter {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #f7eee3;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px 14px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+}
+
+.videoIndicator {
+  color: #fb923c;
+  font-weight: 800;
+}
+
+.closeBtn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 1.3rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.closeBtn:hover {
+  background: #b87925;
+  transform: scale(1.08);
+}
+
+/* Contenedor central de medios */
+.imageContainer {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.mediaWrapper {
+  max-width: 100%;
+  max-height: 72vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image {
+  max-width: 100%;
+  max-height: 72vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+  animation: zoomIn 0.2s ease-out forwards;
+}
+
+.videoPlayer {
+  max-width: 100%;
+  max-height: 72vh;
+  border-radius: 8px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+  background: #000;
+  outline: none;
+  animation: zoomIn 0.2s ease-out forwards;
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0.7;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Botones de navegación */
+.navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  background: rgba(20, 16, 12, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 2.2rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.navBtn:hover {
+  background: rgba(184, 121, 37, 0.9);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.prevBtn {
+  left: 10px;
+}
+
+.nextBtn {
+  right: 10px;
+}
+
+/* Pie de foto */
+.captionBar {
+  width: 100%;
+  max-width: 800px;
+  text-align: center;
+  z-index: 10;
+  padding-top: 0.5rem;
+}
+
+.captionTitle {
+  font-size: 1.15rem;
+  font-weight: 750;
+  color: #fff;
+  margin: 0 0 4px;
+}
+
+.captionDesc {
+  font-size: 0.9rem;
+  color: #d7cab9;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mediaWrapper,
+  .image,
+  .videoPlayer {
+    max-height: 65vh;
+  }
+
+  .navBtn {
+    width: 42px;
+    height: 42px;
+    font-size: 1.8rem;
+    background: rgba(20, 16, 12, 0.85);
+  }
+
+  .prevBtn {
+    left: 4px;
+  }
+
+  .nextBtn {
+    right: 4px;
+  }
+
+  .captionTitle {
+    font-size: 1rem;
+  }
+
+  .captionDesc {
+    font-size: 0.82rem;
+  }
+}

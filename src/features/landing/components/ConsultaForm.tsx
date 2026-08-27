@@ -16,7 +16,6 @@ type Props = {
 export function ConsultaForm({ servicioPreseleccionado }: Props) {
   const [servicio, setServicio] = useState<ServicioTipo>(servicioPreseleccionado ?? 'camaras');
   const [descripcion, setDescripcion] = useState('');
-  const [monto, setMonto] = useState('');
   const [nombre, setNombre] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +39,7 @@ export function ConsultaForm({ servicioPreseleccionado }: Props) {
         whatsapp: whatsapp.trim(),
         servicio,
         descripcion: descripcion.trim(),
-        monto_cotizado: monto ? parseFloat(monto) : null,
+        monto_cotizado: null,
       });
       setEnviado(true);
     } catch {
@@ -61,7 +60,6 @@ export function ConsultaForm({ servicioPreseleccionado }: Props) {
           onClick={() => {
             setEnviado(false);
             setDescripcion('');
-            setMonto('');
             setNombre('');
             setWhatsapp('');
           }}
@@ -102,24 +100,7 @@ export function ConsultaForm({ servicioPreseleccionado }: Props) {
         />
       </div>
 
-      <div className={styles.fieldGroup}>
-        <label className={styles.label} htmlFor="consulta-monto">
-          ¿Cuánto te cotizaron? <span className={styles.opcional}>(opcional)</span>
-        </label>
-        <div className={styles.inputPrefix}>
-          <span className={styles.prefix}>$</span>
-          <input
-            id="consulta-monto"
-            type="number"
-            className={styles.input}
-            value={monto}
-            onChange={e => setMonto(e.target.value)}
-            placeholder="0"
-            min="0"
-            step="1"
-          />
-        </div>
-      </div>
+
 
       <div className={styles.row}>
         <div className={styles.fieldGroup}>

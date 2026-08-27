@@ -1,6 +1,5 @@
+/* Testimonios — contenedor para el widget Elfsight */
 .elfsightContainer {
   width: 100%;
-  min-height: 200px;
-  position: relative;
+  padding: 0.5rem 0;
 }
-
