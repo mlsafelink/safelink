@@ -209,7 +209,7 @@ export function GaleriaTrabajosScreen() {
         <div className={styles.grid}>
           {filteredWorks.map(work => {
             const catInfo = CATEGORIES_INFO[work.category];
-            const hasVideo = work.media?.some(m => m.media_type === 'video');
+            const videoCount = work.media?.filter(m => m.media_type === 'video').length || 0;
             const photoCount = work.media?.filter(m => m.media_type === 'image').length || (work.image_url ? 1 : 0);
 
             return (
@@ -230,13 +230,13 @@ export function GaleriaTrabajosScreen() {
                   {/* Badges de Medios */}
                   <div className={styles.mediaBadges}>
                     {photoCount > 0 && (
-                      <span className={styles.mediaBadge} title={`${photoCount} fotografías`}>
+                      <span className={styles.mediaBadge} title={`${photoCount} fotografía${photoCount > 1 ? 's' : ''}`}>
                         <ImageIcon size={12} /> {photoCount}
                       </span>
                     )}
-                    {hasVideo && (
-                      <span className={`${styles.mediaBadge} ${styles.videoBadge}`} title="Incluye video">
-                        <Video size={12} /> Video
+                    {videoCount > 0 && (
+                      <span className={`${styles.mediaBadge} ${styles.videoBadge}`} title={`${videoCount} video${videoCount > 1 ? 's' : ''}`}>
+                        <Video size={12} /> {videoCount > 1 ? `${videoCount} videos` : '1 video'}
                       </span>
                     )}
                   </div>

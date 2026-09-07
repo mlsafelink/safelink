@@ -42,7 +42,10 @@ export interface WorkUploadFiles {
   mainImage?: File;
   additionalImages?: File[];
   video?: File;
+  videos?: File[];
 }
+
+export type UploadProgressCallback = (status: { message: string; current: number; total: number }) => void;
 
 export interface CategoryInfo {
   id: LandingGalleryCategory;
@@ -427,7 +430,11 @@ export const landingGalleryService = {
   /**
    * Crea un nuevo trabajo con sus archivos multimedia en Supabase
    */
-  async createWork(payload: WorkFormPayload, files: WorkUploadFiles): Promise<LandingGalleryItem> {
+  async createWork(
+    payload: WorkFormPayload,
+    files: WorkUploadFiles,
+    onProgress?: UploadProgressCallback
+  ): Promise<LandingGalleryItem> {
     const workId = crypto.randomUUID();
 
     // 1. Subir imagen principal (obligatoria)
@@ -435,6 +442,9 @@ export const landingGalleryService = {
     let mainImagePath = '';
 
     if (files.mainImage) {
+      if (onProgress) {
+        onProgress({ message: 'Subiendo imagen principal...', current: 0, total: 1 });
+      }
       const uploaded = await this.uploadFile(files.mainImage, payload.category, workId, 'main');
       mainImageUrl = uploaded.url;
       mainImagePath = uploaded.path;
@@ -487,6 +497,13 @@ export const landingGalleryService = {
     if (files.additionalImages && files.additionalImages.length > 0) {
       for (let i = 0; i < files.additionalImages.length; i++) {
         const file = files.additionalImages[i];
+        if (onProgress) {
+          onProgress({
+            message: `Subiendo fotografía ${i + 1} de ${files.additionalImages.length}...`,
+            current: i + 1,
+            total: files.additionalImages.length,
+          });
+        }
         const uploaded = await this.uploadFile(file, payload.category, workId, `extra-${i + 1}`);
         mediaToInsert.push({
           gallery_id: workId,
@@ -498,16 +515,35 @@ export const landingGalleryService = {
       }
     }
 
-    // Media: Video (opcional)
-    if (files.video) {
-      const uploadedVideo = await this.uploadFile(files.video, payload.category, workId, 'video');
-      mediaToInsert.push({
-        gallery_id: workId,
-        media_type: 'video',
-        storage_path: uploadedVideo.path,
-        media_url: uploadedVideo.url,
-        sort_order: mediaToInsert.length,
-      });
+    // Media: Múltiples Videos (opcional)
+    const videoFiles: File[] = [];
+    if (files.videos && files.videos.length > 0) {
+      videoFiles.push(...files.videos);
+    } else if (files.video) {
+      videoFiles.push(files.video);
+    }
+
+    if (videoFiles.length > 0) {
+      for (let i = 0; i < videoFiles.length; i++) {
+        const file = videoFiles[i];
+        if (onProgress) {
+          onProgress({
+            message: videoFiles.length === 1 
+              ? 'Subiendo video de la obra...' 
+              : `Subiendo video ${i + 1} de ${videoFiles.length}...`,
+            current: i + 1,
+            total: videoFiles.length,
+          });
+        }
+        const uploadedVideo = await this.uploadFile(file, payload.category, workId, `videos/video-${i + 1}`);
+        mediaToInsert.push({
+          gallery_id: workId,
+          media_type: 'video',
+          storage_path: uploadedVideo.path,
+          media_url: uploadedVideo.url,
+          sort_order: 50 + i,
+        });
+      }
     }
 
     if (mediaToInsert.length > 0) {
@@ -533,7 +569,8 @@ export const landingGalleryService = {
     id: string,
     payload: WorkFormPayload,
     newFiles?: WorkUploadFiles,
-    deletedMediaIds?: string[]
+    deletedMediaIds?: string[],
+    onProgress?: UploadProgressCallback
   ): Promise<void> {
     // 1. Actualizar metadata del trabajo
     const { error: updateError } = await supabase
@@ -585,6 +622,9 @@ export const landingGalleryService = {
     }[] = [];
 
     if (newFiles?.mainImage) {
+      if (onProgress) {
+        onProgress({ message: 'Actualizando imagen principal...', current: 0, total: 1 });
+      }
       const uploaded = await this.uploadFile(newFiles.mainImage, payload.category, id, 'main-updated');
       mediaToInsert.push({
         gallery_id: id,
@@ -607,6 +647,13 @@ export const landingGalleryService = {
     if (newFiles?.additionalImages && newFiles.additionalImages.length > 0) {
       for (let i = 0; i < newFiles.additionalImages.length; i++) {
         const file = newFiles.additionalImages[i];
+        if (onProgress) {
+          onProgress({
+            message: `Subiendo fotografía ${i + 1} de ${newFiles.additionalImages.length}...`,
+            current: i + 1,
+            total: newFiles.additionalImages.length,
+          });
+        }
         const uploaded = await this.uploadFile(file, payload.category, id, `extra-${Date.now()}-${i}`);
         mediaToInsert.push({
           gallery_id: id,
@@ -618,15 +665,35 @@ export const landingGalleryService = {
       }
     }
 
-    if (newFiles?.video) {
-      const uploaded = await this.uploadFile(newFiles.video, payload.category, id, `video-${Date.now()}`);
-      mediaToInsert.push({
-        gallery_id: id,
-        media_type: 'video',
-        storage_path: uploaded.path,
-        media_url: uploaded.url,
-        sort_order: 99,
-      });
+    // Media: Múltiples Videos (opcional)
+    const videoFiles: File[] = [];
+    if (newFiles?.videos && newFiles.videos.length > 0) {
+      videoFiles.push(...newFiles.videos);
+    } else if (newFiles?.video) {
+      videoFiles.push(newFiles.video);
+    }
+
+    if (videoFiles.length > 0) {
+      for (let i = 0; i < videoFiles.length; i++) {
+        const file = videoFiles[i];
+        if (onProgress) {
+          onProgress({
+            message: videoFiles.length === 1 
+              ? 'Subiendo video de la obra...' 
+              : `Subiendo video ${i + 1} de ${videoFiles.length}...`,
+            current: i + 1,
+            total: videoFiles.length,
+          });
+        }
+        const uploaded = await this.uploadFile(file, payload.category, id, `videos/video-${Date.now()}-${i}`);
+        mediaToInsert.push({
+          gallery_id: id,
+          media_type: 'video',
+          storage_path: uploaded.path,
+          media_url: uploaded.url,
+          sort_order: 50 + i,
+        });
+      }
     }
 
     if (mediaToInsert.length > 0) {
