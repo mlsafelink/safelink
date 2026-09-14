@@ -14,7 +14,7 @@ import { useToast } from '@/components/ui/Toast/ToastContext';
 import {
   ArrowLeft, ZoomIn, ZoomOut, RotateCcw,
   Save, Share2, Shield, Info, Trash2, Edit3,
-  Eye, ArrowRight, Zap, Globe,
+  Eye, ArrowRight, Zap, Globe, Tag,
 } from 'lucide-react';
 import type {
   ElementoPlano,
@@ -34,6 +34,7 @@ export function PlanoEditorPage() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [addingType, setAddingType] = useState<ElementoTipo | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showLabels, setShowLabels] = useState(true);
 
   // Zoom y Pan
   const [zoom, setZoom] = useState(1);
@@ -675,7 +676,9 @@ export function PlanoEditorPage() {
                     <div className={styles.markerBadge}>
                       {meta.badgeContent}
                     </div>
-                    <span className={styles.markerLabel}>{elem.codigo}</span>
+                    {showLabels && (
+                      <span className={styles.markerLabel}>{elem.codigo}</span>
+                    )}
                   </div>
                 );
               })}
@@ -693,6 +696,14 @@ export function PlanoEditorPage() {
             </button>
             <button className={styles.zoomBtn} onClick={handleResetZoom} title="Restablecer">
               <RotateCcw size={16} />
+            </button>
+            <span className={styles.zoomDivider} />
+            <button
+              className={`${styles.zoomBtn} ${showLabels ? styles.zoomBtnActive : ''}`}
+              onClick={() => setShowLabels(prev => !prev)}
+              title={showLabels ? 'Ocultar etiquetas' : 'Mostrar etiquetas'}
+            >
+              <Tag size={15} />
             </button>
           </div>
         </main>
