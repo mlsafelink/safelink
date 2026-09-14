@@ -327,6 +327,88 @@ export function ElementoDetalleModal({
               </div>
             )}
 
+            {/* Selección y Edición de Tipo de Dispositivo */}
+            <div className={styles.formRow}>
+              <div className={styles.formGroup} style={{ flex: 1 }}>
+                <label className={styles.label}>Tipo de Dispositivo</label>
+                <select
+                  className={styles.selectInput}
+                  value={formData.tipo}
+                  onChange={e => setFormData({ ...formData, tipo: e.target.value as any })}
+                  disabled={readOnly}
+                >
+                  <optgroup label="Redes">
+                    <option value="ap">Access Point</option>
+                    <option value="rack">Rack</option>
+                    <option value="periscopio">Periscopio de red (en piso)</option>
+                    <option value="boca">Boca de red (en pared)</option>
+                    <option value="switch">Switch</option>
+                    <option value="modem">Módem ISP</option>
+                  </optgroup>
+                  <optgroup label="Alarmas">
+                    <option value="alarma_central">Central de Alarma</option>
+                    <option value="alarma_sirena_interior">Sirena interior</option>
+                    <option value="alarma_sirena_exterior">Sirena exterior</option>
+                    <option value="alarma_magnetico">Sensor Magnético</option>
+                    <option value="alarma_movimiento">Sensor de movimiento</option>
+                    <option value="alarma_humo">Sensor de humo</option>
+                    <option value="alarma_teclado">Teclado de Alarma</option>
+                  </optgroup>
+                  <optgroup label="Videovigilancia">
+                    <option value="dvr">Grabador DVR / NVR</option>
+                    <option value="camara">Cámara CCTV</option>
+                  </optgroup>
+                  <optgroup label="Otros">
+                    <option value="router">Router</option>
+                    <option value="servidor">Servidor</option>
+                    <option value="impresora">Impresora</option>
+                    <option value="otro">Otro</option>
+                  </optgroup>
+                </select>
+              </div>
+
+              <div className={styles.formGroup} style={{ width: '130px' }}>
+                <label className={styles.label}>Posición X (%)</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={0.1}
+                  className={styles.textInput}
+                  value={formData.pos_x}
+                  onChange={e => setFormData({ ...formData, pos_x: parseFloat(e.target.value) || 0 })}
+                  disabled={readOnly}
+                />
+              </div>
+
+              <div className={styles.formGroup} style={{ width: '130px' }}>
+                <label className={styles.label}>Posición Y (%)</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={0.1}
+                  className={styles.textInput}
+                  value={formData.pos_y}
+                  onChange={e => setFormData({ ...formData, pos_y: parseFloat(e.target.value) || 0 })}
+                  disabled={readOnly}
+                />
+              </div>
+            </div>
+
+            {/* Campo: Descripción (Opcional) */}
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Descripción (Opcional)</label>
+              <textarea
+                className={styles.textarea}
+                placeholder="Ej: Sensor PIR orientado hacia acceso principal / AP instalado en cielorraso..."
+                value={formData.description || ''}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                rows={2}
+                disabled={readOnly}
+              />
+            </div>
+
             {/* Datos Generales */}
             <div className={styles.formRow}>
               <div style={{ flex: 1 }}>
@@ -1101,6 +1183,136 @@ export function ElementoDetalleModal({
                       ))}
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* ── 7. CAMPOS ESPECÍFICOS: RACK DE COMUNICACIONES ── */}
+            {formData.tipo === 'rack' && (
+              <div className={styles.equipmentSection}>
+                <h3 className={styles.sectionHeading}>Configuración del Rack</h3>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Capacidad (Unidades U)</label>
+                    <select
+                      className={styles.selectInput}
+                      value={(formData.propiedades as any)?.unidades || 12}
+                      onChange={e => handlePropertyChange('unidades', parseInt(e.target.value, 10))}
+                      disabled={readOnly}
+                    >
+                      <option value="6">6U</option>
+                      <option value="9">9U</option>
+                      <option value="12">12U</option>
+                      <option value="16">16U</option>
+                      <option value="20">20U</option>
+                      <option value="24">24U</option>
+                      <option value="42">42U</option>
+                    </select>
+                  </div>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Tipo de Montaje</label>
+                    <select
+                      className={styles.selectInput}
+                      value={(formData.propiedades as any)?.tipoMontaje || 'Mural'}
+                      onChange={e => handlePropertyChange('tipoMontaje', e.target.value)}
+                      disabled={readOnly}
+                    >
+                      <option value="Mural">Mural (Pared)</option>
+                      <option value="Piso">De Piso / Torre</option>
+                      <option value="Gabinete">Gabinete Cerrado</option>
+                    </select>
+                  </div>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Marca / Modelo</label>
+                    <input
+                      type="text"
+                      className={styles.textInput}
+                      placeholder="Ej: CommScope / GLC 12U"
+                      value={(formData.propiedades as any)?.modelo || ''}
+                      onChange={e => handlePropertyChange('modelo', e.target.value)}
+                      disabled={readOnly}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── 8. CAMPOS ESPECÍFICOS: PERISCOPIO DE RED EN PISO ── */}
+            {formData.tipo === 'periscopio' && (
+              <div className={styles.equipmentSection}>
+                <h3 className={styles.sectionHeading}>Configuración del Periscopio de Piso</h3>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Cantidad de Bocas RJ45</label>
+                    <select
+                      className={styles.selectInput}
+                      value={(formData.propiedades as any)?.cantidadBocas || 4}
+                      onChange={e => handlePropertyChange('cantidadBocas', parseInt(e.target.value, 10))}
+                      disabled={readOnly}
+                    >
+                      <option value="2">2 Bocas</option>
+                      <option value="4">4 Bocas</option>
+                      <option value="6">6 Bocas</option>
+                      <option value="8">8 Bocas</option>
+                    </select>
+                  </div>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Categoría de Cable</label>
+                    <select
+                      className={styles.selectInput}
+                      value={(formData.propiedades as any)?.tipoCable || 'Cat 6 UTP'}
+                      onChange={e => handlePropertyChange('tipoCable', e.target.value)}
+                      disabled={readOnly}
+                    >
+                      <option value="Cat 5e UTP">Cat 5e UTP</option>
+                      <option value="Cat 6 UTP">Cat 6 UTP</option>
+                      <option value="Cat 6A FTP">Cat 6A FTP</option>
+                      <option value="Fibra">Fibra Óptica</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── 9. CAMPOS ESPECÍFICOS: SISTEMA DE ALARMA ── */}
+            {formData.tipo.startsWith('alarma_') && (
+              <div className={styles.equipmentSection}>
+                <h3 className={styles.sectionHeading}>Configuración del Dispositivo de Alarma</h3>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Zona / Partición</label>
+                    <input
+                      type="text"
+                      className={styles.textInput}
+                      placeholder="Ej: Zona 01 - Acceso Principal"
+                      value={(formData.propiedades as any)?.zona || ''}
+                      onChange={e => handlePropertyChange('zona', e.target.value)}
+                      disabled={readOnly}
+                    />
+                  </div>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Tipo de Conexión</label>
+                    <select
+                      className={styles.selectInput}
+                      value={(formData.propiedades as any)?.tipoConexion || 'Cableada'}
+                      onChange={e => handlePropertyChange('tipoConexion', e.target.value)}
+                      disabled={readOnly}
+                    >
+                      <option value="Cableada">Cableada</option>
+                      <option value="Inalámbrica">Inalámbrica (RF)</option>
+                    </select>
+                  </div>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label}>Marca / Modelo</label>
+                    <input
+                      type="text"
+                      className={styles.textInput}
+                      placeholder="Ej: DSC / Garnet / Paradox"
+                      value={(formData.propiedades as any)?.modelo || ''}
+                      onChange={e => handlePropertyChange('modelo', e.target.value)}
+                      disabled={readOnly}
+                    />
+                  </div>
                 </div>
               </div>
             )}

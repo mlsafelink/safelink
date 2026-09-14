@@ -4,12 +4,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { infraestructuraService } from '@/services/infraestructuraService';
 import { ElementoDetalleModal } from '../components/ElementoDetalleModal';
 import { CompartirPlanoModal } from '../components/CompartirPlanoModal';
+import { PlanoBackgroundView } from '../components/PlanoBackgroundView';
+import {
+  DISPOSITIVOS_CATALOGO,
+  getDispositivoMeta,
+} from '../constants/dispositivos';
 import { Button } from '@/components/ui/Button/Button';
 import { useToast } from '@/components/ui/Toast/ToastContext';
 import {
   ArrowLeft, ZoomIn, ZoomOut, RotateCcw,
-  Save, Share2, Network, Video, Wifi,
-  Server, Shield, Info, Trash2, Edit3,
+  Save, Share2, Shield, Info, Trash2, Edit3,
   Eye, ArrowRight, Zap, Globe,
 } from 'lucide-react';
 import type {
@@ -41,7 +45,7 @@ export function PlanoEditorPage() {
   const [draggingElementId, setDraggingElementId] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
+  const imageRef = useRef<HTMLImageElement | HTMLCanvasElement | null>(null);
 
   // Cargar Plano
   const { data: plan, isLoading, isError } = useQuery({
@@ -81,8 +85,9 @@ export function PlanoEditorPage() {
   };
 
   const handleMouseDownCanvas = (e: React.MouseEvent) => {
-    // Si estamos haciendo clic en el fondo (no en un pin)
-    if (e.target === canvasRef.current || (e.target as HTMLElement).tagName === 'IMG') {
+    // Si estamos haciendo clic en el fondo (no en un pin o popover)
+    const tagName = (e.target as HTMLElement).tagName;
+    if (e.target === canvasRef.current || tagName === 'IMG' || tagName === 'CANVAS') {
       if (addingType) {
         // Colocar nuevo elemento
         handlePlaceElementAt(e);
@@ -125,28 +130,17 @@ export function PlanoEditorPage() {
     const xPercent = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
     const yPercent = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
 
-    // Contar cuántos hay de este tipo para el código automático
+    const meta = getDispositivoMeta(addingType);
     const countType = elements.filter(el => el.tipo === addingType).length + 1;
-    const prefix =
-      addingType === 'modem' ? 'MODEM' :
-      addingType === 'switch' ? 'SW' :
-      addingType === 'boca' ? 'P' :
-      addingType === 'ap' ? 'AP' :
-      addingType === 'dvr' ? 'DVR' : 'CAM';
-    const autoCode = `${prefix}-${countType.toString().padStart(2, '0')}`;
+    const autoCode = `${meta.codigoPrefix}-${countType.toString().padStart(2, '0')}`;
 
     const newElement: ElementoPlano = {
       id: crypto.randomUUID(),
       plan_id: id!,
       tipo: addingType,
       codigo: autoCode,
-      nombre: `${
-        prefix === 'MODEM' ? 'Módem ISP' :
-        prefix === 'SW' ? 'Switch' :
-        prefix === 'P' ? 'Puesto de Red' :
-        prefix === 'AP' ? 'Access Point' :
-        prefix === 'DVR' ? 'Grabador DVR/NVR' : 'Cámara'
-      } ${countType}`,
+      nombre: `${meta.nombre} ${countType}`,
+      description: '',
       pos_x: Math.round(xPercent * 10) / 10,
       pos_y: Math.round(yPercent * 10) / 10,
       estado: 'activo',
@@ -157,6 +151,14 @@ export function PlanoEditorPage() {
           ? { cantidadPuertos: 24 }
           : addingType === 'dvr'
           ? { cantidadCanales: 16 }
+          : addingType === 'rack'
+          ? { unidades: 12, tipoMontaje: 'Mural' }
+          : addingType === 'periscopio'
+          ? { cantidadBocas: 4, tipoCable: 'Cat 6 UTP' }
+          : addingType === 'boca'
+          ? { tipoCable: 'Cat 6 UTP', use_poe_injector: false }
+          : addingType.startsWith('alarma_')
+          ? { tipoConexion: 'Cableada', zona: `Zona ${countType.toString().padStart(2, '0')}` }
           : {},
     };
 
@@ -164,7 +166,7 @@ export function PlanoEditorPage() {
     setSelectedElementId(newElement.id);
     setAddingType(null);
     setHasUnsavedChanges(true);
-    showToast(`Se colocó ${newElement.codigo} sobre el plano. Podés configurarlo ahora.`, 'info');
+    showToast(`Se colocó ${newElement.codigo} (${meta.nombre}) sobre el plano.`, 'info');
   };
 
   const handleUpdateElement = (updated: ElementoPlano) => {
@@ -326,20 +328,63 @@ export function PlanoEditorPage() {
             <span>Herramientas</span>
           </div>
 
+          {/* Categoría: Redes */}
           <div className={styles.toolsGroup}>
             <span className={styles.toolsGroupLabel}>Redes</span>
 
             <button
-              className={`${styles.toolBtn} ${addingType === 'modem' ? styles.toolBtnActive : ''}`}
-              onClick={() => setAddingType(addingType === 'modem' ? null : 'modem')}
-              title="Colocar Módem de Acceso (ISP / WAN)"
+              className={`${styles.toolBtn} ${addingType === 'ap' ? styles.toolBtnActive : ''}`}
+              onClick={() => setAddingType(addingType === 'ap' ? null : 'ap')}
+              title="Colocar Access Point WiFi"
             >
-              <div className={`${styles.toolIconWrap} ${styles.iconWrapAmber}`}>
-                <Globe size={18} />
+              <div className={`${styles.toolIconWrap} ${styles.iconWrapPurple}`}>
+                {DISPOSITIVOS_CATALOGO.ap.renderSidebarIcon(18)}
               </div>
               <div className={styles.toolBtnText}>
-                <strong>+ Módem</strong>
-                <span>Equipo de acceso</span>
+                <strong>+ Access Point</strong>
+                <span>Punto de Acceso</span>
+              </div>
+            </button>
+
+            <button
+              className={`${styles.toolBtn} ${addingType === 'rack' ? styles.toolBtnActive : ''}`}
+              onClick={() => setAddingType(addingType === 'rack' ? null : 'rack')}
+              title="Colocar Rack de Comunicaciones"
+            >
+              <div className={`${styles.toolIconWrap} ${styles.iconWrapIndigo}`}>
+                {DISPOSITIVOS_CATALOGO.rack.renderSidebarIcon(18)}
+              </div>
+              <div className={styles.toolBtnText}>
+                <strong>+ Rack</strong>
+                <span>Gabinete mural/piso</span>
+              </div>
+            </button>
+
+            <button
+              className={`${styles.toolBtn} ${addingType === 'periscopio' ? styles.toolBtnActive : ''}`}
+              onClick={() => setAddingType(addingType === 'periscopio' ? null : 'periscopio')}
+              title="Colocar Periscopio de red (en piso)"
+            >
+              <div className={`${styles.toolIconWrap} ${styles.iconWrapGreen}`}>
+                {DISPOSITIVOS_CATALOGO.periscopio.renderSidebarIcon(18)}
+              </div>
+              <div className={styles.toolBtnText}>
+                <strong>+ Periscopio</strong>
+                <span>En piso</span>
+              </div>
+            </button>
+
+            <button
+              className={`${styles.toolBtn} ${addingType === 'boca' ? styles.toolBtnActive : ''}`}
+              onClick={() => setAddingType(addingType === 'boca' ? null : 'boca')}
+              title="Colocar Boca de red (en pared)"
+            >
+              <div className={`${styles.toolIconWrap} ${styles.iconWrapBlue}`}>
+                {DISPOSITIVOS_CATALOGO.boca.renderSidebarIcon(18)}
+              </div>
+              <div className={styles.toolBtnText}>
+                <strong>+ Boca de red</strong>
+                <span>En pared</span>
               </div>
             </button>
 
@@ -349,43 +394,133 @@ export function PlanoEditorPage() {
               title="Colocar Switch en el plano"
             >
               <div className={`${styles.toolIconWrap} ${styles.iconWrapBlue}`}>
-                <Network size={18} />
+                {DISPOSITIVOS_CATALOGO.switch.renderSidebarIcon(18)}
               </div>
               <div className={styles.toolBtnText}>
                 <strong>+ Switch</strong>
-                <span>Rack / Core</span>
+                <span>Distribución LAN</span>
               </div>
             </button>
 
             <button
-              className={`${styles.toolBtn} ${addingType === 'boca' ? styles.toolBtnActive : ''}`}
-              onClick={() => setAddingType(addingType === 'boca' ? null : 'boca')}
-              title="Colocar Boca / Puesto de red"
+              className={`${styles.toolBtn} ${addingType === 'modem' ? styles.toolBtnActive : ''}`}
+              onClick={() => setAddingType(addingType === 'modem' ? null : 'modem')}
+              title="Colocar Módem de Acceso (ISP / WAN)"
             >
-              <div className={`${styles.toolIconWrap} ${styles.iconWrapGreen}`}>
-                <Server size={18} />
+              <div className={`${styles.toolIconWrap} ${styles.iconWrapAmber}`}>
+                {DISPOSITIVOS_CATALOGO.modem.renderSidebarIcon(18)}
               </div>
               <div className={styles.toolBtnText}>
-                <strong>+ Boca / Puesto</strong>
-                <span>RJ45 Cat6</span>
-              </div>
-            </button>
-
-            <button
-              className={`${styles.toolBtn} ${addingType === 'ap' ? styles.toolBtnActive : ''}`}
-              onClick={() => setAddingType(addingType === 'ap' ? null : 'ap')}
-              title="Colocar Access Point WiFi"
-            >
-              <div className={`${styles.toolIconWrap} ${styles.iconWrapPurple}`}>
-                <Wifi size={18} />
-              </div>
-              <div className={styles.toolBtnText}>
-                <strong>+ Access Point</strong>
-                <span>Punto de Acceso</span>
+                <strong>+ Módem</strong>
+                <span>Equipo de acceso</span>
               </div>
             </button>
           </div>
 
+          {/* Categoría: Alarmas */}
+          <div className={styles.toolsGroup}>
+            <span className={styles.toolsGroupLabel}>Alarma</span>
+
+            <button
+              className={`${styles.toolBtn} ${addingType === 'alarma_central' ? styles.toolBtnActive : ''}`}
+              onClick={() => setAddingType(addingType === 'alarma_central' ? null : 'alarma_central')}
+              title="Colocar Central de Alarma"
+            >
+              <div className={`${styles.toolIconWrap} ${styles.iconWrapRed}`}>
+                {DISPOSITIVOS_CATALOGO.alarma_central.renderSidebarIcon(18)}
+              </div>
+              <div className={styles.toolBtnText}>
+                <strong>+ Central</strong>
+                <span>Panel de alarma</span>
+              </div>
+            </button>
+
+            <button
+              className={`${styles.toolBtn} ${addingType === 'alarma_sirena_interior' ? styles.toolBtnActive : ''}`}
+              onClick={() => setAddingType(addingType === 'alarma_sirena_interior' ? null : 'alarma_sirena_interior')}
+              title="Colocar Sirena interior"
+            >
+              <div className={`${styles.toolIconWrap} ${styles.iconWrapOrange}`}>
+                {DISPOSITIVOS_CATALOGO.alarma_sirena_interior.renderSidebarIcon(18)}
+              </div>
+              <div className={styles.toolBtnText}>
+                <strong>+ Sirena interior</strong>
+                <span>Alerta sonora</span>
+              </div>
+            </button>
+
+            <button
+              className={`${styles.toolBtn} ${addingType === 'alarma_sirena_exterior' ? styles.toolBtnActive : ''}`}
+              onClick={() => setAddingType(addingType === 'alarma_sirena_exterior' ? null : 'alarma_sirena_exterior')}
+              title="Colocar Sirena exterior"
+            >
+              <div className={`${styles.toolIconWrap} ${styles.iconWrapOrange}`}>
+                {DISPOSITIVOS_CATALOGO.alarma_sirena_exterior.renderSidebarIcon(18)}
+              </div>
+              <div className={styles.toolBtnText}>
+                <strong>+ Sirena exterior</strong>
+                <span>Con flash exterior</span>
+              </div>
+            </button>
+
+            <button
+              className={`${styles.toolBtn} ${addingType === 'alarma_magnetico' ? styles.toolBtnActive : ''}`}
+              onClick={() => setAddingType(addingType === 'alarma_magnetico' ? null : 'alarma_magnetico')}
+              title="Colocar Sensor Magnético de puerta o ventana"
+            >
+              <div className={`${styles.toolIconWrap} ${styles.iconWrapYellow}`}>
+                {DISPOSITIVOS_CATALOGO.alarma_magnetico.renderSidebarIcon(18)}
+              </div>
+              <div className={styles.toolBtnText}>
+                <strong>+ Magnético</strong>
+                <span>Apertura puerta/ventana</span>
+              </div>
+            </button>
+
+            <button
+              className={`${styles.toolBtn} ${addingType === 'alarma_movimiento' ? styles.toolBtnActive : ''}`}
+              onClick={() => setAddingType(addingType === 'alarma_movimiento' ? null : 'alarma_movimiento')}
+              title="Colocar Sensor de movimiento (punto azul)"
+            >
+              <div className={`${styles.toolIconWrap} ${styles.iconWrapBlue}`}>
+                {DISPOSITIVOS_CATALOGO.alarma_movimiento.renderSidebarIcon(18)}
+              </div>
+              <div className={styles.toolBtnText}>
+                <strong>+ Sensor mov.</strong>
+                <span>Sensor PIR</span>
+              </div>
+            </button>
+
+            <button
+              className={`${styles.toolBtn} ${addingType === 'alarma_humo' ? styles.toolBtnActive : ''}`}
+              onClick={() => setAddingType(addingType === 'alarma_humo' ? null : 'alarma_humo')}
+              title="Colocar Sensor de humo (punto rojo)"
+            >
+              <div className={`${styles.toolIconWrap} ${styles.iconWrapRed}`}>
+                {DISPOSITIVOS_CATALOGO.alarma_humo.renderSidebarIcon(18)}
+              </div>
+              <div className={styles.toolBtnText}>
+                <strong>+ Sensor humo</strong>
+                <span>Detección incendio</span>
+              </div>
+            </button>
+
+            <button
+              className={`${styles.toolBtn} ${addingType === 'alarma_teclado' ? styles.toolBtnActive : ''}`}
+              onClick={() => setAddingType(addingType === 'alarma_teclado' ? null : 'alarma_teclado')}
+              title="Colocar Teclado de Alarma"
+            >
+              <div className={`${styles.toolIconWrap} ${styles.iconWrapCyan}`}>
+                {DISPOSITIVOS_CATALOGO.alarma_teclado.renderSidebarIcon(18)}
+              </div>
+              <div className={styles.toolBtnText}>
+                <strong>+ Teclado</strong>
+                <span>Armado / Desarmado</span>
+              </div>
+            </button>
+          </div>
+
+          {/* Categoría: Videovigilancia */}
           <div className={styles.toolsGroup}>
             <span className={styles.toolsGroupLabel}>Videovigilancia</span>
             <button
@@ -394,7 +529,7 @@ export function PlanoEditorPage() {
               title="Colocar Grabador DVR / NVR"
             >
               <div className={`${styles.toolIconWrap} ${styles.iconWrapViolet}`}>
-                <Video size={18} />
+                {DISPOSITIVOS_CATALOGO.dvr.renderSidebarIcon(18)}
               </div>
               <div className={styles.toolBtnText}>
                 <strong>+ DVR / NVR</strong>
@@ -405,14 +540,14 @@ export function PlanoEditorPage() {
             <button
               className={`${styles.toolBtn} ${addingType === 'camara' ? styles.toolBtnActive : ''}`}
               onClick={() => setAddingType(addingType === 'camara' ? null : 'camara')}
-              title="Colocar Cámara de seguridad"
+              title="Colocar Cámara de seguridad (punto verde)"
             >
-              <div className={`${styles.toolIconWrap} ${styles.iconWrapRose}`}>
-                <Video size={18} />
+              <div className={`${styles.toolIconWrap} ${styles.iconWrapGreen}`}>
+                {DISPOSITIVOS_CATALOGO.camara.renderSidebarIcon(18)}
               </div>
               <div className={styles.toolBtnText}>
                 <strong>+ Cámara</strong>
-                <span>Domo / Bullet</span>
+                <span>CCTV</span>
               </div>
             </button>
           </div>
@@ -434,7 +569,7 @@ export function PlanoEditorPage() {
                   className={`${styles.quickElementItem} ${selectedElementId === el.id ? styles.quickElementSelected : ''}`}
                   onClick={() => setSelectedElementId(el.id)}
                 >
-                  <span className={`${styles.typeDot} ${styles[`typeDot_${el.tipo}`]}`} />
+                  <span className={`${styles.typeDot} ${styles[`typeDot_${el.tipo}`] || ''}`} />
                   <strong>{el.codigo}</strong>
                   <span>{el.nombre}</span>
                 </button>
@@ -461,30 +596,27 @@ export function PlanoEditorPage() {
             }}
           >
             <div className={styles.planImageContainer}>
-              {/* Imagen / Plano PDF de Fondo */}
-              <img
-                ref={imageRef}
-                src={plan.archivo_url}
-                alt={plan.nombre}
+              {/* Plano PDF o Imagen de Fondo */}
+              <PlanoBackgroundView
+                archivoUrl={plan.archivo_url}
+                archivoTipo={plan.archivo_tipo}
+                nombre={plan.nombre}
                 className={styles.planImage}
-                draggable={false}
-                onError={e => {
-                  (e.target as HTMLImageElement).src =
-                    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80';
-                }}
+                imageRef={imageRef}
               />
 
               {/* ── Capa Vectorial de Marcadores Interactivos ── */}
               {elements.map(elem => {
                 const isSelected = selectedElementId === elem.id;
                 const isParentOfSelected = selectedElement?.parent_element_id === elem.id;
+                const meta = getDispositivoMeta(elem.tipo);
 
                 return (
                   <div
                     key={elem.id}
                     className={`${styles.markerPin} ${isSelected ? styles.markerSelected : ''} ${
                       isParentOfSelected ? styles.markerParentHighlight : ''
-                    } ${styles[`marker_${elem.tipo}`]}`}
+                    } ${styles[`marker_${elem.tipo}`] || ''}`}
                     style={{
                       left: `${elem.pos_x}%`,
                       top: `${elem.pos_y}%`,
@@ -498,14 +630,50 @@ export function PlanoEditorPage() {
                       setDraggingElementId(elem.id);
                       setSelectedElementId(elem.id);
                     }}
-                    title={`${elem.codigo} — ${elem.nombre}`}
+                    title={`${elem.codigo} — ${elem.nombre}${elem.description ? ` (${elem.description})` : ''}`}
                   >
+                    {/* Popover flotante informativo al seleccionar en el plano */}
+                    {isSelected && (
+                      <div
+                        className={styles.markerPopover}
+                        onClick={e => e.stopPropagation()}
+                        onMouseDown={e => e.stopPropagation()}
+                      >
+                        <div className={styles.markerPopoverTitle}>
+                          <span>{meta.badgeContent}</span>
+                          <strong>{elem.codigo}</strong>
+                          <span className={styles.markerPopoverType}>{meta.nombre}</span>
+                        </div>
+                        {elem.description ? (
+                          <p className={styles.markerPopoverDesc}>{elem.description}</p>
+                        ) : (
+                          <p className={styles.markerPopoverDesc} style={{ fontStyle: 'italic', opacity: 0.7 }}>
+                            Sin descripción (opcional)
+                          </p>
+                        )}
+                        <div className={styles.markerPopoverActions}>
+                          <button
+                            type="button"
+                            className={styles.popoverEditBtn}
+                            onClick={() => setIsDetailModalOpen(true)}
+                          >
+                            <Edit3 size={11} />
+                            <span>Editar</span>
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.popoverDeleteBtn}
+                            onClick={() => handleDeleteElement(elem.id)}
+                          >
+                            <Trash2 size={11} />
+                            <span>Eliminar</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <div className={styles.markerBadge}>
-                      {elem.tipo === 'modem' ? '🌐' :
-                       elem.tipo === 'switch' ? '🖧' :
-                       elem.tipo === 'boca' ? '🔌' :
-                       elem.tipo === 'ap' ? '📡' :
-                       elem.tipo === 'dvr' ? '🖥️' : '📹'}
+                      {meta.badgeContent}
                     </div>
                     <span className={styles.markerLabel}>{elem.codigo}</span>
                   </div>
@@ -692,6 +860,55 @@ export function PlanoEditorPage() {
 
               {/* Propiedades Clave */}
               <div className={styles.inspectorPropsList}>
+                {/* Descripción Opcional del Dispositivo */}
+                <div className={styles.propRow} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
+                  <span className={styles.propLabel}>Descripción:</span>
+                  <span
+                    className={styles.propValue}
+                    style={{
+                      whiteSpace: 'pre-wrap',
+                      fontStyle: selectedElement.description ? 'normal' : 'italic',
+                      color: selectedElement.description ? 'var(--text-primary)' : 'var(--text-secondary)',
+                      lineHeight: '1.4',
+                      fontSize: '0.75rem',
+                    }}
+                  >
+                    {selectedElement.description || 'Sin descripción asignada (opcional)'}
+                  </span>
+                </div>
+
+                <div className={styles.propRow}>
+                  <span className={styles.propLabel}>Posición en plano:</span>
+                  <span className={styles.propValue} style={{ fontFamily: 'monospace' }}>
+                    X: {selectedElement.pos_x}% | Y: {selectedElement.pos_y}%
+                  </span>
+                </div>
+
+                {(selectedElement.propiedades as any)?.unidades && (
+                  <div className={styles.propRow}>
+                    <span className={styles.propLabel}>Tamaño Rack:</span>
+                    <span className={styles.propValue}>
+                      {(selectedElement.propiedades as any).unidades}U ({(selectedElement.propiedades as any).tipoMontaje || 'Mural'})
+                    </span>
+                  </div>
+                )}
+
+                {(selectedElement.propiedades as any)?.cantidadBocas && (
+                  <div className={styles.propRow}>
+                    <span className={styles.propLabel}>Bocas Periscopio:</span>
+                    <span className={styles.propValue}>{(selectedElement.propiedades as any).cantidadBocas} Bocas</span>
+                  </div>
+                )}
+
+                {(selectedElement.propiedades as any)?.zona && (
+                  <div className={styles.propRow}>
+                    <span className={styles.propLabel}>Zona de Alarma:</span>
+                    <span className={styles.propValue} style={{ color: '#ef4444', fontWeight: 600 }}>
+                      {(selectedElement.propiedades as any).zona}
+                    </span>
+                  </div>
+                )}
+
                 {(selectedElement.propiedades as any)?.proveedor && (
                   <div className={styles.propRow}>
                     <span className={styles.propLabel}>Proveedor:</span>

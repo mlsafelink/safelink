@@ -609,7 +609,10 @@ export const infraestructuraService = {
           ...plan,
           consorcio: plan.consorcios,
           particular: plan.particulares,
-          elementos: (elements as ElementoPlano[]) || [],
+          elementos: ((elements as any[]) || []).map(el => ({
+            ...el,
+            description: el.description || el.propiedades?.description || null,
+          })) as ElementoPlano[],
         };
       }
     } catch (e) {
@@ -662,7 +665,10 @@ export const infraestructuraService = {
           ...plan,
           consorcio: plan.consorcios,
           particular: plan.particulares,
-          elementos: (elements as ElementoPlano[]) || [],
+          elementos: ((elements as any[]) || []).map(el => ({
+            ...el,
+            description: el.description || el.propiedades?.description || null,
+          })) as ElementoPlano[],
         };
       }
     } catch (e) {
@@ -803,7 +809,11 @@ export const infraestructuraService = {
             parent_element_id: e.parent_element_id || null,
             puerto_canal: e.puerto_canal || null,
             estado: e.estado || 'activo',
-            propiedades: e.propiedades || {},
+            description: e.description || null,
+            propiedades: {
+              ...(e.propiedades || {}),
+              description: e.description || undefined,
+            },
             updated_at: new Date().toISOString(),
           }))
         );

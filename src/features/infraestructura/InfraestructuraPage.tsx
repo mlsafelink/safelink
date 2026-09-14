@@ -14,6 +14,7 @@ import {
   ChevronRight, Calendar, Building, ExternalLink,
   Trash2, Edit3, Share2, UploadCloud, GitBranch,
 } from 'lucide-react';
+import { PlanoBackgroundView } from './components/PlanoBackgroundView';
 import type { PlanoTipo, PlanoInfraestructura } from '@/types/infraestructura';
 import styles from './InfraestructuraPage.module.css';
 
@@ -437,15 +438,11 @@ export function InfraestructuraPage() {
                 >
                   {/* Thumbnail / Vista previa */}
                   <div className={styles.planThumbnailWrap}>
-                    <img
-                      src={plan.archivo_url}
-                      alt={plan.nombre}
+                    <PlanoBackgroundView
+                      archivoUrl={plan.archivo_url}
+                      archivoTipo={plan.archivo_tipo}
+                      nombre={plan.nombre}
                       className={styles.planThumbnail}
-                      onError={e => {
-                        // Fallback imagen
-                        (e.target as HTMLImageElement).src =
-                          'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80';
-                      }}
                     />
                     <span
                       className={`${styles.typeBadge} ${

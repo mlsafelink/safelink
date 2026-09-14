@@ -277,12 +277,22 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
-.typeDot_switch { background: #38bdf8; }
-.typeDot_boca   { background: #22c55e; }
-.typeDot_ap     { background: #a855f7; }
-.typeDot_dvr    { background: #818cf8; }
-.typeDot_camara { background: #f43f5e; }
-.typeDot_modem  { background: #f59e0b; }
+.typeDot_switch    { background: #38bdf8; }
+.typeDot_boca      { background: #0284c7; }
+.typeDot_periscopio{ background: #10b981; }
+.typeDot_ap        { background: #a855f7; }
+.typeDot_rack      { background: #6366f1; }
+.typeDot_dvr       { background: #818cf8; }
+.typeDot_camara    { background: #22c55e; }
+.typeDot_modem     { background: #f59e0b; }
+.typeDot_alarma_central         { background: #ef4444; }
+.typeDot_alarma_sirena_interior { background: #f97316; }
+.typeDot_alarma_sirena_exterior { background: #ea580c; }
+.typeDot_alarma_magnetico       { background: #eab308; }
+.typeDot_alarma_movimiento      { background: #3b82f6; }
+.typeDot_alarma_humo            { background: #ef4444; }
+.typeDot_alarma_teclado         { background: #06b6d4; }
+.typeDot_otro      { background: #94a3b8; }
 
 .quickElementItem strong {
   font-family: monospace;
@@ -370,11 +380,122 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
-.marker_switch .markerBadge { border-color: #0284c7; background: #f0f9ff; }
-.marker_boca .markerBadge   { border-color: #16a34a; background: #f0fdf4; }
-.marker_ap .markerBadge     { border-color: #9333ea; background: #faf5ff; }
-.marker_dvr .markerBadge    { border-color: #6366f1; background: #eef2ff; }
-.marker_camara .markerBadge { border-color: #e11d48; background: #fff1f2; }
+.marker_switch .markerBadge     { border-color: #0284c7; background: #f0f9ff; }
+.marker_boca .markerBadge       { border-color: #0284c7; background: #f0f9ff; }
+.marker_periscopio .markerBadge { border-color: #10b981; background: #ecfdf5; }
+.marker_ap .markerBadge         { border-color: #9333ea; background: #faf5ff; }
+.marker_rack .markerBadge       { border-color: #6366f1; background: #eef2ff; }
+.marker_dvr .markerBadge        { border-color: #6366f1; background: #eef2ff; }
+.marker_camara .markerBadge     { border-color: #22c55e; background: #f0fdf4; }
+.marker_modem .markerBadge      { border-color: #f59e0b; background: #fffbeb; }
+/* Alarma */
+.marker_alarma_central .markerBadge         { border-color: #ef4444; background: #fef2f2; }
+.marker_alarma_sirena_interior .markerBadge { border-color: #f97316; background: #fff7ed; }
+.marker_alarma_sirena_exterior .markerBadge { border-color: #ea580c; background: #fff7ed; }
+.marker_alarma_magnetico .markerBadge       { border-color: #eab308; background: #fefce8; }
+.marker_alarma_movimiento .markerBadge      { border-color: #3b82f6; background: #eff6ff; }
+.marker_alarma_humo .markerBadge            { border-color: #ef4444; background: #fef2f2; }
+.marker_alarma_teclado .markerBadge         { border-color: #06b6d4; background: #ecfeff; }
+.marker_otro .markerBadge                   { border-color: #94a3b8; background: #f8fafc; }
+
+/* Popover Flotante de Información en el Plano */
+.markerPopover {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65), 0 0 15px rgba(56, 189, 248, 0.2);
+  backdrop-filter: blur(10px);
+  width: max-content;
+  max-width: 240px;
+  z-index: 50;
+  pointer-events: auto;
+  text-align: left;
+  white-space: normal;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.markerPopoverTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.markerPopoverType {
+  font-size: 0.68rem;
+  color: #38bdf8;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.markerPopoverDesc {
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border-left: 2px solid #38bdf8;
+  line-height: 1.35;
+  margin: 2px 0 4px 0;
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+.markerPopoverActions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 2px;
+}
+
+.popoverEditBtn {
+  flex: 1;
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transition: background 0.15s ease;
+}
+.popoverEditBtn:hover {
+  background: #2563eb;
+}
+
+.popoverDeleteBtn {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transition: all 0.15s ease;
+}
+.popoverDeleteBtn:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
 
 .markerLabel {
   font-size: 0.65rem;

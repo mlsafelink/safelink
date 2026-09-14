@@ -5,7 +5,9 @@ export type PlanoTipo = 'redes' | 'camaras' | 'mixto';
 export type ElementoTipo =
   | 'switch'
   | 'boca'
+  | 'periscopio'
   | 'ap'
+  | 'rack'
   | 'dvr'
   | 'camara'
   | 'modem'
@@ -13,6 +15,14 @@ export type ElementoTipo =
   | 'servidor'
   | 'impresora'
   | 'fuente_poe'
+  // Alarma
+  | 'alarma_central'
+  | 'alarma_sirena_interior'
+  | 'alarma_sirena_exterior'
+  | 'alarma_magnetico'
+  | 'alarma_movimiento'
+  | 'alarma_humo'
+  | 'alarma_teclado'
   | 'otro';
 
 export type ElementoEstado = 'activo' | 'inactivo' | 'mantenimiento' | 'planificado';
@@ -60,6 +70,24 @@ export interface BocaProperties extends PoeInjectorProperties {
   observaciones?: string;
 }
 
+export interface PeriscopioProperties {
+  piso?: string;
+  ubicacion?: string;
+  cantidadBocas?: number; // ej: 2, 4, 6
+  tipoCable?: string; // Cat 6 UTP
+  switchId?: string;
+  observaciones?: string;
+}
+
+export interface RackProperties {
+  marca?: string;
+  modelo?: string;
+  unidades?: number; // ej: 6, 9, 12, 24, 42
+  tipoMontaje?: 'Mural' | 'Piso' | 'Gabinete';
+  ubicacion?: string;
+  observaciones?: string;
+}
+
 export interface APProperties extends PoeInjectorProperties {
   marca?: string;
   modelo?: string;
@@ -95,26 +123,42 @@ export interface CamaraProperties {
   observaciones?: string;
 }
 
+export interface AlarmaProperties {
+  marca?: string;
+  modelo?: string;
+  zona?: string; // ej: "Zona 01 - Acceso Principal"
+  ubicacion?: string;
+  tipoConexion?: 'Cableada' | 'Inalámbrica';
+  centralId?: string; // ID de la central de alarma asociada
+  tamper?: boolean;
+  bateria?: string;
+  observaciones?: string;
+}
+
 export type PropiedadesEquipo =
   | SwitchProperties
   | BocaProperties
+  | PeriscopioProperties
+  | RackProperties
   | APProperties
   | DVRProperties
   | CamaraProperties
   | ModemProperties
+  | AlarmaProperties
   | Record<string, unknown>;
 
 export interface ElementoPlano {
   id: string;
   plan_id: string;
   tipo: ElementoTipo;
-  codigo: string; // ej: "SW-01", "P2-09", "CAM-01", "DVR-01", "AP-01"
+  codigo: string; // ej: "SW-01", "P2-09", "CAM-01", "DVR-01", "AP-01", "ALM-01"
   nombre: string;
   pos_x: number; // porcentaje 0 - 100
   pos_y: number; // porcentaje 0 - 100
-  parent_element_id?: string | null; // e.g. switch_id or dvr_id
-  puerto_canal?: string | null; // e.g. "09" or "CH01"
+  parent_element_id?: string | null; // e.g. switch_id, dvr_id or central_id
+  puerto_canal?: string | null; // e.g. "09" or "CH01" o "Z1"
   estado: ElementoEstado;
+  description?: string | null; // Campo Descripción (opcional)
   propiedades: PropiedadesEquipo;
   created_at?: string;
   updated_at?: string;

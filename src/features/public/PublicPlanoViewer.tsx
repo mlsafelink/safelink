@@ -7,6 +7,8 @@ import {
   ZoomIn, ZoomOut, RotateCcw, Shield,
   ArrowRight, Building, Zap, Globe,
 } from 'lucide-react';
+import { PlanoBackgroundView } from '@/features/infraestructura/components/PlanoBackgroundView';
+import { getDispositivoMeta } from '@/features/infraestructura/constants/dispositivos';
 import styles from './PublicPlanoViewer.module.css';
 
 export function PublicPlanoViewer() {
@@ -167,27 +169,24 @@ export function PublicPlanoViewer() {
             }}
           >
             <div className={styles.planImageContainer}>
-              <img
-                src={plan.archivo_url}
-                alt={plan.nombre}
+              <PlanoBackgroundView
+                archivoUrl={plan.archivo_url}
+                archivoTipo={plan.archivo_tipo}
+                nombre={plan.nombre}
                 className={styles.planImage}
-                draggable={false}
-                onError={e => {
-                  (e.target as HTMLImageElement).src =
-                    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80';
-                }}
               />
 
               {elements.map(elem => {
                 const isSelected = selectedElementId === elem.id;
                 const isParentOfSelected = selectedElement?.parent_element_id === elem.id;
+                const meta = getDispositivoMeta(elem.tipo);
 
                 return (
                   <div
                     key={elem.id}
                     className={`${styles.markerPin} ${isSelected ? styles.markerSelected : ''} ${
                       isParentOfSelected ? styles.markerParentHighlight : ''
-                    } ${styles[`marker_${elem.tipo}`]}`}
+                    } ${styles[`marker_${elem.tipo}`] || ''}`}
                     style={{
                       left: `${elem.pos_x}%`,
                       top: `${elem.pos_y}%`,
@@ -196,14 +195,10 @@ export function PublicPlanoViewer() {
                       e.stopPropagation();
                       setSelectedElementId(elem.id);
                     }}
-                    title={`${elem.codigo} — ${elem.nombre}`}
+                    title={`${elem.codigo} — ${elem.nombre}${elem.description ? ` (${elem.description})` : ''}`}
                   >
                     <div className={styles.markerBadge}>
-                      {elem.tipo === 'modem' ? '🌐' :
-                       elem.tipo === 'switch' ? '🖧' :
-                       elem.tipo === 'boca' ? '🔌' :
-                       elem.tipo === 'ap' ? '📡' :
-                       elem.tipo === 'dvr' ? '🖥️' : '📹'}
+                      {meta.badgeContent}
                     </div>
                     <span className={styles.markerLabel}>{elem.codigo}</span>
                   </div>
@@ -388,6 +383,29 @@ export function PublicPlanoViewer() {
 
               {/* Propiedades */}
               <div className={styles.inspectorPropsList}>
+                {selectedElement.description && (
+                  <div className={styles.propRow} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
+                    <span className={styles.propLabel}>Descripción:</span>
+                    <span
+                      className={styles.propValue}
+                      style={{
+                        whiteSpace: 'pre-wrap',
+                        color: 'var(--text-primary)',
+                        lineHeight: '1.4',
+                        fontSize: '0.75rem',
+                      }}
+                    >
+                      {selectedElement.description}
+                    </span>
+                  </div>
+                )}
+
+                <div className={styles.propRow}>
+                  <span className={styles.propLabel}>Posición:</span>
+                  <span className={styles.propValue} style={{ fontFamily: 'monospace' }}>
+                    X: {selectedElement.pos_x}% | Y: {selectedElement.pos_y}%
+                  </span>
+                </div>
                 {(selectedElement.propiedades as any)?.proveedor && (
                   <div className={styles.propRow}>
                     <span className={styles.propLabel}>Proveedor:</span>
