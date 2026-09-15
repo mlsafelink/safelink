@@ -5,7 +5,7 @@ import { infraestructuraService } from '@/services/infraestructuraService';
 import logoImg from '@/assets/logo.png';
 import {
   ZoomIn, ZoomOut, RotateCcw, Shield,
-  ArrowRight, Building, Zap, Globe,
+  ArrowRight, Building, Zap, Globe, Tag,
 } from 'lucide-react';
 import { PlanoBackgroundView } from '@/features/infraestructura/components/PlanoBackgroundView';
 import { getDispositivoMeta } from '@/features/infraestructura/constants/dispositivos';
@@ -21,6 +21,7 @@ export function PublicPlanoViewer() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [startPan, setStartPan] = useState({ x: 0, y: 0 });
+  const [showLabels, setShowLabels] = useState(true);
 
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -200,7 +201,9 @@ export function PublicPlanoViewer() {
                     <div className={styles.markerBadge}>
                       {meta.badgeContent}
                     </div>
-                    <span className={styles.markerLabel}>{elem.codigo}</span>
+                    {showLabels && (
+                      <span className={styles.markerLabel}>{elem.codigo}</span>
+                    )}
                   </div>
                 );
               })}
@@ -217,6 +220,14 @@ export function PublicPlanoViewer() {
             </button>
             <button className={styles.zoomBtn} onClick={handleResetZoom} title="Restablecer">
               <RotateCcw size={16} />
+            </button>
+            <span className={styles.zoomDivider} />
+            <button
+              className={`${styles.zoomBtn} ${showLabels ? styles.zoomBtnActive : ''}`}
+              onClick={() => setShowLabels(prev => !prev)}
+              title={showLabels ? 'Ocultar etiquetas' : 'Mostrar etiquetas'}
+            >
+              <Tag size={15} />
             </button>
           </div>
         </main>
