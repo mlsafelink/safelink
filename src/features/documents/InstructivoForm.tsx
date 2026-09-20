@@ -10,14 +10,15 @@ import { Button } from '@/components/ui/Button/Button';
 import { Input } from '@/components/ui/Input/Input';
 import { Select } from '@/components/ui/Select/Select';
 import { Card } from '@/components/ui/Card/Card';
-import { ArrowLeft, Save, Download, QrCode, User, Building2, Globe, List, Camera, Trash2, Plus } from 'lucide-react';
+import { ArrowLeft, Save, Download, QrCode, User, Building2, Globe, List, Camera, Trash2, Plus, Link as LinkIcon } from 'lucide-react';
 import { ImageUploader } from '@/components/ui/ImageUploader/ImageUploader';
-import { APP_CAMARAS_OPTIONS, TIPO_DISPOSITIVO_OPTIONS, type CamaraItem, getInstructivoCamaras } from './constants/instructivoApps';
+import { APP_CAMARAS_OPTIONS, TIPO_DISPOSITIVO_OPTIONS, type CamaraItem, getInstructivoCamaras, generatePublicCode, normalizeNombreEnlace } from './constants/instructivoApps';
 import styles from './DocForm.module.css';
 
 const instructivoSchema = z.object({
   consorcio_id: z.string().min(1, 'Seleccione un consorcio'),
   titulo: z.string().min(1, 'El título es requerido'),
+  nombre_enlace: z.string().optional(),
   app_camaras: z.string().optional().nullable(),
   tipo_dispositivo: z.string().optional().nullable(),
   nombre_app: z.string().optional(),
@@ -51,6 +52,7 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
   const isEditing = !!editingId;
   const [isDataLoaded, setIsDataLoaded] = useState(!isEditing);
   const [qrImageUrl, setQrImageUrl] = useState('');
+  const [codigoPublico, setCodigoPublico] = useState(() => generatePublicCode(4));
   const [camaras, setCamaras] = useState<CamaraItem[]>([
     {
       id: 'cam-1',
@@ -103,6 +105,7 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
     defaultValues: {
       consorcio_id: '',
       titulo: '',
+      nombre_enlace: '',
       app_camaras: '',
       tipo_dispositivo: 'XVR',
       nombre_app: 'Easy Viewer',
@@ -128,6 +131,12 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
   const selectedApp = watch('app_camaras');
   const isEasyViewer = selectedApp === 'easy_viewer_pro';
 
+  const watchedNombreEnlace = watch('nombre_enlace');
+  const normalizedSlugName = normalizeNombreEnlace(watchedNombreEnlace || '');
+  const previewSlug = normalizedSlugName
+    ? `${normalizedSlugName}-${codigoPublico}`
+    : `nombre-enlace-${codigoPublico}`;
+
   useEffect(() => {
     if (selectedApp === 'easy_viewer_pro') {
       const currentNombre = getValues('nombre_app');
@@ -150,6 +159,7 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
         reset({
           consorcio_id: instr.consorcio_id,
           titulo: instr.titulo,
+          nombre_enlace: instr.nombre_enlace ?? '',
           app_camaras: instr.app_camaras ?? '',
           tipo_dispositivo: instr.tipo_dispositivo ?? 'XVR',
           nombre_app: instr.nombre_app ?? 'Easy Viewer',
@@ -170,6 +180,11 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
           horario_soporte: instr.horario_soporte ?? 'Lunes a Viernes de 9:00 a 18:00 hs.',
           numero_serie: instr.numero_serie ?? '',
         });
+        if (instr.codigo_publico) {
+          setCodigoPublico(instr.codigo_publico);
+        } else {
+          setCodigoPublico(generatePublicCode(4));
+        }
         const loadedCamaras = getInstructivoCamaras(instr);
         setCamaras(loadedCamaras);
         setQrImageUrl(loadedCamaras[0]?.qr_image_url ?? '');
@@ -179,11 +194,27 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
   }, [isEditing, instructivos, editingId, reset]);
 
   const mutation = useMutation({
-    mutationFn: (data: InstructivoFormData) => {
+    mutationFn: async (data: InstructivoFormData) => {
       const isEasy = data.app_camaras === 'easy_viewer_pro';
       const primaryCam = camaras[0];
+
+      let finalSlug: string | null = null;
+      let finalCode = codigoPublico;
+      if (data.nombre_enlace && data.nombre_enlace.trim()) {
+        const uniqueRes = await instructivoService.ensureUniqueSlug(
+          data.nombre_enlace,
+          codigoPublico,
+          editingId || undefined
+        );
+        finalSlug = uniqueRes.public_slug;
+        finalCode = uniqueRes.codigo_publico;
+      }
+
       const payload = {
         ...data,
+        nombre_enlace: data.nombre_enlace ? normalizeNombreEnlace(data.nombre_enlace) : null,
+        codigo_publico: finalCode,
+        public_slug: finalSlug,
         fecha_instalacion: data.fecha_instalacion || null,
         app_camaras: data.app_camaras || null,
         tipo_dispositivo: data.tipo_dispositivo || 'XVR',
@@ -252,6 +283,46 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
                 {...register('app_camaras')}
                 className={styles.fullWidth}
               />
+
+              {/* ── Nombre del enlace y Previsualización ── */}
+              <div className={styles.fullWidth} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.35rem' }}>
+                <Input
+                  label="Nombre del enlace"
+                  placeholder="ej: JuanBJusto-EVP-21-9-26, CamaraJuan-EVP, CasaPerez-Camaras..."
+                  error={errors.nombre_enlace?.message}
+                  {...register('nombre_enlace')}
+                  className={styles.fullWidth}
+                />
+                <p className={styles.sectionHint} style={{ margin: 0, fontSize: '0.78rem' }}>
+                  Identificador personalizado que formará parte de la URL pública. El sistema normalizará espacios y caracteres incompatibles.
+                </p>
+                <div style={{
+                  fontSize: '0.82rem',
+                  color: 'var(--text-secondary, #718096)',
+                  marginTop: '0.35rem',
+                  background: 'rgba(49, 130, 206, 0.05)',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(49, 130, 206, 0.15)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.35rem',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600, color: 'var(--text-primary, #2d3748)' }}>
+                      <LinkIcon size={14} style={{ color: '#3182ce' }} />
+                      <span>URL pública:</span>
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: '#4a5568', background: '#e2e8f0', padding: '0.15rem 0.5rem', borderRadius: '4px', fontFamily: 'monospace' }}>
+                      Código aleatorio: <strong>{codigoPublico}</strong>
+                    </span>
+                  </div>
+                  <div style={{ wordBreak: 'break-all', fontFamily: 'monospace', color: '#3182ce', fontSize: '0.85rem' }}>
+                    {typeof window !== 'undefined' ? window.location.origin : 'https://safelinkcloud.online'}/p/instructivo/
+                    <strong style={{ color: '#2b6cb0' }}>{previewSlug}</strong>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

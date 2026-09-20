@@ -1,16 +1,29 @@
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { instructivoService } from '@/services/documentService';
 import { getInstructivoCamaras } from '@/features/documents/constants/instructivoApps';
+import { copyToClipboard } from '@/utils/clipboard';
 import {
   Clock, BarChart2, Smartphone, HelpCircle, Shield,
   Download, Plus, List, UserCheck, CheckCircle,
   Phone, Mail, Building, QrCode, AlertTriangle,
+  Copy, Check,
 } from 'lucide-react';
 import styles from './InstructivoViewer.module.css';
 
 export function PublicInstructivoViewer() {
   const { publicId } = useParams<{ publicId: string }>();
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const handleCopyPassword = async (key: string, text?: string | null) => {
+    if (!text) return;
+    const ok = await copyToClipboard(text);
+    if (ok) {
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey(null), 2000);
+    }
+  };
 
   const { data: instructivo, isLoading, isError } = useQuery({
     queryKey: ['public-instructivo', publicId],
@@ -436,7 +449,41 @@ export function PublicInstructivoViewer() {
                         <div>
                           <div className={styles.credLabel}>contraseña de dispositivo:</div>
                           {cam.password ? (
-                            <span className={styles.credCode}>{cam.password}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
+                              <span className={styles.credCode}>{cam.password}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleCopyPassword(cam.id || `cam-${idx}`, cam.password)}
+                                title="Copiar contraseña"
+                                aria-label="Copiar contraseña"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '0.3rem',
+                                  background: copiedKey === (cam.id || `cam-${idx}`) ? '#e6fffa' : '#f1f5f9',
+                                  border: `1px solid ${copiedKey === (cam.id || `cam-${idx}`) ? '#38b2ac' : '#cbd5e1'}`,
+                                  borderRadius: '5px',
+                                  padding: '0.2rem 0.5rem',
+                                  cursor: 'pointer',
+                                  fontSize: '0.75rem',
+                                  color: copiedKey === (cam.id || `cam-${idx}`) ? '#234e52' : '#475569',
+                                  transition: 'all 0.2s ease',
+                                }}
+                              >
+                                {copiedKey === (cam.id || `cam-${idx}`) ? (
+                                  <>
+                                    <Check size={13} style={{ color: '#16a34a' }} />
+                                    <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#15803d' }}>Copiado</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy size={13} />
+                                    <span style={{ fontSize: '0.7rem' }}>Copiar</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
                           ) : (
                             <span className={styles.credValue}>Contraseña configurada en la instalación</span>
                           )}
@@ -469,8 +516,44 @@ export function PublicInstructivoViewer() {
                       <span className={styles.credNum}>3</span>
                       <div>
                         <div className={styles.credLabel}>Contraseña</div>
-                        {instructivo.password_dispositivo && (
-                          <span className={styles.credCode}>{instructivo.password_dispositivo}</span>
+                        {instructivo.password_dispositivo ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
+                            <span className={styles.credCode}>{instructivo.password_dispositivo}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyPassword('legacy', instructivo.password_dispositivo!)}
+                              title="Copiar contraseña"
+                              aria-label="Copiar contraseña"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.3rem',
+                                background: copiedKey === 'legacy' ? '#e6fffa' : '#f1f5f9',
+                                border: `1px solid ${copiedKey === 'legacy' ? '#38b2ac' : '#cbd5e1'}`,
+                                borderRadius: '5px',
+                                padding: '0.2rem 0.5rem',
+                                cursor: 'pointer',
+                                fontSize: '0.75rem',
+                                color: copiedKey === 'legacy' ? '#234e52' : '#475569',
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              {copiedKey === 'legacy' ? (
+                                <>
+                                  <Check size={13} style={{ color: '#16a34a' }} />
+                                  <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#15803d' }}>Copiado</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy size={13} />
+                                  <span style={{ fontSize: '0.7rem' }}>Copiar</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        ) : (
+                          <span className={styles.credValue}>Contraseña configurada en la instalación</span>
                         )}
                       </div>
                     </div>

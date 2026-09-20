@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { CamaraItem } from '@/features/documents/constants/instructivoApps';
+import { normalizeNombreEnlace, generatePublicCode } from '@/features/documents/constants/instructivoApps';
 
 // ---- Tipos base ----
 export type DocumentStatus = 'draft' | 'published';
@@ -135,6 +136,10 @@ export type Instructivo = {
   email_soporte: string | null;
   horario_soporte: string | null;
   numero_serie: string | null;
+
+  nombre_enlace?: string | null;
+  codigo_publico?: string | null;
+  public_slug?: string | null;
 
   version: number;
   created_at: string;
@@ -411,15 +416,60 @@ export const instructivoService = {
     return data as Instructivo[];
   },
 
-  async getByPublicId(publicId: string) {
-    const { data, error } = await supabase
+  async getByPublicId(identifier: string) {
+    // 1. Buscar primero por public_slug (formato nuevo: JuanBJusto-EVP-21-9-26-X7K2)
+    let { data } = await supabase
       .from('instructivos')
       .select(`*, consorcios (nombre, administraciones (nombre))`)
-      .eq('public_id', publicId)
+      .eq('public_slug', identifier)
       .is('deleted_at', null)
-      .single();
-    if (error) throw error;
+      .maybeSingle();
+
+    // 2. Si no se encontró por slug y es formato UUID válido, buscar por public_id o id (formato antiguo)
+    if (!data) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier);
+      if (isUuid) {
+        const res = await supabase
+          .from('instructivos')
+          .select(`*, consorcios (nombre, administraciones (nombre))`)
+          .or(`public_id.eq.${identifier},id.eq.${identifier}`)
+          .is('deleted_at', null)
+          .maybeSingle();
+        data = res.data;
+      }
+    }
+
+    if (!data) {
+      throw new Error('Instructivo no encontrado');
+    }
     return data as Instructivo & { consorcios: { nombre: string; administraciones: { nombre: string } } };
+  },
+
+  async ensureUniqueSlug(nombreEnlace: string, currentCode: string, excludeId?: string): Promise<{ public_slug: string; codigo_publico: string }> {
+    let code = currentCode || generatePublicCode(4);
+    const normalized = normalizeNombreEnlace(nombreEnlace);
+    if (!normalized) return { public_slug: '', codigo_publico: code };
+
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const slug = `${normalized}-${code}`;
+      let query = supabase
+        .from('instructivos')
+        .select('id')
+        .eq('public_slug', slug)
+        .is('deleted_at', null);
+
+      if (excludeId) {
+        query = query.neq('id', excludeId);
+      }
+
+      const { data } = await query.maybeSingle();
+      if (!data) {
+        return { public_slug: slug, codigo_publico: code };
+      }
+      code = generatePublicCode(4);
+    }
+
+    return { public_slug: `${normalized}-${code}-${Date.now().toString().slice(-4)}`, codigo_publico: code };
   },
 
   async create(instructivo: Partial<Instructivo>) {

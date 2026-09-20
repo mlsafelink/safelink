@@ -15,6 +15,7 @@ import { ReporteForm } from './ReporteForm';
 import { PresupuestoForm } from './PresupuestoForm';
 import { InstructivoForm } from './InstructivoForm';
 import { ReporteTrabajoForm } from './ReporteTrabajoForm';
+import { copyToClipboard } from '@/utils/clipboard';
 import type { ReactElement } from 'react';
 import type { DocumentProps } from '@react-pdf/renderer';
 
@@ -102,14 +103,22 @@ export function DocumentPage() {
   const handleEdit = (id: string) => { setEditingId(id); setViewMode('form'); };
   const handleBack = () => { setEditingId(null); setViewMode('list'); };
 
-  const handleCopyLink = (publicId: string, docId: string) => {
+  const getDocPublicIdentifier = (doc: any) => {
+    if (activeTab === 'instructivos' && doc.public_slug) {
+      return doc.public_slug;
+    }
+    return doc.public_id;
+  };
+
+  const handleCopyLink = async (doc: any) => {
     const slug = activeTab === 'instructivos' ? 'instructivo'
       : activeTab === 'presupuestos' ? 'presupuesto'
       : activeTab === 'reportes_trabajo' ? 'reporte-trabajo'
       : 'reporte';
-    const url = `${window.location.origin}/p/${slug}/${publicId}`;
-    navigator.clipboard.writeText(url);
-    setCopiedId(docId);
+    const identifier = getDocPublicIdentifier(doc);
+    const url = `${window.location.origin}/p/${slug}/${identifier}`;
+    await copyToClipboard(url);
+    setCopiedId(doc.id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -186,10 +195,26 @@ export function DocumentPage() {
             >
               <Card variant="glass" className={styles.docCard}>
                 <div className={styles.docInfo}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <h3 className={styles.docTitle}>{doc.titulo}</h3>
                     {(doc as any).codigo && (
                       <span className={styles.version}>{(doc as any).codigo}</span>
+                    )}
+                    {activeTab === 'instructivos' && (doc as any).public_slug && (
+                      <span
+                        className={styles.version}
+                        style={{
+                          background: 'rgba(49, 130, 206, 0.08)',
+                          color: '#2b6cb0',
+                          fontFamily: 'monospace',
+                          fontSize: '0.75rem',
+                          padding: '0.15rem 0.45rem',
+                          borderRadius: '4px',
+                        }}
+                        title="Enlace público personalizado"
+                      >
+                        /{(doc as any).public_slug}
+                      </span>
                     )}
                   </div>
                   <div className={styles.docMeta}>
@@ -280,7 +305,7 @@ export function DocumentPage() {
                       {/* Copiar link */}
                       <button
                         className={`${styles.actionBtn} ${styles.btnCopy} ${copiedId === doc.id ? styles.btnCopied : ''}`}
-                        onClick={() => handleCopyLink(doc.public_id, doc.id)}
+                        onClick={() => handleCopyLink(doc)}
                         title="Copiar enlace público"
                       >
                         {copiedId === doc.id ? <Check size={15} /> : <Copy size={15} />}
@@ -288,7 +313,7 @@ export function DocumentPage() {
 
                       {/* Ver link público */}
                       <a
-                        href={`/p/${getPublicSlug()}/${doc.public_id}`}
+                        href={`/p/${getPublicSlug()}/${getDocPublicIdentifier(doc)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`${styles.actionBtn} ${styles.btnLink}`}

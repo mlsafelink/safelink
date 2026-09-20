@@ -130,6 +130,11 @@ CREATE TABLE instructivos (
     horario_soporte TEXT DEFAULT 'Lunes a Viernes de 9:00 a 18:00 hs.',
     numero_serie TEXT,
 
+    -- Enlace público amigable
+    nombre_enlace TEXT,
+    codigo_publico VARCHAR(10),
+    public_slug TEXT UNIQUE,
+
     version INTEGER DEFAULT 1,
     previous_version_id UUID REFERENCES instructivos(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),

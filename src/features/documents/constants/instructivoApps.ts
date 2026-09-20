@@ -58,9 +58,44 @@ export function getInstructivoCamaras(instructivo: {
       nombre: instructivo.nombre_dispositivo || 'Cámara 1',
       qr_image_url: instructivo.qr_image_url || null,
       usuario: instructivo.usuario_dispositivo || 'admin',
-      password: instructivo.password_dispositivo || '',
     },
   ];
 }
+
+/**
+ * Genera un código aleatorio alfanumérico de 4 caracteres (letras mayúsculas y números).
+ */
+export function generatePublicCode(length = 4): string {
+  const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+/**
+ * Normaliza el nombre del enlace para garantizar que sea seguro y limpio en una URL.
+ * Elimina acentos, reemplaza espacios y caracteres conflictivos por guiones, y remueve caracteres prohibidos.
+ */
+export function normalizeNombreEnlace(raw: string): string {
+  if (!raw) return '';
+  return raw
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Quita tildes/acentos
+    .replace(/[^a-zA-Z0-9_-]+/g, '-') // Reemplaza espacios, barras, puntos, signos por guiones
+    .replace(/-+/g, '-')             // Evita guiones múltiples consecutivos
+    .replace(/^-+|-+$/g, '');        // Quita guiones al inicio o final
+}
+
+/**
+ * Construye el slug público combinando el nombre normalizado y el código aleatorio.
+ */
+export function buildPublicSlug(nombreEnlace: string, codigo: string): string {
+  const norm = normalizeNombreEnlace(nombreEnlace);
+  if (!norm) return '';
+  return `${norm}-${codigo}`;
+}
+
 
 
