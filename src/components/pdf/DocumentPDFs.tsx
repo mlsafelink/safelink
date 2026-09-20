@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { type Reporte, type Presupuesto, type Instructivo, type ReporteTrabajo } from '@/services/documentService';
+import { getInstructivoCamaras } from '@/features/documents/constants/instructivoApps';
 
 const styles = StyleSheet.create({
   page: {
@@ -213,7 +214,91 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     color: '#a0aec0',
     fontSize: 8,
-  }
+  },
+  stepCard: {
+    marginBottom: 8,
+    padding: 6,
+    backgroundColor: '#f8fafc',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  stepHeader: {
+    fontSize: 9.5,
+    fontWeight: 'bold',
+    color: '#1e3a8a',
+    marginBottom: 3,
+  },
+  stepBody: {
+    fontSize: 8,
+    color: '#334155',
+    marginBottom: 2,
+  },
+  badgeDevice: {
+    backgroundColor: '#1a2744',
+    color: '#ffffff',
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 3,
+    fontSize: 8.5,
+    fontWeight: 'bold',
+    alignSelf: 'flex-start',
+    marginTop: 2,
+    marginBottom: 2,
+  },
+  credBadge: {
+    backgroundColor: '#e2e8f0',
+    color: '#1e293b',
+    paddingVertical: 1,
+    paddingHorizontal: 4,
+    borderRadius: 2,
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
+  boxImportante: {
+    backgroundColor: '#fef3c7',
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+    borderRadius: 4,
+    padding: 4,
+    marginTop: 4,
+  },
+  boxImportanteTitle: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#b45309',
+    marginBottom: 1,
+  },
+  boxImportanteText: {
+    fontSize: 7.5,
+    color: '#92400e',
+  },
+  boxListo: {
+    backgroundColor: '#dcfce7',
+    borderWidth: 1,
+    borderColor: '#10b981',
+    borderRadius: 4,
+    padding: 4,
+    marginTop: 4,
+  },
+  boxListoTitle: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#047857',
+    marginBottom: 1,
+  },
+  boxListoText: {
+    fontSize: 7.5,
+    color: '#065f46',
+  },
+  qrPdfImage: {
+    width: 65,
+    height: 65,
+    objectFit: 'contain',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+  },
 });
 
 const fmt = (n: number) => n.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
@@ -391,6 +476,16 @@ export function InstructivoPDF({ instructivo }: { instructivo: Instructivo }) {
   const consorcioNombre = instructivo.consorcios?.nombre || 'N/A';
   const adminNombre = instructivo.consorcios?.administraciones?.nombre || 'N/A';
 
+  const isEasyViewerPro = instructivo.app_camaras === 'easy_viewer_pro' || (!instructivo.app_camaras && (!instructivo.nombre_app || instructivo.nombre_app.toLowerCase().includes('easy viewer')));
+  const camarasList = getInstructivoCamaras(instructivo);
+  const nombreApp = isEasyViewerPro ? (instructivo.nombre_app || 'Easy Viewer Pro') : (instructivo.nombre_app || 'Easy Viewer');
+  const tipoDispositivo = instructivo.tipo_dispositivo || (isEasyViewerPro ? 'XVR' : 'DVR / XVR');
+
+  const clienteNombre = instructivo.cliente_nombre || consorcioNombre;
+  const clienteDireccion = instructivo.cliente_direccion || 'N/A';
+  const fechaInstalacion = instructivo.fecha_instalacion || 'N/A';
+  const tecnicoNombre = instructivo.tecnico_nombre || 'Técnico SafeLink';
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -418,24 +513,197 @@ export function InstructivoPDF({ instructivo }: { instructivo: Instructivo }) {
 
         <Text style={styles.title}>{instructivo.titulo}</Text>
 
-        <View style={{ marginTop: 10 }}>
-          {(instructivo.contenido || []).map((bloque, i) => {
-            if (bloque.tipo === 'titulo') {
-              return <Text key={i} style={styles.blockTitle}>{bloque.contenido}</Text>;
-            }
-            if (bloque.tipo === 'imagen') {
-              return (
-                <View key={i} style={{ marginVertical: 10 }}>
-                  <Text style={styles.blockImageNote}>[Imagen adjunta: {bloque.contenido}]</Text>
+        {instructivo.contenido && instructivo.contenido.length > 0 ? (
+          <View style={{ marginTop: 10 }}>
+            {instructivo.contenido.map((bloque, i) => {
+              if (bloque.tipo === 'titulo') {
+                return <Text key={i} style={styles.blockTitle}>{bloque.contenido}</Text>;
+              }
+              if (bloque.tipo === 'imagen') {
+                return (
+                  <View key={i} style={{ marginVertical: 10 }}>
+                    <Text style={styles.blockImageNote}>[Imagen adjunta: {bloque.contenido}]</Text>
+                  </View>
+                );
+              }
+              return <Text key={i} style={styles.blockText}>{bloque.contenido}</Text>;
+            })}
+          </View>
+        ) : (
+          <View style={{ marginTop: 4 }}>
+            {/* PASO 1 */}
+            <View style={styles.stepCard}>
+              <Text style={styles.stepHeader}>Paso 1 — Descargue la aplicación {nombreApp}</Text>
+              <Text style={styles.stepBody}>
+                {instructivo.texto_descarga || 'Descargue la aplicación desde la tienda correspondiente a su dispositivo.'}
+              </Text>
+              <Text style={styles.stepBody}>
+                {instructivo.texto_post_instalacion || 'Una vez instalada, abra la aplicación.'}
+              </Text>
+              {isEasyViewerPro ? (
+                <Text style={[styles.stepBody, { fontStyle: 'italic', color: '#718096', marginTop: 3 }]}>
+                  Si ya tiene la aplicación instalada, puede omitir este paso.
+                </Text>
+              ) : null}
+            </View>
+
+            {/* PASO 2 */}
+            <View style={styles.stepCard}>
+              <Text style={styles.stepHeader}>
+                Paso 2 — {isEasyViewerPro ? 'Agregue la cámara a la aplicación' : 'Agregue el equipo a la aplicación'}
+              </Text>
+              {isEasyViewerPro ? (
+                <View>
+                  <Text style={styles.stepBody}>1. Presione el botón "+" ubicado en la esquina superior derecha.</Text>
+                  <Text style={styles.stepBody}>2. Seleccione la opción "N° de serie/Escanear".</Text>
+                  <Text style={styles.stepBody}>3. Escanee el código QR proporcionado por el instalador.</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 8 }}>
+                    {camarasList.map((cam, idx) => (
+                      <View key={idx} style={{ alignItems: 'center', width: 85 }}>
+                        <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1a365d', marginBottom: 3, textAlign: 'center' }}>
+                          {cam.nombre || `Cámara ${idx + 1}`}
+                        </Text>
+                        {cam.qr_image_url ? (
+                          <Image src={cam.qr_image_url} style={{ width: 70, height: 70, objectFit: 'contain' }} />
+                        ) : (
+                          <View style={{ width: 70, height: 70, backgroundColor: '#edf2f7', alignItems: 'center', justifyContent: 'center' }}>
+                            <Text style={{ fontSize: 7, color: '#a0aec0' }}>QR</Text>
+                          </View>
+                        )}
+                      </View>
+                    ))}
+                  </View>
                 </View>
-              );
-            }
-            return <Text key={i} style={styles.blockText}>{bloque.contenido}</Text>;
-          })}
-        </View>
+              ) : (
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <View style={{ flex: 1, paddingRight: 8 }}>
+                    <Text style={styles.stepBody}>1. Presione el botón "+" ubicado en la esquina superior derecha.</Text>
+                    <Text style={styles.stepBody}>
+                      2. Seleccione la opción "Explorar".
+                    </Text>
+                    <Text style={styles.stepBody}>3. Escanee el código QR proporcionado por el instalador.</Text>
+                    {instructivo.numero_serie ? (
+                      <Text style={[styles.stepBody, { marginTop: 2 }]}>
+                        N° de Serie: <Text style={styles.credBadge}>{instructivo.numero_serie}</Text>
+                      </Text>
+                    ) : null}
+                  </View>
+                  {instructivo.qr_image_url ? (
+                    <Image src={instructivo.qr_image_url} style={styles.qrPdfImage} />
+                  ) : null}
+                </View>
+              )}
+            </View>
+
+            {/* PASO 3 */}
+            <View style={styles.stepCard}>
+              <Text style={styles.stepHeader}>
+                Paso 3 — {isEasyViewerPro ? 'Seleccione el dispositivo instalado' : 'Seleccione el dispositivo encontrado'}
+              </Text>
+              <Text style={styles.stepBody}>
+                {isEasyViewerPro
+                  ? 'Luego de escanear el código QR, seleccione el dispositivo que aparece identificado como:'
+                  : 'Luego de escanear el código QR, seleccione el equipo que aparece identificado como:'}
+              </Text>
+              <Text style={styles.badgeDevice}>{tipoDispositivo}</Text>
+              <Text style={styles.stepBody}>Tóquelo para seleccionarlo.</Text>
+            </View>
+
+            {/* PASO 4 */}
+            <View style={styles.stepCard}>
+              <Text style={styles.stepHeader}>Paso 4 — Complete los siguientes campos</Text>
+              {isEasyViewerPro ? (
+                <View style={{ marginBottom: 4 }}>
+                  {camarasList.map((cam, idx) => (
+                    <View key={idx} style={{ marginBottom: 6, paddingBottom: 4, borderBottomWidth: idx < camarasList.length - 1 ? 0.5 : 0, borderBottomColor: '#e2e8f0' }}>
+                      <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1a365d', marginBottom: 2 }}>
+                        {cam.nombre || `Cámara ${idx + 1}`}
+                      </Text>
+                      <Text style={styles.stepBody}>
+                        2. Ingrese nombre de dispositivo: Puede ser cualquiera que el usuario considere (pasillo, entrada, patio, etc).
+                        {cam.nombre ? ` (${cam.nombre})` : ''}
+                      </Text>
+                      <Text style={styles.stepBody}>
+                        3. usuario: <Text style={styles.credBadge}>{cam.usuario || 'admin'}</Text>
+                      </Text>
+                      <Text style={styles.stepBody}>
+                        4. contraseña de dispositivo: <Text style={styles.credBadge}>{cam.password || ''}</Text>
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <>
+                  <Text style={styles.stepBody}>
+                    1. Nombre del dispositivo: <Text style={styles.credBadge}>{instructivo.nombre_dispositivo || 'DVR / XVR'}</Text>
+                  </Text>
+                  <Text style={styles.stepBody}>
+                    2. Usuario: <Text style={styles.credBadge}>{instructivo.usuario_dispositivo || 'admin'}</Text>
+                  </Text>
+                  <Text style={styles.stepBody}>
+                    3. Contraseña: <Text style={styles.credBadge}>{instructivo.password_dispositivo || ''}</Text>
+                  </Text>
+                </>
+              )}
+
+              <View style={styles.boxImportante}>
+                <Text style={styles.boxImportanteTitle}>Importante</Text>
+                <Text style={styles.boxImportanteText}>
+                  Verifique que los datos estén escritos tal como se muestran. Respete mayúsculas, minúsculas y puntos.
+                </Text>
+              </View>
+            </View>
+
+            {/* PASO 5 */}
+            <View style={styles.stepCard}>
+              <Text style={styles.stepHeader}>
+                Paso 5 — {isEasyViewerPro ? 'Presione finalizar' : 'Presione Finalizar'}
+              </Text>
+              <Text style={styles.stepBody}>
+                {isEasyViewerPro
+                  ? 'Luego de unos segundos el equipo quedará agregado y ya podrá visualizar la cámara desde la pantalla principal de la aplicación.'
+                  : 'Luego de unos segundos el equipo quedará agregado y ya podrá visualizar las cámaras desde la pantalla principal de la aplicación.'}
+              </Text>
+              <View style={styles.boxListo}>
+                <Text style={styles.boxListoTitle}>¡Listo!</Text>
+                <Text style={styles.boxListoText}>
+                  Ya puede visualizar sus cámaras en cualquier momento desde su teléfono móvil.
+                </Text>
+              </View>
+            </View>
+
+            {/* BLOQUES FINALES */}
+            <View style={[styles.metaBlock, { marginTop: 4 }]}>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Cliente:</Text>
+                <Text style={styles.metaValue}>{clienteNombre}</Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Dirección:</Text>
+                <Text style={styles.metaValue}>{clienteDireccion}</Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Fecha Instalación:</Text>
+                <Text style={styles.metaValue}>{fechaInstalacion}</Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Técnico:</Text>
+                <Text style={styles.metaValue}>{tecnicoNombre}</Text>
+              </View>
+              {instructivo.telefono_soporte || instructivo.email_soporte ? (
+                <View style={[styles.metaRow, { marginTop: 2 }]}>
+                  <Text style={styles.metaLabel}>Soporte Técnico:</Text>
+                  <Text style={styles.metaValue}>
+                    {[instructivo.telefono_soporte, instructivo.email_soporte, instructivo.horario_soporte].filter(Boolean).join(' | ')}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          </View>
+        )}
 
         <View style={styles.footer} fixed>
-          <Text>SafeLink — Guía Técnica para Clientes</Text>
+          <Text>SafeLink — Soluciones inteligentes para tu seguridad — {instructivo.url_sitio_web || 'www.safelink.com.ar'}</Text>
           <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
         </View>
       </Page>

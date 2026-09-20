@@ -15,6 +15,7 @@ export interface SelectGroup {
 export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
+  placeholder?: string;
   /** Puede ser una lista plana o una lista de grupos */
   options: SelectOption[] | SelectGroup[];
 }
@@ -24,7 +25,7 @@ function isGrouped(options: SelectOption[] | SelectGroup[]): options is SelectGr
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, error, options, id, ...props }, ref) => {
+  ({ className, label, error, options, id, placeholder, ...props }, ref) => {
     return (
       <div className={clsx(styles.wrapper, className)}>
         {label && (
@@ -39,7 +40,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             className={clsx(styles.select, error && styles.errorSelect)}
             {...props}
           >
-            <option value="" disabled hidden>Seleccione una opción</option>
+            {placeholder ? (
+              <option value="">{placeholder}</option>
+            ) : (
+              <option value="" disabled hidden>Seleccione una opción</option>
+            )}
             {isGrouped(options)
               ? options.map((group) => (
                   <optgroup key={group.groupLabel} label={group.groupLabel}>

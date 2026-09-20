@@ -108,6 +108,9 @@ CREATE TABLE instructivos (
     contenido JSONB, -- Deprecated (nullable para backward compat)
 
     -- Campos editables del template (amarillo en las anotaciones)
+    app_camaras TEXT, -- Aplicación de cámaras: imou, dmss, easy_viewer_pro
+    tipo_dispositivo TEXT DEFAULT 'XVR', -- XVR, NVR, Cámara inalámbrica
+    camaras JSONB DEFAULT '[]'::JSONB, -- Lista de cámaras [{id, nombre, qr_image_url, usuario, password}]
     nombre_app TEXT DEFAULT 'Easy Viewer',
     texto_descarga TEXT,
     url_google_play TEXT,
@@ -139,6 +142,9 @@ CREATE TABLE instructivos (
 -- =====================================================
 -- ALTER TABLE instructivos
 --   ALTER COLUMN contenido DROP NOT NULL,
+--   ADD COLUMN IF NOT EXISTS app_camaras TEXT,
+--   ADD COLUMN IF NOT EXISTS tipo_dispositivo TEXT DEFAULT 'XVR',
+--   ADD COLUMN IF NOT EXISTS camaras JSONB DEFAULT '[]'::JSONB,
 --   ADD COLUMN IF NOT EXISTS nombre_app TEXT DEFAULT 'Easy Viewer',
 --   ADD COLUMN IF NOT EXISTS texto_descarga TEXT,
 --   ADD COLUMN IF NOT EXISTS url_google_play TEXT,

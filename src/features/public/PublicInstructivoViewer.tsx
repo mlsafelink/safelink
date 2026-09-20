@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { instructivoService } from '@/services/documentService';
+import { getInstructivoCamaras } from '@/features/documents/constants/instructivoApps';
 import {
   Clock, BarChart2, Smartphone, HelpCircle, Shield,
   Download, Plus, List, UserCheck, CheckCircle,
@@ -39,7 +40,12 @@ export function PublicInstructivoViewer() {
     );
   }
 
-  const nombreApp = instructivo.nombre_app ?? 'Easy Viewer';
+  const isEasyViewerPro = instructivo.app_camaras === 'easy_viewer_pro' || (!instructivo.app_camaras && (!instructivo.nombre_app || instructivo.nombre_app.toLowerCase().includes('easy viewer')));
+  const camarasList = getInstructivoCamaras(instructivo);
+
+  const nombreApp = isEasyViewerPro
+    ? (instructivo.nombre_app || 'Easy Viewer Pro')
+    : (instructivo.nombre_app ?? 'Easy Viewer');
   const urlGooglePlay = instructivo.url_google_play ?? '';
   const urlAppStore = instructivo.url_app_store ?? '';
   const urlSitioWeb = instructivo.url_sitio_web ?? 'www.safelink.com.ar';
@@ -124,7 +130,7 @@ export function PublicInstructivoViewer() {
           </div>
           <div className={styles.stepRight}>
             <h2 className={styles.stepHeading}>
-              Descargue la aplicación {nombreApp}
+              Descargue la aplicación {isEasyViewerPro ? (instructivo.nombre_app || 'Easy Viewer Pro') : nombreApp}
             </h2>
 
             {instructivo.texto_descarga && (
@@ -191,21 +197,29 @@ export function PublicInstructivoViewer() {
             {instructivo.texto_post_instalacion && (
               <p className={styles.stepText}>{instructivo.texto_post_instalacion}</p>
             )}
+
+            {isEasyViewerPro && (
+              <p className={styles.stepText} style={{ marginTop: '0.75rem', fontStyle: 'italic', color: '#64748b' }}>
+                Si ya tiene la aplicación instalada, puede omitir este paso.
+              </p>
+            )}
           </div>
         </div>
 
-        {/* ── PASO 2 ── Agregar el equipo */}
+        {/* ── PASO 2 ── Agregar el equipo / la cámara */}
         <div className={styles.step}>
           <div className={styles.stepLeft}>
             <span className={styles.stepNum}>Paso</span>
             <span className={styles.stepNumber}>2</span>
             <div className={styles.stepIcon}><Plus size={18} /></div>
-            <span className={styles.stepLabel}>Agregar<br />el equipo</span>
+            <span className={styles.stepLabel}>{isEasyViewerPro ? <>Agregar<br />la cámara</> : <>Agregar<br />el equipo</>}</span>
           </div>
           <div className={styles.stepRight}>
-            <h2 className={styles.stepHeading}>Agregue el equipo a la aplicación</h2>
-            <div className={styles.qrContainer}>
-              <div className={styles.qrInstructions}>
+            <h2 className={styles.stepHeading}>
+              {isEasyViewerPro ? 'Agregue la cámara a la aplicación' : 'Agregue el equipo a la aplicación'}
+            </h2>
+            {isEasyViewerPro ? (
+              <div>
                 <ul className={styles.numberedList}>
                   <li>
                     <span className={styles.numBullet}>1</span>
@@ -213,43 +227,108 @@ export function PublicInstructivoViewer() {
                   </li>
                   <li>
                     <span className={styles.numBullet}>2</span>
-                    <span>Seleccione la opción <strong>Explorar</strong>.</span>
+                    <span>Seleccione la opción <strong>"N° de serie/Escanear"</strong>.</span>
                   </li>
                   <li>
                     <span className={styles.numBullet}>3</span>
                     <span>Escanee el código QR proporcionado por el instalador.</span>
                   </li>
-                  {instructivo.numero_serie && (
-                    <li>
-                      <span className={styles.numBullet}>4</span>
-                      <span>
-                        o ingrese manualmente el siguiente Número de Serie:
-                        <div style={{ marginTop: '0.5rem' }}>
-                          <span className={styles.credCode} style={{ fontSize: '0.9rem', padding: '0.2rem 0.5rem' }}>
-                            {instructivo.numero_serie}
-                          </span>
-                        </div>
-                      </span>
-                    </li>
-                  )}
                 </ul>
+
+                <div style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '1.25rem',
+                  marginTop: '1.25rem',
+                  paddingTop: '1rem',
+                  borderTop: '1px dashed #e2e8f0'
+                }}>
+                  {camarasList.map((cam, idx) => (
+                    <div
+                      key={cam.id || idx}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        padding: '0.85rem',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        background: '#f8fafc',
+                        minWidth: '140px',
+                        maxWidth: '180px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#1a2744', marginBottom: '0.5rem', wordBreak: 'break-word' }}>
+                        {cam.nombre || `Cámara ${idx + 1}`}
+                      </span>
+                      {cam.qr_image_url ? (
+                        <img
+                          src={cam.qr_image_url}
+                          alt={`Código QR - ${cam.nombre || `Cámara ${idx + 1}`}`}
+                          style={{ width: '120px', height: '120px', objectFit: 'contain', background: 'white', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                        />
+                      ) : (
+                        <div className={styles.qrPlaceholder} style={{ width: '120px', height: '120px' }}>
+                          <QrCode size={28} />
+                          <span style={{ fontSize: '0.65rem' }}>QR no disponible</span>
+                        </div>
+                      )}
+                      <span className={styles.qrCaption} style={{ marginTop: '0.4rem' }}>
+                        Escanee este código
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className={styles.qrImageBox}>
-                {instructivo.qr_image_url ? (
-                  <img
-                    src={instructivo.qr_image_url}
-                    alt="Código QR del equipo"
-                    className={styles.qrImage}
-                  />
-                ) : (
-                  <div className={styles.qrPlaceholder}>
-                    <QrCode size={32} />
-                    <span>QR del equipo</span>
-                  </div>
-                )}
-                <span className={styles.qrCaption}>Escanee este código dentro del recuadro</span>
+            ) : (
+              <div className={styles.qrContainer}>
+                <div className={styles.qrInstructions}>
+                  <ul className={styles.numberedList}>
+                    <li>
+                      <span className={styles.numBullet}>1</span>
+                      <span>Presione el botón <strong>"+"</strong> ubicado en la esquina superior derecha.</span>
+                    </li>
+                    <li>
+                      <span className={styles.numBullet}>2</span>
+                      <span>Seleccione la opción <strong>Explorar</strong>.</span>
+                    </li>
+                    <li>
+                      <span className={styles.numBullet}>3</span>
+                      <span>Escanee el código QR proporcionado por el instalador.</span>
+                    </li>
+                    {instructivo.numero_serie && (
+                      <li>
+                        <span className={styles.numBullet}>4</span>
+                        <span>
+                          o ingrese manualmente el siguiente Número de Serie:
+                          <div style={{ marginTop: '0.5rem' }}>
+                            <span className={styles.credCode} style={{ fontSize: '0.9rem', padding: '0.2rem 0.5rem' }}>
+                              {instructivo.numero_serie}
+                            </span>
+                          </div>
+                        </span>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+                <div className={styles.qrImageBox}>
+                  {instructivo.qr_image_url ? (
+                    <img
+                      src={instructivo.qr_image_url}
+                      alt="Código QR del equipo"
+                      className={styles.qrImage}
+                    />
+                  ) : (
+                    <div className={styles.qrPlaceholder}>
+                      <QrCode size={32} />
+                      <span>QR del equipo</span>
+                    </div>
+                  )}
+                  <span className={styles.qrCaption}>Escanee este código dentro del recuadro</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -262,9 +341,13 @@ export function PublicInstructivoViewer() {
             <span className={styles.stepLabel}>Seleccionar<br />el dispositivo</span>
           </div>
           <div className={styles.stepRight}>
-            <h2 className={styles.stepHeading}>Seleccione el dispositivo encontrado</h2>
+            <h2 className={styles.stepHeading}>
+              {isEasyViewerPro ? 'Seleccione el dispositivo instalado' : 'Seleccione el dispositivo encontrado'}
+            </h2>
             <p className={styles.stepText}>
-              Luego de escanear el código QR, seleccione el equipo que aparece identificado como:
+              {isEasyViewerPro
+                ? 'Luego de escanear el código QR, seleccione el dispositivo que aparece identificado como:'
+                : 'Luego de escanear el código QR, seleccione el equipo que aparece identificado como:'}
             </p>
             <div style={{
               display: 'inline-block',
@@ -277,7 +360,7 @@ export function PublicInstructivoViewer() {
               letterSpacing: '0.05em',
               marginTop: '0.25rem',
             }}>
-              DVR / XVR
+              {instructivo.tipo_dispositivo || (isEasyViewerPro ? 'XVR' : 'DVR / XVR')}
             </div>
             <p className={styles.stepText} style={{ marginTop: '0.5rem' }}>
               Tóquelo para seleccionarlo.
@@ -295,38 +378,106 @@ export function PublicInstructivoViewer() {
           </div>
           <div className={styles.stepRight}>
             <h2 className={styles.stepHeading}>Complete los siguientes campos:</h2>
-            <div className={styles.credentialsLayout}>
-              <div className={styles.credentialsList}>
-                <div className={styles.credentialItem}>
-                  <span className={styles.credNum}>1</span>
-                  <div>
-                    <div className={styles.credLabel}>Nombre del dispositivo</div>
-                    {instructivo.nombre_dispositivo && (
-                      <span className={styles.credCode}>{instructivo.nombre_dispositivo}</span>
-                    )}
-                    <div className={styles.credValue}>Puede colocar cualquier nombre para identificar las cámaras.</div>
-                  </div>
-                </div>
-                <div className={styles.credentialItem}>
-                  <span className={styles.credNum}>2</span>
-                  <div>
-                    <div className={styles.credLabel}>Usuario</div>
-                    {instructivo.usuario_dispositivo && (
-                      <span className={styles.credCode}>{instructivo.usuario_dispositivo}</span>
-                    )}
-                  </div>
-                </div>
-                <div className={styles.credentialItem}>
-                  <span className={styles.credNum}>3</span>
-                  <div>
-                    <div className={styles.credLabel}>Contraseña</div>
-                    {instructivo.password_dispositivo && (
-                      <span className={styles.credCode}>{instructivo.password_dispositivo}</span>
-                    )}
-                  </div>
-                </div>
+            <div className={styles.credentialsLayout} style={isEasyViewerPro ? { display: 'flex', flexDirection: 'column', gap: '1.5rem' } : undefined}>
+              <div className={styles.credentialsList} style={{ width: '100%' }}>
+                {isEasyViewerPro ? (
+                  camarasList.map((cam, idx) => (
+                    <div
+                      key={cam.id || idx}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
+                        paddingBottom: idx < camarasList.length - 1 ? '1.25rem' : '0',
+                        borderBottom: idx < camarasList.length - 1 ? '1px dashed #cbd5e1' : 'none',
+                      }}
+                    >
+                      <div style={{
+                        fontSize: '0.95rem',
+                        fontWeight: 700,
+                        color: '#1a2744',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                      }}>
+                        <span style={{
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          background: '#3182ce',
+                          display: 'inline-block'
+                        }} />
+                        {cam.nombre || `Cámara ${idx + 1}`}
+                      </div>
+
+                      <div className={styles.credentialItem}>
+                        <span className={styles.credNum}>2</span>
+                        <div>
+                          <div className={styles.credLabel}>Ingrese nombre de dispositivo.</div>
+                          {cam.nombre && (
+                            <span className={styles.credCode}>{cam.nombre}</span>
+                          )}
+                          <div className={styles.credValue}>
+                            Puede ser cualquiera que el usuario considere (pasillo, entrada, patio, etc).
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className={styles.credentialItem}>
+                        <span className={styles.credNum}>3</span>
+                        <div>
+                          <div className={styles.credLabel}>usuario:</div>
+                          <span className={styles.credCode}>{cam.usuario || 'admin'}</span>
+                        </div>
+                      </div>
+
+                      <div className={styles.credentialItem}>
+                        <span className={styles.credNum}>4</span>
+                        <div>
+                          <div className={styles.credLabel}>contraseña de dispositivo:</div>
+                          {cam.password ? (
+                            <span className={styles.credCode}>{cam.password}</span>
+                          ) : (
+                            <span className={styles.credValue}>Contraseña configurada en la instalación</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    <div className={styles.credentialItem}>
+                      <span className={styles.credNum}>1</span>
+                      <div>
+                        <div className={styles.credLabel}>Nombre del dispositivo</div>
+                        {instructivo.nombre_dispositivo && (
+                          <span className={styles.credCode}>{instructivo.nombre_dispositivo}</span>
+                        )}
+                        <div className={styles.credValue}>Puede colocar cualquier nombre para identificar las cámaras.</div>
+                      </div>
+                    </div>
+                    <div className={styles.credentialItem}>
+                      <span className={styles.credNum}>2</span>
+                      <div>
+                        <div className={styles.credLabel}>Usuario</div>
+                        {instructivo.usuario_dispositivo && (
+                          <span className={styles.credCode}>{instructivo.usuario_dispositivo}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className={styles.credentialItem}>
+                      <span className={styles.credNum}>3</span>
+                      <div>
+                        <div className={styles.credLabel}>Contraseña</div>
+                        {instructivo.password_dispositivo && (
+                          <span className={styles.credCode}>{instructivo.password_dispositivo}</span>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
-              <div className={styles.importanteBox}>
+              <div className={styles.importanteBox} style={isEasyViewerPro ? { width: '100%', maxWidth: '100%' } : undefined}>
                 <div className={styles.importanteTitle}>
                   <AlertTriangle size={14} />
                   Importante
@@ -349,11 +500,14 @@ export function PublicInstructivoViewer() {
             <span className={styles.stepLabel}>Finalizar</span>
           </div>
           <div className={styles.stepRight}>
-            <h2 className={styles.stepHeading}>Presione Finalizar</h2>
+            <h2 className={styles.stepHeading}>
+              {isEasyViewerPro ? 'Presione finalizar' : 'Presione Finalizar'}
+            </h2>
             <div className={styles.paso5Layout}>
               <p className={styles.stepText}>
-                Luego de unos segundos el equipo quedará agregado y ya podrá
-                visualizar las cámaras desde la pantalla principal de la aplicación.
+                {isEasyViewerPro
+                  ? 'Luego de unos segundos el equipo quedará agregado y ya podrá visualizar la cámara desde la pantalla principal de la aplicación.'
+                  : 'Luego de unos segundos el equipo quedará agregado y ya podrá visualizar las cámaras desde la pantalla principal de la aplicación.'}
               </p>
               <div className={styles.listoBox}>
                 <div className={styles.listoTitle}>

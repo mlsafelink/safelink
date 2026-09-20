@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import type { CamaraItem } from '@/features/documents/constants/instructivoApps';
 
 // ---- Tipos base ----
 export type DocumentStatus = 'draft' | 'published';
@@ -111,6 +112,9 @@ export type Instructivo = {
   consorcio_id: string;
   public_id: string;
   titulo: string;
+  app_camaras?: 'imou' | 'dmss' | 'easy_viewer_pro' | string | null;
+  tipo_dispositivo?: 'XVR' | 'NVR' | 'Cámara inalámbrica' | string | null;
+  camaras?: CamaraItem[] | null;
   contenido?: InstructivoBloque[] | null;
 
   nombre_app: string | null;
