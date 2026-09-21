@@ -1,4 +1,4 @@
-export type AppCamaras = 'imou' | 'dmss' | 'easy_viewer_pro';
+export type AppCamaras = 'imou' | 'dmss' | 'easy_viewer_pro' | 'guard_live';
 
 export interface AppCamarasOption {
   label: string;
@@ -9,12 +9,14 @@ export const APP_CAMARAS_OPTIONS: AppCamarasOption[] = [
   { label: 'Imou', value: 'imou' },
   { label: 'DMSS', value: 'dmss' },
   { label: 'Easy Viewer Pro', value: 'easy_viewer_pro' },
+  { label: 'Guard Live', value: 'guard_live' },
 ];
 
 export const APP_CAMARAS_LABELS: Record<AppCamaras, string> = {
   imou: 'Imou',
   dmss: 'DMSS',
   easy_viewer_pro: 'Easy Viewer Pro',
+  guard_live: 'Guard Live',
 };
 
 export type TipoDispositivo = 'XVR' | 'NVR' | 'Cámara inalámbrica';
