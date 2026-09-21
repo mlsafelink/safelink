@@ -611,47 +611,61 @@ export function InstructivoPDF({ instructivo }: { instructivo: Instructivo }) {
 
             {/* PASO 4 */}
             <View style={styles.stepCard}>
-              <Text style={styles.stepHeader}>Paso 4 — Complete los siguientes campos</Text>
-              {isEasyViewerPro ? (
-                <View style={{ marginBottom: 4 }}>
-                  {camarasList.map((cam, idx) => (
-                    <View key={idx} style={{ marginBottom: 6, paddingBottom: 4, borderBottomWidth: idx < camarasList.length - 1 ? 0.5 : 0, borderBottomColor: '#e2e8f0' }}>
-                      <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1a365d', marginBottom: 2 }}>
-                        {cam.nombre || `Cámara ${idx + 1}`}
-                      </Text>
-                      <Text style={styles.stepBody}>
-                        2. Ingrese nombre de dispositivo: Puede ser cualquiera que el usuario considere (pasillo, entrada, patio, etc).
-                        {cam.nombre ? ` (${cam.nombre})` : ''}
-                      </Text>
-                      <Text style={styles.stepBody}>
-                        3. usuario: <Text style={styles.credBadge}>{cam.usuario || 'admin'}</Text>
-                      </Text>
-                      <Text style={styles.stepBody}>
-                        4. contraseña de dispositivo: <Text style={styles.credBadge}>{cam.password || ''}</Text>
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              ) : (
+              {tipoDispositivo === 'Dispositivo compartido' ? (
                 <>
-                  <Text style={styles.stepBody}>
-                    1. Nombre del dispositivo: <Text style={styles.credBadge}>{instructivo.nombre_dispositivo || 'DVR / XVR'}</Text>
+                  <Text style={styles.stepHeader}>Paso 4 — Acceso preconfigurado</Text>
+                  <Text style={[styles.stepBody, { color: '#22543d', fontFamily: 'Helvetica-Bold', marginVertical: 4 }]}>
+                    No necesita ingresar usuario ni contraseña.
                   </Text>
                   <Text style={styles.stepBody}>
-                    2. Usuario: <Text style={styles.credBadge}>{instructivo.usuario_dispositivo || 'admin'}</Text>
-                  </Text>
-                  <Text style={styles.stepBody}>
-                    3. Contraseña: <Text style={styles.credBadge}>{instructivo.password_dispositivo || ''}</Text>
+                    Este dispositivo es de tipo compartido. El acceso ya fue configurado previamente por el personal técnico. Simplemente continúe al siguiente paso y presione Finalizar.
                   </Text>
                 </>
-              )}
+              ) : (
+                <>
+                  <Text style={styles.stepHeader}>Paso 4 — Complete los siguientes campos</Text>
+                  {isEasyViewerPro ? (
+                    <View style={{ marginBottom: 4 }}>
+                      {camarasList.map((cam, idx) => (
+                        <View key={idx} style={{ marginBottom: 6, paddingBottom: 4, borderBottomWidth: idx < camarasList.length - 1 ? 0.5 : 0, borderBottomColor: '#e2e8f0' }}>
+                          <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1a365d', marginBottom: 2 }}>
+                            {cam.nombre || `Cámara ${idx + 1}`}
+                          </Text>
+                          <Text style={styles.stepBody}>
+                            2. Ingrese nombre de dispositivo: Puede ser cualquiera que el usuario considere (pasillo, entrada, patio, etc).
+                            {cam.nombre ? ` (${cam.nombre})` : ''}
+                          </Text>
+                          <Text style={styles.stepBody}>
+                            3. usuario: <Text style={styles.credBadge}>{cam.usuario || 'admin'}</Text>
+                          </Text>
+                          <Text style={styles.stepBody}>
+                            4. contraseña de dispositivo: <Text style={styles.credBadge}>{cam.password || ''}</Text>
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <>
+                      <Text style={styles.stepBody}>
+                        1. Nombre del dispositivo: <Text style={styles.credBadge}>{instructivo.nombre_dispositivo || 'DVR / XVR'}</Text>
+                      </Text>
+                      <Text style={styles.stepBody}>
+                        2. Usuario: <Text style={styles.credBadge}>{instructivo.usuario_dispositivo || 'admin'}</Text>
+                      </Text>
+                      <Text style={styles.stepBody}>
+                        3. Contraseña: <Text style={styles.credBadge}>{instructivo.password_dispositivo || ''}</Text>
+                      </Text>
+                    </>
+                  )}
 
-              <View style={styles.boxImportante}>
-                <Text style={styles.boxImportanteTitle}>Importante</Text>
-                <Text style={styles.boxImportanteText}>
-                  Verifique que los datos estén escritos tal como se muestran. Respete mayúsculas, minúsculas y puntos.
-                </Text>
-              </View>
+                  <View style={styles.boxImportante}>
+                    <Text style={styles.boxImportanteTitle}>Importante</Text>
+                    <Text style={styles.boxImportanteText}>
+                      Verifique que los datos estén escritos tal como se muestran. Respete mayúsculas, minúsculas y puntos.
+                    </Text>
+                  </View>
+                </>
+              )}
             </View>
 
             {/* PASO 5 */}

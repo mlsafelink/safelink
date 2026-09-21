@@ -19,7 +19,7 @@ export const APP_CAMARAS_LABELS: Record<AppCamaras, string> = {
   guard_live: 'Guard Live',
 };
 
-export type TipoDispositivo = 'XVR' | 'NVR' | 'Cámara inalámbrica';
+export type TipoDispositivo = 'XVR' | 'NVR' | 'Cámara inalámbrica' | 'Dispositivo compartido';
 
 export interface TipoDispositivoOption {
   label: string;
@@ -30,6 +30,7 @@ export const TIPO_DISPOSITIVO_OPTIONS: TipoDispositivoOption[] = [
   { label: 'XVR', value: 'XVR' },
   { label: 'NVR', value: 'NVR' },
   { label: 'Cámara inalámbrica', value: 'Cámara inalámbrica' },
+  { label: 'Dispositivo compartido', value: 'Dispositivo compartido' },
 ];
 
 export interface CamaraItem {

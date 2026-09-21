@@ -51,7 +51,6 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
   const queryClient = useQueryClient();
   const isEditing = !!editingId;
   const [isDataLoaded, setIsDataLoaded] = useState(!isEditing);
-  const [qrImageUrl, setQrImageUrl] = useState('');
   const [codigoPublico, setCodigoPublico] = useState(() => generatePublicCode(4));
   const [camaras, setCamaras] = useState<CamaraItem[]>([
     {
@@ -130,6 +129,8 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
 
   const selectedApp = watch('app_camaras');
   const isEasyViewer = selectedApp === 'easy_viewer_pro';
+  const tipoDispositivo = watch('tipo_dispositivo');
+  const isDispositivoCompartido = tipoDispositivo === 'Dispositivo compartido';
 
   const watchedNombreEnlace = watch('nombre_enlace');
   const normalizedSlugName = normalizeNombreEnlace(watchedNombreEnlace || '');
@@ -187,7 +188,6 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
         }
         const loadedCamaras = getInstructivoCamaras(instr);
         setCamaras(loadedCamaras);
-        setQrImageUrl(loadedCamaras[0]?.qr_image_url ?? '');
         setIsDataLoaded(true);
       }
     }
@@ -195,7 +195,6 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
 
   const mutation = useMutation({
     mutationFn: async (data: InstructivoFormData) => {
-      const isEasy = data.app_camaras === 'easy_viewer_pro';
       const primaryCam = camaras[0];
 
       let finalSlug: string | null = null;
@@ -218,19 +217,12 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
         fecha_instalacion: data.fecha_instalacion || null,
         app_camaras: data.app_camaras || null,
         tipo_dispositivo: data.tipo_dispositivo || 'XVR',
-        camaras: isEasy
-          ? camaras
-          : (data.nombre_dispositivo || qrImageUrl ? [{
-              id: 'cam-1',
-              nombre: data.nombre_dispositivo || 'Cámara 1',
-              qr_image_url: qrImageUrl,
-              usuario: data.usuario_dispositivo || 'admin',
-              password: data.password_dispositivo || '',
-            }] : []),
-        qr_image_url: isEasy ? (primaryCam?.qr_image_url || null) : (qrImageUrl || null),
-        nombre_dispositivo: isEasy ? (primaryCam?.nombre || 'DVR / XVR') : (data.nombre_dispositivo || 'DVR / XVR'),
-        usuario_dispositivo: isEasy ? (primaryCam?.usuario || 'admin') : (data.usuario_dispositivo || 'admin'),
-        password_dispositivo: isEasy ? (primaryCam?.password || '') : (data.password_dispositivo || ''),
+        // All apps now use the camaras array
+        camaras,
+        qr_image_url: primaryCam?.qr_image_url || null,
+        nombre_dispositivo: primaryCam?.nombre || data.nombre_dispositivo || 'DVR / XVR',
+        usuario_dispositivo: primaryCam?.usuario || data.usuario_dispositivo || 'admin',
+        password_dispositivo: primaryCam?.password || data.password_dispositivo || '',
       };
       return isEditing
         ? instructivoService.update(editingId!, payload)
@@ -453,20 +445,38 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
                         />
                       </div>
 
-                      <div className={styles.grid2}>
-                        <Input
-                          label="Usuario *"
-                          placeholder="ej: admin"
-                          value={cam.usuario}
-                          onChange={e => handleUpdateCamera(cam.id, 'usuario', e.target.value)}
-                        />
-                        <Input
-                          label="Contraseña"
-                          placeholder="ej: 123456"
-                          value={cam.password}
-                          onChange={e => handleUpdateCamera(cam.id, 'password', e.target.value)}
-                        />
-                      </div>
+                      {!isDispositivoCompartido ? (
+                        <div className={styles.grid2}>
+                          <Input
+                            label="Usuario *"
+                            placeholder="ej: admin"
+                            value={cam.usuario}
+                            onChange={e => handleUpdateCamera(cam.id, 'usuario', e.target.value)}
+                          />
+                          <Input
+                            label="Contraseña"
+                            placeholder="ej: 123456"
+                            value={cam.password}
+                            onChange={e => handleUpdateCamera(cam.id, 'password', e.target.value)}
+                          />
+                        </div>
+                      ) : (
+                        <div style={{
+                          padding: '0.65rem 0.9rem',
+                          background: '#f0fdf4',
+                          border: '1px solid #86efac',
+                          borderRadius: '6px',
+                          color: '#166534',
+                          fontSize: '0.85rem',
+                          fontWeight: 500,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                        }}>
+                          <span>✓</span>
+                          <span>Dispositivo compartido: No requiere usuario ni contraseña</span>
+                        </div>
+                      )}
                     </div>
                   ))}
 
@@ -486,25 +496,122 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
             </>
           ) : (
             <>
-              {/* ── PASO 2 — Código QR ── */}
+              {/* ── PASO 2 — Equipos (multicámara) ── */}
               <div className={styles.sectionBlock}>
                 <div className={styles.sectionTitle}>
                   <QrCode size={16} />
-                  <span>Paso 2 — Código QR del equipo</span>
+                  <span>Paso 2 — Agregar equipo</span>
                 </div>
                 <p className={styles.sectionHint}>
-                  Subí la imagen del código QR que el cliente deberá escanear para agregar el equipo.
+                  Agregue cada uno de los equipos que formarán parte del instructivo con su respectivo código QR y credenciales de acceso.
                 </p>
-                <ImageUploader
-                  value={qrImageUrl}
-                  onChange={url => setQrImageUrl(url)}
-                />
-                <div style={{ marginTop: '1.25rem' }}>
-                  <Input
-                    label="Número de Serie (Opcional - para ingreso manual)"
-                    placeholder="ej: SN: 1234567890ABC"
-                    {...register('numero_serie')}
-                  />
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1rem' }}>
+                  {camaras.map((cam, index) => (
+                    <div
+                      key={cam.id}
+                      style={{
+                        border: '1px solid var(--glass-border, #e2e8f0)',
+                        borderRadius: 'var(--radius-md, 8px)',
+                        padding: '1.25rem',
+                        backgroundColor: 'rgba(255, 255, 255, 0.4)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1rem',
+                        boxShadow: 'var(--shadow-light, 0 2px 4px rgba(0,0,0,0.05))',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--primary-color, #3182ce)' }}>
+                          EQUIPO {index + 1}
+                        </h4>
+                        {camaras.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleRemoveCamera(cam.id)}
+                            style={{ color: '#e53e3e', borderColor: '#feb2b2' }}
+                          >
+                            <Trash2 size={14} style={{ marginRight: '0.25rem' }} />
+                            Eliminar equipo
+                          </Button>
+                        )}
+                      </div>
+
+                      <div className={styles.grid2}>
+                        <Input
+                          label="Nombre del equipo *"
+                          placeholder="ej: DVR Principal, Cámara entrada..."
+                          value={cam.nombre}
+                          onChange={e => handleUpdateCamera(cam.id, 'nombre', e.target.value)}
+                        />
+                      </div>
+
+                      <div>
+                        <label className={styles.label} style={{ display: 'block', marginBottom: '0.5rem' }}>
+                          Código QR:
+                        </label>
+                        <ImageUploader
+                          value={cam.qr_image_url || undefined}
+                          onChange={url => handleUpdateCamera(cam.id, 'qr_image_url', url)}
+                        />
+                      </div>
+
+                      <div style={{ marginTop: '0.25rem' }}>
+                        <Input
+                          label="Número de Serie (Opcional - para ingreso manual)"
+                          placeholder="ej: SN: 1234567890ABC"
+                          {...register('numero_serie')}
+                        />
+                      </div>
+
+                      {!isDispositivoCompartido ? (
+                        <div className={styles.grid2}>
+                          <Input
+                            label="Usuario *"
+                            placeholder="ej: admin"
+                            value={cam.usuario}
+                            onChange={e => handleUpdateCamera(cam.id, 'usuario', e.target.value)}
+                          />
+                          <Input
+                            label="Contraseña"
+                            placeholder="ej: 123456"
+                            value={cam.password}
+                            onChange={e => handleUpdateCamera(cam.id, 'password', e.target.value)}
+                          />
+                        </div>
+                      ) : (
+                        <div style={{
+                          padding: '0.65rem 0.9rem',
+                          background: '#f0fdf4',
+                          border: '1px solid #86efac',
+                          borderRadius: '6px',
+                          color: '#166534',
+                          fontSize: '0.85rem',
+                          fontWeight: 500,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                        }}>
+                          <span>✓</span>
+                          <span>Dispositivo compartido: No requiere usuario ni contraseña</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  <div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={handleAddCamera}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                      <Plus size={16} />
+                      + Agregar equipo
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -532,25 +639,13 @@ export function InstructivoForm({ onBack, editingId }: InstructivoFormProps) {
               <div className={styles.sectionBlock}>
                 <div className={styles.sectionTitle}>
                   <User size={16} />
-                  <span>Paso 4 — Credenciales del equipo</span>
+                  <span>Paso 4 — {isDispositivoCompartido ? 'Acceso preconfigurado' : 'Credenciales del equipo'}</span>
                 </div>
-                <div className={styles.grid3}>
-                  <Input
-                    label="Nombre del dispositivo"
-                    placeholder="ej: CASA, DVR / XVR"
-                    {...register('nombre_dispositivo')}
-                  />
-                  <Input
-                    label="Usuario"
-                    placeholder="ej: propietarios"
-                    {...register('usuario_dispositivo')}
-                  />
-                  <Input
-                    label="Contraseña"
-                    placeholder="ej: Azul2185.prop"
-                    {...register('password_dispositivo')}
-                  />
-                </div>
+                <p className={styles.sectionHint}>
+                  {isDispositivoCompartido
+                    ? 'Al seleccionar Dispositivo compartido, el instructivo indicará automáticamente al usuario que no requiere ingresar usuario ni contraseña.'
+                    : 'Las credenciales del primer equipo se usan como referencia. Cada equipo tiene sus propias credenciales en las tarjetas de arriba.'}
+                </p>
               </div>
             </>
           )}

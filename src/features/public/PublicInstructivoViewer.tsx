@@ -54,6 +54,7 @@ export function PublicInstructivoViewer() {
   }
 
   const isEasyViewerPro = instructivo.app_camaras === 'easy_viewer_pro' || (!instructivo.app_camaras && (!instructivo.nombre_app || instructivo.nombre_app.toLowerCase().includes('easy viewer')));
+  const isDispositivoCompartido = instructivo.tipo_dispositivo === 'Dispositivo compartido';
   const camarasList = getInstructivoCamaras(instructivo);
 
   const nombreApp = isEasyViewerPro
@@ -295,50 +296,79 @@ export function PublicInstructivoViewer() {
                 </div>
               </div>
             ) : (
-              <div className={styles.qrContainer}>
-                <div className={styles.qrInstructions}>
-                  <ul className={styles.numberedList}>
+              <div>
+                <ul className={styles.numberedList}>
+                  <li>
+                    <span className={styles.numBullet}>1</span>
+                    <span>Presione el botón <strong>"+"</strong> ubicado en la esquina superior derecha.</span>
+                  </li>
+                  <li>
+                    <span className={styles.numBullet}>2</span>
+                    <span>Seleccione la opción <strong>Explorar</strong>.</span>
+                  </li>
+                  <li>
+                    <span className={styles.numBullet}>3</span>
+                    <span>Escanee el código QR del equipo correspondiente.</span>
+                  </li>
+                  {instructivo.numero_serie && (
                     <li>
-                      <span className={styles.numBullet}>1</span>
-                      <span>Presione el botón <strong>"+"</strong> ubicado en la esquina superior derecha.</span>
+                      <span className={styles.numBullet}>4</span>
+                      <span>
+                        o ingrese manualmente el siguiente Número de Serie:
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <span className={styles.credCode} style={{ fontSize: '0.9rem', padding: '0.2rem 0.5rem' }}>
+                            {instructivo.numero_serie}
+                          </span>
+                        </div>
+                      </span>
                     </li>
-                    <li>
-                      <span className={styles.numBullet}>2</span>
-                      <span>Seleccione la opción <strong>Explorar</strong>.</span>
-                    </li>
-                    <li>
-                      <span className={styles.numBullet}>3</span>
-                      <span>Escanee el código QR proporcionado por el instalador.</span>
-                    </li>
-                    {instructivo.numero_serie && (
-                      <li>
-                        <span className={styles.numBullet}>4</span>
-                        <span>
-                          o ingrese manualmente el siguiente Número de Serie:
-                          <div style={{ marginTop: '0.5rem' }}>
-                            <span className={styles.credCode} style={{ fontSize: '0.9rem', padding: '0.2rem 0.5rem' }}>
-                              {instructivo.numero_serie}
-                            </span>
-                          </div>
-                        </span>
-                      </li>
-                    )}
-                  </ul>
-                </div>
-                <div className={styles.qrImageBox}>
-                  {instructivo.qr_image_url ? (
-                    <img
-                      src={instructivo.qr_image_url}
-                      alt="Código QR del equipo"
-                      className={styles.qrImage}
-                    />
-                  ) : (
-                    <div className={styles.qrPlaceholder}>
-                      <QrCode size={32} />
-                      <span>QR del equipo</span>
-                    </div>
                   )}
-                  <span className={styles.qrCaption}>Escanee este código dentro del recuadro</span>
+                </ul>
+
+                <div style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '1.25rem',
+                  marginTop: '1.25rem',
+                  paddingTop: '1rem',
+                  borderTop: '1px dashed #e2e8f0'
+                }}>
+                  {camarasList.map((cam, idx) => (
+                    <div
+                      key={cam.id || idx}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        padding: '0.85rem',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        background: '#f8fafc',
+                        minWidth: '140px',
+                        maxWidth: '180px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#1a2744', marginBottom: '0.5rem', wordBreak: 'break-word' }}>
+                        {cam.nombre || `Equipo ${idx + 1}`}
+                      </span>
+                      {cam.qr_image_url ? (
+                        <img
+                          src={cam.qr_image_url}
+                          alt={`Código QR - ${cam.nombre || `Equipo ${idx + 1}`}`}
+                          style={{ width: '120px', height: '120px', objectFit: 'contain', background: 'white', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                        />
+                      ) : (
+                        <div className={styles.qrPlaceholder} style={{ width: '120px', height: '120px' }}>
+                          <QrCode size={28} />
+                          <span style={{ fontSize: '0.65rem' }}>QR no disponible</span>
+                        </div>
+                      )}
+                      <span className={styles.qrCaption} style={{ marginTop: '0.4rem' }}>
+                        Escanee este código
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -390,9 +420,41 @@ export function PublicInstructivoViewer() {
             <span className={styles.stepLabel}>Completar<br />los datos</span>
           </div>
           <div className={styles.stepRight}>
-            <h2 className={styles.stepHeading}>Complete los siguientes campos:</h2>
-            <div className={styles.credentialsLayout} style={isEasyViewerPro ? { display: 'flex', flexDirection: 'column', gap: '1.5rem' } : undefined}>
-              <div className={styles.credentialsList} style={{ width: '100%' }}>
+            {isDispositivoCompartido ? (
+              <>
+                <h2 className={styles.stepHeading}>El acceso ya está configurado</h2>
+                <div style={{
+                  background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                  border: '1px solid #86efac',
+                  borderRadius: '10px',
+                  padding: '1.25rem 1.5rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
+                  marginTop: '0.5rem',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <span style={{
+                      width: '32px', height: '32px', borderRadius: '50%',
+                      background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    }}>
+                      <UserCheck size={17} color="white" />
+                    </span>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: '#15803d' }}>
+                      No necesita ingresar usuario ni contraseña
+                    </p>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#166534', lineHeight: 1.6 }}>
+                    Este dispositivo es de tipo <strong>compartido</strong>. El acceso ya fue configurado previamente por el técnico instalador.
+                    Simplemente seleccione el dispositivo en el paso anterior y presione <strong>Finalizar</strong>.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 className={styles.stepHeading}>Complete los siguientes campos:</h2>
+                <div className={styles.credentialsLayout} style={isEasyViewerPro ? { display: 'flex', flexDirection: 'column', gap: '1.5rem' } : undefined}>
+                  <div className={styles.credentialsList} style={{ width: '100%' }}>
                 {isEasyViewerPro ? (
                   camarasList.map((cam, idx) => (
                     <div
@@ -492,85 +554,116 @@ export function PublicInstructivoViewer() {
                     </div>
                   ))
                 ) : (
-                  <>
-                    <div className={styles.credentialItem}>
-                      <span className={styles.credNum}>1</span>
-                      <div>
-                        <div className={styles.credLabel}>Nombre del dispositivo</div>
-                        {instructivo.nombre_dispositivo && (
-                          <span className={styles.credCode}>{instructivo.nombre_dispositivo}</span>
-                        )}
-                        <div className={styles.credValue}>Puede colocar cualquier nombre para identificar las cámaras.</div>
+                  camarasList.map((cam, idx) => (
+                    <div
+                      key={cam.id || idx}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
+                        paddingBottom: idx < camarasList.length - 1 ? '1.25rem' : '0',
+                        borderBottom: idx < camarasList.length - 1 ? '1px dashed #cbd5e1' : 'none',
+                      }}
+                    >
+                      <div style={{
+                        fontSize: '0.95rem',
+                        fontWeight: 700,
+                        color: '#1a2744',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                      }}>
+                        <span style={{
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          background: '#3182ce',
+                          display: 'inline-block'
+                        }} />
+                        {cam.nombre || `Equipo ${idx + 1}`}
+                      </div>
+
+                      <div className={styles.credentialItem}>
+                        <span className={styles.credNum}>1</span>
+                        <div>
+                          <div className={styles.credLabel}>Nombre del dispositivo</div>
+                          {cam.nombre && (
+                            <span className={styles.credCode}>{cam.nombre}</span>
+                          )}
+                          <div className={styles.credValue}>Puede colocar cualquier nombre para identificar el equipo.</div>
+                        </div>
+                      </div>
+
+                      <div className={styles.credentialItem}>
+                        <span className={styles.credNum}>2</span>
+                        <div>
+                          <div className={styles.credLabel}>Usuario</div>
+                          <span className={styles.credCode}>{cam.usuario || 'admin'}</span>
+                        </div>
+                      </div>
+
+                      <div className={styles.credentialItem}>
+                        <span className={styles.credNum}>3</span>
+                        <div>
+                          <div className={styles.credLabel}>Contraseña</div>
+                          {cam.password ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
+                              <span className={styles.credCode}>{cam.password}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleCopyPassword(cam.id || `equipo-${idx}`, cam.password)}
+                                title="Copiar contraseña"
+                                aria-label="Copiar contraseña"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '0.3rem',
+                                  background: copiedKey === (cam.id || `equipo-${idx}`) ? '#e6fffa' : '#f1f5f9',
+                                  border: `1px solid ${copiedKey === (cam.id || `equipo-${idx}`) ? '#38b2ac' : '#cbd5e1'}`,
+                                  borderRadius: '5px',
+                                  padding: '0.2rem 0.5rem',
+                                  cursor: 'pointer',
+                                  fontSize: '0.75rem',
+                                  color: copiedKey === (cam.id || `equipo-${idx}`) ? '#234e52' : '#475569',
+                                  transition: 'all 0.2s ease',
+                                }}
+                              >
+                                {copiedKey === (cam.id || `equipo-${idx}`) ? (
+                                  <>
+                                    <Check size={13} style={{ color: '#16a34a' }} />
+                                    <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#15803d' }}>Copiado</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy size={13} />
+                                    <span style={{ fontSize: '0.7rem' }}>Copiar</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          ) : (
+                            <span className={styles.credValue}>Contraseña configurada en la instalación</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div className={styles.credentialItem}>
-                      <span className={styles.credNum}>2</span>
-                      <div>
-                        <div className={styles.credLabel}>Usuario</div>
-                        {instructivo.usuario_dispositivo && (
-                          <span className={styles.credCode}>{instructivo.usuario_dispositivo}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className={styles.credentialItem}>
-                      <span className={styles.credNum}>3</span>
-                      <div>
-                        <div className={styles.credLabel}>Contraseña</div>
-                        {instructivo.password_dispositivo ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
-                            <span className={styles.credCode}>{instructivo.password_dispositivo}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyPassword('legacy', instructivo.password_dispositivo!)}
-                              title="Copiar contraseña"
-                              aria-label="Copiar contraseña"
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.3rem',
-                                background: copiedKey === 'legacy' ? '#e6fffa' : '#f1f5f9',
-                                border: `1px solid ${copiedKey === 'legacy' ? '#38b2ac' : '#cbd5e1'}`,
-                                borderRadius: '5px',
-                                padding: '0.2rem 0.5rem',
-                                cursor: 'pointer',
-                                fontSize: '0.75rem',
-                                color: copiedKey === 'legacy' ? '#234e52' : '#475569',
-                                transition: 'all 0.2s ease',
-                              }}
-                            >
-                              {copiedKey === 'legacy' ? (
-                                <>
-                                  <Check size={13} style={{ color: '#16a34a' }} />
-                                  <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#15803d' }}>Copiado</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Copy size={13} />
-                                  <span style={{ fontSize: '0.7rem' }}>Copiar</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        ) : (
-                          <span className={styles.credValue}>Contraseña configurada en la instalación</span>
-                        )}
-                      </div>
-                    </div>
-                  </>
+                  ))
                 )}
-              </div>
-              <div className={styles.importanteBox} style={isEasyViewerPro ? { width: '100%', maxWidth: '100%' } : undefined}>
-                <div className={styles.importanteTitle}>
-                  <AlertTriangle size={14} />
-                  Importante
+                  </div>
+                  <div className={styles.importanteBox} style={isEasyViewerPro ? { width: '100%', maxWidth: '100%' } : undefined}>
+                    <div className={styles.importanteTitle}>
+                      <AlertTriangle size={14} />
+                      Importante
+                    </div>
+                    <p className={styles.importanteText}>
+                      Verifique que los datos estan escritos tal como se muestran.
+                      Respete mayusculas, minusculas y puntos.
+                    </p>
+                  </div>
                 </div>
-                <p className={styles.importanteText}>
-                  Verifique que los datos estén escritos tal como se muestran.
-                  Respete mayúsculas, minúsculas y puntos.
-                </p>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </div>
 
