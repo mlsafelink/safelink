@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { instructivoService } from '@/services/documentService';
+import { instructivoService, trackDocumentAccess } from '@/services/documentService';
 import { getInstructivoCamaras } from '@/features/documents/constants/instructivoApps';
 import { copyToClipboard } from '@/utils/clipboard';
 import {
@@ -14,6 +14,13 @@ import styles from './InstructivoViewer.module.css';
 
 export function PublicInstructivoViewer() {
   const { publicId } = useParams<{ publicId: string }>();
+
+  useEffect(() => {
+    if (publicId) {
+      trackDocumentAccess('instructivos', publicId);
+    }
+  }, [publicId]);
+
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const handleCopyPassword = async (key: string, text?: string | null) => {

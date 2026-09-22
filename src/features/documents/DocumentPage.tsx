@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card/Card';
 import { Button } from '@/components/ui/Button/Button';
 import {
   FileText, ClipboardList, BookOpen, Plus, ExternalLink,
-  Edit, Copy, Download, Trash2, Check, X, Wrench,
+  Edit, Copy, Download, Trash2, Check, X, Wrench, Eye,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { pdf } from '@react-pdf/renderer';
@@ -341,6 +341,17 @@ export function DocumentPage() {
                       >
                         <Trash2 size={15} />
                       </button>
+
+                      <div className={styles.actionsDivider} />
+
+                      {/* Contador de accesos públicos */}
+                      <div
+                        className={`${styles.actionBtn} ${styles.btnCounter}`}
+                        title="Cantidad de accesos al enlace público"
+                      >
+                        <Eye size={13} className={styles.counterIcon} />
+                        <span className={styles.counterValue}>{(doc as any).access_count ?? 0}</span>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>

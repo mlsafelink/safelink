@@ -33,6 +33,7 @@ export type Reporte = {
   email_soporte: string | null;
   horario_soporte: string | null;
 
+  access_count?: number;
   version: number;
   created_at: string;
   // JOIN
@@ -64,6 +65,7 @@ export type Presupuesto = {
   url_sitio_web: string | null;
   estado?: PresupuestoEstado;
   aceptado_at?: string | null;
+  access_count?: number;
   version: number;
   created_at: string;
   consorcios?: { nombre: string; direccion?: string; administraciones?: { nombre: string } };
@@ -101,6 +103,7 @@ export type ReporteTrabajo = {
   telefono_soporte: string | null;
   email_soporte: string | null;
   horario_soporte: string | null;
+  access_count?: number;
   version: number;
   created_at: string;
   consorcios?: { nombre: string; direccion?: string; administraciones?: { nombre: string } };
@@ -141,6 +144,7 @@ export type Instructivo = {
   codigo_publico?: string | null;
   public_slug?: string | null;
 
+  access_count?: number;
   version: number;
   created_at: string;
   consorcios?: { nombre: string; administraciones?: { nombre: string } };
@@ -150,6 +154,27 @@ export type InstructivoBloque = {
   tipo: 'texto' | 'imagen' | 'titulo';
   contenido: string;
 };
+
+// ---- Función para registrar acceso público a documentos ----
+export async function trackDocumentAccess(
+  tableName: 'reportes' | 'presupuestos' | 'reportes_trabajo' | 'instructivos',
+  identifier: string
+): Promise<number | null> {
+  try {
+    const { data, error } = await supabase.rpc('increment_document_access', {
+      p_table_name: tableName,
+      p_identifier: identifier,
+    });
+    if (error) {
+      console.warn(`[trackDocumentAccess] No se pudo registrar acceso en ${tableName}:`, error.message);
+      return null;
+    }
+    return typeof data === 'number' ? data : null;
+  } catch (err) {
+    console.warn(`[trackDocumentAccess] Excepción al registrar acceso en ${tableName}:`, err);
+    return null;
+  }
+}
 
 // ---- Función de generación de Códigos Únicos ----
 export async function generateUniqueDocCode(

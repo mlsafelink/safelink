@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { reporteTrabajoService } from '@/services/documentService';
+import { reporteTrabajoService, trackDocumentAccess } from '@/services/documentService';
 import {
   Calendar, Building, Shield, FileText,
   Cpu, CheckSquare, Wrench, Image,
@@ -14,6 +14,13 @@ import styles from './ReporteViewer.module.css';
 
 export function PublicReporteTrabajoViewer() {
   const { publicId } = useParams<{ publicId: string }>();
+
+  useEffect(() => {
+    if (publicId) {
+      trackDocumentAccess('reportes_trabajo', publicId);
+    }
+  }, [publicId]);
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 

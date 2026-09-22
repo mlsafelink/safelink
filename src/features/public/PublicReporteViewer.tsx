@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { reporteService } from '@/services/documentService';
+import { reporteService, trackDocumentAccess } from '@/services/documentService';
 import {
   Calendar, Building, ClipboardList, Clock, HelpCircle, Shield,
   FileText, Cpu, Eye, AlertTriangle, CheckSquare, Phone, Mail, Image,
@@ -9,6 +10,12 @@ import styles from './ReporteViewer.module.css';
 
 export function PublicReporteViewer() {
   const { publicId } = useParams<{ publicId: string }>();
+
+  useEffect(() => {
+    if (publicId) {
+      trackDocumentAccess('reportes', publicId);
+    }
+  }, [publicId]);
 
   const { data: reporte, isLoading, isError } = useQuery({
     queryKey: ['public-reporte', publicId],

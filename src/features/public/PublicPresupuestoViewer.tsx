@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { presupuestoService } from '@/services/documentService';
+import { presupuestoService, trackDocumentAccess } from '@/services/documentService';
 import { notificacionService } from '@/services/notificacionService';
 import {
   Calendar, Building, FileText, Clock, HelpCircle, Shield,
@@ -13,6 +13,12 @@ import styles from './PresupuestoViewer.module.css';
 export function PublicPresupuestoViewer() {
   const { publicId } = useParams<{ publicId: string }>();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (publicId) {
+      trackDocumentAccess('presupuestos', publicId);
+    }
+  }, [publicId]);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showAcceptModal, setShowAcceptModal] = useState(false);
