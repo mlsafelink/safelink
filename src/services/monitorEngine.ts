@@ -40,10 +40,11 @@ class MonitorEngine {
   private listeners: Set<Listener> = new Set();
   constructor() {
     if (typeof window !== 'undefined') {
-      // Polling de salud del agente cada 2 segundos
-      this.checkAgentHealth();
+      // Polling de salud del agente solo si el usuario está en /monitor
       setInterval(() => {
-        this.checkAgentHealth();
+        if (window.location.pathname.startsWith('/monitor')) {
+          this.checkAgentHealth();
+        }
       }, 2000);
     }
   }

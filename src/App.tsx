@@ -15,6 +15,7 @@ import { PublicPresupuestoViewer } from '@/features/public/PublicPresupuestoView
 import { PublicInstructivoViewer } from '@/features/public/PublicInstructivoViewer';
 import { PublicReporteTrabajoViewer } from '@/features/public/PublicReporteTrabajoViewer';
 import { SafeLinkNotePage } from '@/features/safeLinkNote/SafeLinkNotePage';
+import { NuevoRelevamiento } from '@/features/safeLinkNote/NuevoRelevamiento';
 import { SafeLinkIAPage } from '@/features/safeLinkIA/SafeLinkIAPage';
 import { SafeLinkNoteProvider } from '@/features/safeLinkNote/SafeLinkNoteContext';
 import { FinanzasPage } from '@/features/finanzas/FinanzasPage';
@@ -54,6 +55,7 @@ function App() {
         <Route path="/p/plano/:publicId" element={<PublicPlanoViewer />} />
         <Route path="/p/topologia/:publicId" element={<PublicTopologiaViewer />} />
 
+
         {/* ---- AUTENTICACIÓN ---- */}
         <Route path="/login" element={<Login />} />
 
@@ -67,7 +69,8 @@ function App() {
             <Route path="/documentos"      element={<DocumentPage />} />
             <Route path="/finanzas"        element={<FinanzasPage />} />
             <Route path="/notificaciones"  element={<NotificacionesPage />} />
-            <Route path="/safelink-note"   element={<SafeLinkNotePage />} />
+            <Route path="/safelink-note"       element={<SafeLinkNotePage />} />
+            <Route path="/safelink-note/nuevo" element={<NuevoRelevamiento />} />
             <Route path="/safelink-ia"     element={<SafeLinkIAPage />} />
             <Route path="/boveda"          element={<BóvedaPage />} />
             <Route path="/monitor"         element={<SafeLinkMonitorPage />} />
