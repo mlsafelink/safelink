@@ -69,8 +69,9 @@ function App() {
             <Route path="/documentos"      element={<DocumentPage />} />
             <Route path="/finanzas"        element={<FinanzasPage />} />
             <Route path="/notificaciones"  element={<NotificacionesPage />} />
-            <Route path="/safelink-note"       element={<SafeLinkNotePage />} />
-            <Route path="/safelink-note/nuevo" element={<NuevoRelevamiento />} />
+            <Route path="/safelink-note"            element={<SafeLinkNotePage />} />
+            <Route path="/safelink-note/nuevo"       element={<NuevoRelevamiento />} />
+            <Route path="/safelink-note/editar/:id"  element={<NuevoRelevamiento />} />
             <Route path="/safelink-ia"     element={<SafeLinkIAPage />} />
             <Route path="/boveda"          element={<BóvedaPage />} />
             <Route path="/monitor"         element={<SafeLinkMonitorPage />} />

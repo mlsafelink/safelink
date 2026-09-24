@@ -26,6 +26,7 @@ import {
   Lightbulb,
   Zap,
   Calendar,
+  Pencil,
 } from 'lucide-react';
 import styles from './SafeLinkNotePage.module.css';
 
@@ -66,11 +67,13 @@ function RelevamientoCardLarge({
   isExpanded,
   onToggleExpand,
   onDelete,
+  onEdit,
 }: {
   rel: Relevamiento;
   isExpanded: boolean;
   onToggleExpand: () => void;
   onDelete: (e: React.MouseEvent) => void;
+  onEdit: (e: React.MouseEvent) => void;
 }) {
   const { fecha, hora } = formatDate(rel.created_at);
   const primaryType = getPrimaryWorkTypeInfo(rel.tipos_trabajo);
@@ -177,6 +180,15 @@ function RelevamientoCardLarge({
                 📷 {rel.fotos.length} fotografía{rel.fotos.length !== 1 ? 's' : ''} adjunta{rel.fotos.length !== 1 ? 's' : ''}
               </span>
             )}
+
+            <button
+              className={styles.editBtn}
+              onClick={onEdit}
+              title="Editar este relevamiento"
+            >
+              <Pencil size={13} />
+              Editar relevamiento
+            </button>
 
             <button
               className={styles.deleteBtn}
@@ -474,6 +486,7 @@ export function SafeLinkNotePage() {
                 isExpanded={expandedRelId === rel.id}
                 onToggleExpand={() => setExpandedRelId(prev => prev === rel.id ? null : rel.id)}
                 onDelete={(e) => handleEliminarRelevamiento(rel.id, e)}
+                onEdit={(e) => { e.stopPropagation(); navigate(`/safelink-note/editar/${rel.id}`); }}
               />
             ))}
           </div>

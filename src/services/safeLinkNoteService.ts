@@ -49,4 +49,20 @@ export const safeLinkNoteService = {
 
     return pub?.publicUrl || null;
   },
+
+  async uploadSlnFile(fileName: string, content: string | Blob): Promise<string> {
+    const { data, error } = await supabase.storage
+      .from(BUCKET)
+      .upload(fileName, content, {
+        contentType: 'application/octet-stream',
+        upsert: true,
+      });
+
+    if (error) {
+      console.error('[SafeLinkNote] Error subiendo archivo .sln:', error);
+      throw error;
+    }
+
+    return data?.path || fileName;
+  },
 };

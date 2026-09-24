@@ -42,6 +42,7 @@ export interface RelevamientoInput {
   fotos: RelevamientoFoto[];
   materiales: RelevamientoMaterial[];
   estado: RelevamientoEstado;
+  sln_path?: string | null;
 }
 
 // ── Servicio ───────────────────────────────────────────────────────
@@ -61,6 +62,7 @@ export const relevamientoService = {
         fotos:         input.fotos,
         materiales:    input.materiales,
         estado:        input.estado,
+        sln_path:      input.sln_path      || null,
       }])
       .select()
       .single();
@@ -82,6 +84,7 @@ export const relevamientoService = {
         ...(input.fotos         !== undefined && { fotos:         input.fotos }),
         ...(input.materiales    !== undefined && { materiales:    input.materiales }),
         ...(input.estado        !== undefined && { estado:        input.estado }),
+        ...(input.sln_path      !== undefined && { sln_path:      input.sln_path      || null }),
       })
       .eq('id', id)
       .select()
@@ -89,6 +92,16 @@ export const relevamientoService = {
 
     if (error) throw error;
     return data as Relevamiento;
+  },
+
+  /** Cuenta el total de relevamientos existentes en Supabase de forma rápida. */
+  async contarTotal(): Promise<number> {
+    const { count, error } = await supabase
+      .from('relevamientos')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) return 0;
+    return count ?? 0;
   },
 
   /** Lista todos los relevamientos, ordenados por fecha de creación desc. */
