@@ -311,7 +311,7 @@ export function PublicInstructivoViewer() {
                   </li>
                   <li>
                     <span className={styles.numBullet}>2</span>
-                    <span>Seleccione la opción <strong>Explorar</strong>.</span>
+                    <span>Seleccione la opción <strong>Escanear</strong>.</span>
                   </li>
                   <li>
                     <span className={styles.numBullet}>3</span>

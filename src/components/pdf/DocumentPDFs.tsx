@@ -579,7 +579,7 @@ export function InstructivoPDF({ instructivo }: { instructivo: Instructivo }) {
                   <View style={{ flex: 1, paddingRight: 8 }}>
                     <Text style={styles.stepBody}>1. Presione el botón "+" ubicado en la esquina superior derecha.</Text>
                     <Text style={styles.stepBody}>
-                      2. Seleccione la opción "Explorar".
+                      2. Seleccione la opción "Escanear".
                     </Text>
                     <Text style={styles.stepBody}>3. Escanee el código QR proporcionado por el instalador.</Text>
                     {instructivo.numero_serie ? (
