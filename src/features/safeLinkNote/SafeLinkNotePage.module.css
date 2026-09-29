@@ -584,6 +584,47 @@
   color: #cbd5e1;
 }
 
+.relTotalesBox {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.07) 0%, rgba(99, 102, 241, 0.07) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.relTotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+
+.relTotalRow span:last-child {
+  color: #e2e8f0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.relTotalRowFinal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #10b981;
+  font-weight: 700;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 0.35rem;
+  margin-top: 0.1rem;
+}
+
+.relTotalRowFinal strong {
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
 .relActionsRow {
   display: flex;
   align-items: center;

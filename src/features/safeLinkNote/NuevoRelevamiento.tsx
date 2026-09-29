@@ -28,9 +28,11 @@ import {
   Check,
   Search,
   ChevronDown,
+  Pencil,
 } from 'lucide-react';
 import styles from './NuevoRelevamiento.module.css';
 import { relevamientoService } from '@/services/relevamientoService';
+import type { RelevamientoManoDeObra } from '@/services/relevamientoService';
 import { safeLinkNoteService } from '@/services/safeLinkNoteService';
 import { ClienteSelectorModal, type ClienteItem } from './ClienteSelectorModal';
 import { ClienteNuevoModal } from './ClienteNuevoModal';
@@ -67,6 +69,13 @@ interface MatFormData {
   observacion: string;
 }
 
+interface MoFormData {
+  descripcion: string;
+  cantidad: string;
+  costo: string;
+  observacion: string;
+}
+
 // ── Constantes ─────────────────────────────────────────────────────
 const TIPOS: { key: TipoTrabajo; label: string; icon: React.FC<{ size?: number; className?: string }> }[] = [
   { key: 'CAMARAS',      label: 'Cámaras',      icon: Camera },
@@ -77,6 +86,7 @@ const TIPOS: { key: TipoTrabajo; label: string; icon: React.FC<{ size?: number; 
 ];
 
 const MAT_FORM_INITIAL: MatFormData = { nombre: '', cantidad: '1', costo: '', observacion: '' };
+const MO_FORM_INITIAL: MoFormData  = { descripcion: '', cantidad: '1', costo: '', observacion: '' };
 
 // ── Utilidades ─────────────────────────────────────────────────────
 function generateId(): string {
@@ -203,6 +213,7 @@ export function NuevoRelevamiento() {
   });
   const [fotos,      setFotos]      = useState<Foto[]>([]);
   const [materiales, setMateriales] = useState<Material[]>([]);
+  const [manoDeObra, setManoDeObra] = useState<RelevamientoManoDeObra[]>([]);
 
   // Carga en modo edición
   const [loadingEdit, setLoadingEdit] = useState(isEditMode);
@@ -223,8 +234,14 @@ export function NuevoRelevamiento() {
   const [savedFileNameConfirm,  setSavedFileNameConfirm]  = useState<string | null>(null);
 
   // Formulario de materiales
-  const [showMatForm, setShowMatForm] = useState(false);
-  const [matForm,     setMatForm]     = useState<MatFormData>(MAT_FORM_INITIAL);
+  const [showMatForm,  setShowMatForm]  = useState(false);
+  const [editingMatId, setEditingMatId] = useState<string | null>(null);
+  const [matForm,      setMatForm]      = useState<MatFormData>(MAT_FORM_INITIAL);
+
+  // Formulario de mano de obra
+  const [showMoForm,  setShowMoForm]  = useState(false);
+  const [editingMoId, setEditingMoId] = useState<string | null>(null);
+  const [moForm,      setMoForm]      = useState<MoFormData>(MO_FORM_INITIAL);
 
   // Refs para inputs de archivo
   const cameraInputRef  = useRef<HTMLInputElement>(null);
@@ -251,6 +268,7 @@ export function NuevoRelevamiento() {
       });
       setFotos(rel.fotos       ?? []);
       setMateriales(rel.materiales ?? []);
+      setManoDeObra(rel.mano_de_obra ?? []);
       setLoadingEdit(false);
     }).catch(() => {
       if (!cancelled) setLoadingEdit(false);
@@ -332,18 +350,100 @@ export function NuevoRelevamiento() {
     setFotos(prev => prev.filter(f => f.id !== id));
 
   // ── Materiales ─────────────────────────────────────────────────────
-  const addMaterial = () => {
+  const handleOpenAddMaterial = () => {
+    setEditingMatId(null);
+    setMatForm(MAT_FORM_INITIAL);
+    setShowMatForm(true);
+  };
+
+  const handleEditMaterial = (m: Material) => {
+    setEditingMatId(m.id);
+    setMatForm({
+      nombre: m.nombre,
+      cantidad: m.cantidad || '1',
+      costo: m.costo || '',
+      observacion: m.observacion || '',
+    });
+    setShowMatForm(true);
+  };
+
+  const saveMaterial = () => {
     if (!matForm.nombre.trim()) return;
-    setMateriales(prev => [
-      ...prev,
-      { id: generateId(), ...matForm, nombre: matForm.nombre.trim() },
-    ]);
+    if (editingMatId) {
+      setMateriales(prev =>
+        prev.map(m => (m.id === editingMatId ? { ...m, ...matForm, nombre: matForm.nombre.trim() } : m))
+      );
+    } else {
+      setMateriales(prev => [
+        ...prev,
+        { id: generateId(), ...matForm, nombre: matForm.nombre.trim() },
+      ]);
+    }
+    setEditingMatId(null);
     setMatForm(MAT_FORM_INITIAL);
     setShowMatForm(false);
   };
 
-  const removeMaterial = (id: string) =>
+  const cancelMaterialForm = () => {
+    setEditingMatId(null);
+    setMatForm(MAT_FORM_INITIAL);
+    setShowMatForm(false);
+  };
+
+  const removeMaterial = (id: string) => {
     setMateriales(prev => prev.filter(m => m.id !== id));
+    if (editingMatId === id) {
+      cancelMaterialForm();
+    }
+  };
+
+  // ── Mano de Obra ───────────────────────────────────────────────────
+  const handleOpenAddManoDeObra = () => {
+    setEditingMoId(null);
+    setMoForm(MO_FORM_INITIAL);
+    setShowMoForm(true);
+  };
+
+  const handleEditManoDeObra = (mo: RelevamientoManoDeObra) => {
+    setEditingMoId(mo.id);
+    setMoForm({
+      descripcion: mo.descripcion,
+      cantidad: mo.cantidad || '1',
+      costo: mo.costo || '',
+      observacion: mo.observacion || '',
+    });
+    setShowMoForm(true);
+  };
+
+  const saveManoDeObra = () => {
+    if (!moForm.descripcion.trim()) return;
+    if (editingMoId) {
+      setManoDeObra(prev =>
+        prev.map(mo => (mo.id === editingMoId ? { ...mo, ...moForm, descripcion: moForm.descripcion.trim() } : mo))
+      );
+    } else {
+      setManoDeObra(prev => [
+        ...prev,
+        { id: generateId(), ...moForm, descripcion: moForm.descripcion.trim() },
+      ]);
+    }
+    setEditingMoId(null);
+    setMoForm(MO_FORM_INITIAL);
+    setShowMoForm(false);
+  };
+
+  const cancelManoDeObraForm = () => {
+    setEditingMoId(null);
+    setMoForm(MO_FORM_INITIAL);
+    setShowMoForm(false);
+  };
+
+  const removeManoDeObra = (id: string) => {
+    setManoDeObra(prev => prev.filter(m => m.id !== id));
+    if (editingMoId === id) {
+      cancelManoDeObraForm();
+    }
+  };
 
   // ── Persistencia ───────────────────────────────────────────────────
   const buildInput = (estado: 'PENDIENTE' | 'FINALIZADO') => ({
@@ -354,6 +454,7 @@ export function NuevoRelevamiento() {
     observaciones: form.observaciones,
     fotos,
     materiales,
+    mano_de_obra:  manoDeObra,
     estado,
   });
 
@@ -820,7 +921,7 @@ export function NuevoRelevamiento() {
             <button
               type="button"
               className={styles.btnHeaderAction}
-              onClick={() => setShowMatForm(true)}
+              onClick={handleOpenAddMaterial}
             >
               <Plus size={15} />
               <span>Agregar material</span>
@@ -830,34 +931,99 @@ export function NuevoRelevamiento() {
           <div className={styles.cardBody}>
             {materiales.length > 0 && (
               <div className={styles.matList}>
-                {materiales.map(m => (
-                  <div key={m.id} className={styles.matCard}>
-                    <div className={styles.matIconBox}>
-                      <Package size={16} />
+                {materiales.map(m => {
+                  const qty = parseFloat(m.cantidad) || 1;
+                  const unit = parseFloat(m.costo) || 0;
+                  const totalItem = qty * unit;
+                  const isEditing = editingMatId === m.id;
+
+                  return (
+                    <div
+                      key={m.id}
+                      className={`${styles.matCard} ${isEditing ? styles.matCardEditing : ''}`}
+                      onClick={() => handleEditMaterial(m)}
+                      title="Clic para editar este material"
+                    >
+                      <div className={styles.matIconBox}>
+                        <Package size={16} />
+                      </div>
+                      <div className={styles.matInfo}>
+                        <div className={styles.matNombreRow}>
+                          <span className={styles.matNombre}>{m.nombre}</span>
+                          <span className={styles.matEditHint}>
+                            <Pencil size={11} />
+                            <span>Editar</span>
+                          </span>
+                        </div>
+                        <span className={styles.matMeta}>
+                          Cant: <strong>{m.cantidad}</strong>
+                          {unit > 0 ? (
+                            qty > 1 ? (
+                              <> · ${unit.toLocaleString('es-AR')} c/u · <strong className={styles.matTotalHighlight}>Total: ${totalItem.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</strong></>
+                            ) : (
+                              <> · <strong className={styles.matTotalHighlight}>${totalItem.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</strong></>
+                            )
+                          ) : null}
+                          {m.observacion ? ` · ${m.observacion}` : ''}
+                        </span>
+                      </div>
+
+                      <div className={styles.matCardRight} onClick={e => e.stopPropagation()}>
+                        {totalItem > 0 && (
+                          <div className={styles.matCardTotalBadge}>
+                            ${totalItem.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          className={styles.matEditBtn}
+                          onClick={() => handleEditMaterial(m)}
+                          aria-label="Editar material"
+                          title="Editar"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.matRemoveBtn}
+                          onClick={() => removeMaterial(m.id)}
+                          aria-label="Eliminar material"
+                          title="Eliminar"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </div>
-                    <div className={styles.matInfo}>
-                      <span className={styles.matNombre}>{m.nombre}</span>
-                      <span className={styles.matMeta}>
-                        Cant: <strong>{m.cantidad}</strong>
-                        {m.costo ? ` · $${m.costo}` : ''}
-                        {m.observacion ? ` · ${m.observacion}` : ''}
+                  );
+                })}
+
+                {/* Subtotal Materiales */}
+                {(() => {
+                  const total = materiales.reduce((acc, m) => {
+                    const c = parseFloat(m.costo) || 0;
+                    const q = parseFloat(m.cantidad) || 1;
+                    return acc + c * q;
+                  }, 0);
+                  if (total === 0) return null;
+                  return (
+                    <div className={styles.matSubtotalRow}>
+                      <span className={styles.matSubtotalLabel}>Subtotal materiales:</span>
+                      <span className={styles.matSubtotalValue}>
+                        ${total.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                       </span>
                     </div>
-                    <button
-                      type="button"
-                      className={styles.matRemoveBtn}
-                      onClick={() => removeMaterial(m.id)}
-                      aria-label="Eliminar material"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                ))}
+                  );
+                })()}
               </div>
             )}
 
             {showMatForm ? (
               <div className={styles.matFormCard}>
+                <div className={styles.matFormHeader}>
+                  <span className={styles.matFormTitle}>
+                    {editingMatId ? 'Editar material o equipo' : 'Nuevo material o equipo'}
+                  </span>
+                </div>
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Nombre del material o equipo *</label>
                   <input
@@ -881,7 +1047,7 @@ export function NuevoRelevamiento() {
                     />
                   </div>
                   <div className={styles.fieldGroup} style={{ flex: 1 }}>
-                    <label className={styles.fieldLabel}>Costo aprox. ($)</label>
+                    <label className={styles.fieldLabel}>Costo unitario aprox. ($)</label>
                     <input
                       className={styles.input}
                       placeholder="0"
@@ -892,6 +1058,32 @@ export function NuevoRelevamiento() {
                     />
                   </div>
                 </div>
+
+                {/* Cálculo dinámico del total del ítem */}
+                {(() => {
+                  const q = parseFloat(matForm.cantidad) || 0;
+                  const u = parseFloat(matForm.costo) || 0;
+                  if (u > 0) {
+                    const itemTot = q * u;
+                    return (
+                      <div className={styles.matFormCalcBanner}>
+                        <div className={styles.matFormCalcInfo}>
+                          <span className={styles.matFormCalcLabel}>Valor final del ítem:</span>
+                          {q > 1 && (
+                            <span className={styles.matFormCalcDetail}>
+                              ({q} un. × ${u.toLocaleString('es-AR')})
+                            </span>
+                          )}
+                        </div>
+                        <span className={styles.matFormCalcTotal}>
+                          ${itemTot.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Observación (opcional)</label>
                   <input
@@ -905,18 +1097,18 @@ export function NuevoRelevamiento() {
                   <button
                     type="button"
                     className={styles.matCancelBtn}
-                    onClick={() => { setShowMatForm(false); setMatForm(MAT_FORM_INITIAL); }}
+                    onClick={cancelMaterialForm}
                   >
                     Cancelar
                   </button>
                   <button
                     type="button"
                     className={styles.matAddBtn}
-                    onClick={addMaterial}
+                    onClick={saveMaterial}
                     disabled={!matForm.nombre.trim()}
                   >
-                    <Plus size={14} />
-                    <span>Guardar material</span>
+                    {editingMatId ? <Check size={14} /> : <Plus size={14} />}
+                    <span>{editingMatId ? 'Actualizar material' : 'Guardar material'}</span>
                   </button>
                 </div>
               </div>
@@ -935,6 +1127,264 @@ export function NuevoRelevamiento() {
             ) : null}
           </div>
         </section>
+
+        {/* ═══════════════════════════════════════════════
+            6b. MANO DE OBRA
+        ═══════════════════════════════════════════════ */}
+        <section className={styles.card}>
+          <div className={styles.cardHeaderBetween}>
+            <div className={styles.cardHeaderLeftGroup}>
+              <div className={styles.cardHeaderIcon}>
+                <User size={18} />
+              </div>
+              <h2 className={styles.cardTitle}>Mano de Obra</h2>
+            </div>
+            <button
+              type="button"
+              className={styles.btnHeaderAction}
+              onClick={handleOpenAddManoDeObra}
+            >
+              <Plus size={15} />
+              <span>Agregar ítem</span>
+            </button>
+          </div>
+
+          <div className={styles.cardBody}>
+            {manoDeObra.length > 0 && (
+              <div className={styles.matList}>
+                {manoDeObra.map(mo => {
+                  const qty = parseFloat(mo.cantidad) || 1;
+                  const unit = parseFloat(mo.costo) || 0;
+                  const totalItem = qty * unit;
+                  const isEditing = editingMoId === mo.id;
+
+                  return (
+                    <div
+                      key={mo.id}
+                      className={`${styles.matCard} ${isEditing ? styles.matCardEditing : ''}`}
+                      onClick={() => handleEditManoDeObra(mo)}
+                      title="Clic para editar este ítem de mano de obra"
+                    >
+                      <div className={styles.matIconBox} style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981' }}>
+                        <User size={16} />
+                      </div>
+                      <div className={styles.matInfo}>
+                        <div className={styles.matNombreRow}>
+                          <span className={styles.matNombre}>{mo.descripcion}</span>
+                          <span className={styles.matEditHint}>
+                            <Pencil size={11} />
+                            <span>Editar</span>
+                          </span>
+                        </div>
+                        <span className={styles.matMeta}>
+                          Cant: <strong>{mo.cantidad}</strong>
+                          {unit > 0 ? (
+                            qty > 1 ? (
+                              <> · ${unit.toLocaleString('es-AR')} c/u · <strong className={styles.matTotalHighlight}>Total: ${totalItem.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</strong></>
+                            ) : (
+                              <> · <strong className={styles.matTotalHighlight}>${totalItem.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</strong></>
+                            )
+                          ) : null}
+                          {mo.observacion ? ` · ${mo.observacion}` : ''}
+                        </span>
+                      </div>
+
+                      <div className={styles.matCardRight} onClick={e => e.stopPropagation()}>
+                        {totalItem > 0 && (
+                          <div className={styles.matCardTotalBadge}>
+                            ${totalItem.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          className={styles.matEditBtn}
+                          onClick={() => handleEditManoDeObra(mo)}
+                          aria-label="Editar mano de obra"
+                          title="Editar"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.matRemoveBtn}
+                          onClick={() => removeManoDeObra(mo.id)}
+                          aria-label="Eliminar ítem de mano de obra"
+                          title="Eliminar"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Subtotal Mano de Obra */}
+                {(() => {
+                  const total = manoDeObra.reduce((acc, mo) => {
+                    const c = parseFloat(mo.costo) || 0;
+                    const q = parseFloat(mo.cantidad) || 1;
+                    return acc + c * q;
+                  }, 0);
+                  if (total === 0) return null;
+                  return (
+                    <div className={styles.matSubtotalRow}>
+                      <span className={styles.matSubtotalLabel}>Subtotal mano de obra:</span>
+                      <span className={styles.matSubtotalValue}>
+                        ${total.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {showMoForm ? (
+              <div className={styles.matFormCard}>
+                <div className={styles.matFormHeader}>
+                  <span className={styles.matFormTitle}>
+                    {editingMoId ? 'Editar ítem de mano de obra' : 'Nuevo ítem de mano de obra'}
+                  </span>
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Descripción *</label>
+                  <input
+                    className={styles.input}
+                    placeholder="Ej: Instalación, Configuración, Tendido de cable..."
+                    value={moForm.descripcion}
+                    onChange={e => setMoForm(p => ({ ...p, descripcion: e.target.value }))}
+                    autoFocus
+                  />
+                </div>
+                <div className={styles.matFormRow}>
+                  <div className={styles.fieldGroup} style={{ flex: 1 }}>
+                    <label className={styles.fieldLabel}>Cantidad / Horas</label>
+                    <input
+                      className={styles.input}
+                      placeholder="1"
+                      type="number"
+                      min="1"
+                      value={moForm.cantidad}
+                      onChange={e => setMoForm(p => ({ ...p, cantidad: e.target.value }))}
+                    />
+                  </div>
+                  <div className={styles.fieldGroup} style={{ flex: 1 }}>
+                    <label className={styles.fieldLabel}>Costo unitario aprox. ($)</label>
+                    <input
+                      className={styles.input}
+                      placeholder="0"
+                      type="number"
+                      min="0"
+                      value={moForm.costo}
+                      onChange={e => setMoForm(p => ({ ...p, costo: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                {/* Cálculo dinámico del total del ítem */}
+                {(() => {
+                  const q = parseFloat(moForm.cantidad) || 0;
+                  const u = parseFloat(moForm.costo) || 0;
+                  if (u > 0) {
+                    const itemTot = q * u;
+                    return (
+                      <div className={styles.matFormCalcBanner}>
+                        <div className={styles.matFormCalcInfo}>
+                          <span className={styles.matFormCalcLabel}>Valor final del ítem:</span>
+                          {q > 1 && (
+                            <span className={styles.matFormCalcDetail}>
+                              ({q} un. × ${u.toLocaleString('es-AR')})
+                            </span>
+                          )}
+                        </div>
+                        <span className={styles.matFormCalcTotal}>
+                          ${itemTot.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Observación (opcional)</label>
+                  <input
+                    className={styles.input}
+                    placeholder="Detalles, aclaraciones..."
+                    value={moForm.observacion}
+                    onChange={e => setMoForm(p => ({ ...p, observacion: e.target.value }))}
+                  />
+                </div>
+                <div className={styles.matFormActions}>
+                  <button
+                    type="button"
+                    className={styles.matCancelBtn}
+                    onClick={cancelManoDeObraForm}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.matAddBtn}
+                    onClick={saveManoDeObra}
+                    disabled={!moForm.descripcion.trim()}
+                  >
+                    {editingMoId ? <Check size={14} /> : <Plus size={14} />}
+                    <span>{editingMoId ? 'Actualizar ítem' : 'Guardar ítem'}</span>
+                  </button>
+                </div>
+              </div>
+            ) : manoDeObra.length === 0 ? (
+              <div className={styles.matEmptyBox}>
+                <div className={styles.matEmptyIcon}>
+                  <User size={28} strokeWidth={1.5} />
+                </div>
+                <span className={styles.matEmptyTitle}>
+                  Aún no hay ítems de mano de obra
+                </span>
+                <span className={styles.matEmptySubtitle}>
+                  Tocá en "Agregar ítem" para sumar trabajo.
+                </span>
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════
+            6c. TOTAL ESTIMADO
+        ═══════════════════════════════════════════════ */}
+        {(() => {
+          const totalMat = materiales.reduce((acc, m) => {
+            return acc + (parseFloat(m.costo) || 0) * (parseFloat(m.cantidad) || 1);
+          }, 0);
+          const totalMo = manoDeObra.reduce((acc, mo) => {
+            return acc + (parseFloat(mo.costo) || 0) * (parseFloat(mo.cantidad) || 1);
+          }, 0);
+          const total = totalMat + totalMo;
+          if (total === 0) return null;
+          return (
+            <div className={styles.totalEstimadoCard}>
+              <div className={styles.totalEstimadoRow}>
+                <span className={styles.totalEstimadoLabel}>Materiales / Equipos</span>
+                <span className={styles.totalEstimadoAmt}>
+                  ${totalMat.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className={styles.totalEstimadoRow}>
+                <span className={styles.totalEstimadoLabel}>Mano de Obra</span>
+                <span className={styles.totalEstimadoAmt}>
+                  ${totalMo.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className={styles.totalEstimadoDivider} />
+              <div className={styles.totalEstimadoRow}>
+                <span className={styles.totalEstimadoTotalLabel}>TOTAL ESTIMADO</span>
+                <span className={styles.totalEstimadoTotalValue}>
+                  ${total.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ═══════════════════════════════════════════════
             7. ACCIONES FINALES

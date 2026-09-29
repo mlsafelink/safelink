@@ -165,14 +165,85 @@ function RelevamientoCardLarge({
           {rel.materiales && rel.materiales.length > 0 && (
             <div className={styles.relMaterialsGroup}>
               <span className={styles.relMaterialsTitle}>Materiales / Equipos relevados:</span>
-              {rel.materiales.map(m => (
-                <div key={m.id} className={styles.relMaterialRow}>
-                  <span>• {m.nombre} (cant: {m.cantidad}{m.observacion ? ` - ${m.observacion}` : ''})</span>
-                  {m.costo && <strong>${m.costo}</strong>}
-                </div>
-              ))}
+              {rel.materiales.map(m => {
+                const q = parseFloat(m.cantidad) || 1;
+                const unit = parseFloat(m.costo) || 0;
+                const totalItem = q * unit;
+                return (
+                  <div key={m.id} className={styles.relMaterialRow}>
+                    <span>
+                      • {m.nombre} (cant: {m.cantidad}
+                      {q > 1 && unit > 0 ? ` · $${unit.toLocaleString('es-AR')} c/u` : ''}
+                      {m.observacion ? ` - ${m.observacion}` : ''})
+                    </span>
+                    {unit > 0 && (
+                      <strong>
+                        ${totalItem.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                      </strong>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
+
+          {rel.mano_de_obra && rel.mano_de_obra.length > 0 && (
+            <div className={styles.relMaterialsGroup}>
+              <span className={styles.relMaterialsTitle}>Mano de Obra:</span>
+              {rel.mano_de_obra.map(mo => {
+                const q = parseFloat(mo.cantidad) || 1;
+                const unit = parseFloat(mo.costo) || 0;
+                const totalItem = q * unit;
+                return (
+                  <div key={mo.id} className={styles.relMaterialRow}>
+                    <span>
+                      • {mo.descripcion} (cant: {mo.cantidad}
+                      {q > 1 && unit > 0 ? ` · $${unit.toLocaleString('es-AR')} c/u` : ''}
+                      {mo.observacion ? ` - ${mo.observacion}` : ''})
+                    </span>
+                    {unit > 0 && (
+                      <strong>
+                        ${totalItem.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                      </strong>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Totales estimados */}
+          {(() => {
+            const totalMat = (rel.materiales ?? []).reduce((acc, m) => {
+              return acc + (parseFloat(m.costo) || 0) * (parseFloat(m.cantidad) || 1);
+            }, 0);
+            const totalMo = (rel.mano_de_obra ?? []).reduce((acc, mo) => {
+              return acc + (parseFloat(mo.costo) || 0) * (parseFloat(mo.cantidad) || 1);
+            }, 0);
+            const total = totalMat + totalMo;
+            if (total === 0) return null;
+            const fmt = (n: number) => n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+            return (
+              <div className={styles.relTotalesBox}>
+                {totalMat > 0 && (
+                  <div className={styles.relTotalRow}>
+                    <span>Materiales</span>
+                    <span>${fmt(totalMat)}</span>
+                  </div>
+                )}
+                {totalMo > 0 && (
+                  <div className={styles.relTotalRow}>
+                    <span>Mano de Obra</span>
+                    <span>${fmt(totalMo)}</span>
+                  </div>
+                )}
+                <div className={styles.relTotalRowFinal}>
+                  <span>TOTAL ESTIMADO</span>
+                  <strong>${fmt(total)}</strong>
+                </div>
+              </div>
+            );
+          })()}
 
           <div className={styles.relActionsRow}>
             {rel.fotos && rel.fotos.length > 0 && (

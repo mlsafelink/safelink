@@ -16,6 +16,14 @@ export interface RelevamientoMaterial {
   observacion: string;
 }
 
+export interface RelevamientoManoDeObra {
+  id: string;
+  descripcion: string;
+  cantidad: string;
+  costo: string;
+  observacion: string;
+}
+
 export type RelevamientoEstado = 'PENDIENTE' | 'FINALIZADO';
 
 export interface Relevamiento {
@@ -29,6 +37,7 @@ export interface Relevamiento {
   observaciones: string | null;
   fotos: RelevamientoFoto[];
   materiales: RelevamientoMaterial[];
+  mano_de_obra: RelevamientoManoDeObra[];
   estado: RelevamientoEstado;
   sln_path: string | null;
 }
@@ -41,6 +50,7 @@ export interface RelevamientoInput {
   observaciones: string;
   fotos: RelevamientoFoto[];
   materiales: RelevamientoMaterial[];
+  mano_de_obra: RelevamientoManoDeObra[];
   estado: RelevamientoEstado;
   sln_path?: string | null;
 }
@@ -61,6 +71,7 @@ export const relevamientoService = {
         observaciones: input.observaciones || null,
         fotos:         input.fotos,
         materiales:    input.materiales,
+        mano_de_obra:  input.mano_de_obra,
         estado:        input.estado,
         sln_path:      input.sln_path      || null,
       }])
@@ -83,6 +94,7 @@ export const relevamientoService = {
         ...(input.observaciones !== undefined && { observaciones: input.observaciones || null }),
         ...(input.fotos         !== undefined && { fotos:         input.fotos }),
         ...(input.materiales    !== undefined && { materiales:    input.materiales }),
+        ...(input.mano_de_obra  !== undefined && { mano_de_obra:  input.mano_de_obra }),
         ...(input.estado        !== undefined && { estado:        input.estado }),
         ...(input.sln_path      !== undefined && { sln_path:      input.sln_path      || null }),
       })
