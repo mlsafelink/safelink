@@ -8,6 +8,7 @@ import styles from './TopologiaNodeView.module.css';
 
 interface Props {
   node: TopologiaNodo;
+  nodes?: TopologiaNodo[];
   isSelected: boolean;
   isHighlighted: boolean;
   isDimmed: boolean;
@@ -18,6 +19,7 @@ interface Props {
 
 export const TopologiaNodeView = memo(function TopologiaNodeView({
   node,
+  nodes,
   isSelected,
   isHighlighted,
   isDimmed,
@@ -87,10 +89,111 @@ export const TopologiaNodeView = memo(function TopologiaNodeView({
   if (node.tipo === 'switch') {
     const props = node.propiedades as any;
     const totalPorts = props?.cantidadPuertos || 16;
-    
-    // Contar puertos conectados a este switch
+    const columns = Math.ceil(totalPorts / 2);
+
+    interface PortOccupancy {
+      isOccupied: boolean;
+      isPoE: boolean;
+      targetCode?: string;
+      targetName?: string;
+    }
+
+    const portMap = new Map<number, PortOccupancy>();
+
+    // Conexiones salientes desde este switch
     const downstreamConns = connections.filter(c => c.source_id === node.id);
-    const occupiedCount = downstreamConns.length;
+
+    // Conexiones o dispositivos sin número de puerto explícito
+    const unassignedItems: Array<{ isPoE: boolean; targetCode?: string; targetName?: string }> = [];
+
+    downstreamConns.forEach(c => {
+      let target = nodes?.find(n => n.id === c.target_id);
+
+      // Si el destino es una fuente PoE intermedia, buscar el dispositivo conectado a ella
+      if (target?.tipo === 'fuente_poe' || target?.is_intermediate_poe) {
+        const poeConn = connections.find(c2 => c2.source_id === target!.id);
+        if (poeConn) {
+          const ep = nodes?.find(n => n.id === poeConn.target_id);
+          if (ep) target = ep;
+        }
+      }
+
+      // Extraer número de puerto (ej: "04" -> 4, "Pto 4" -> 4, "Puerto 2" -> 2)
+      let portNum: number | null = null;
+      if (c.puerto) {
+        const parsed = parseInt(c.puerto.replace(/[^\d]/g, ''), 10);
+        if (!isNaN(parsed) && parsed >= 1 && parsed <= totalPorts) {
+          portNum = parsed;
+        }
+      }
+      if (portNum === null && target?.puerto_canal) {
+        const parsed = parseInt(target.puerto_canal.replace(/[^\d]/g, ''), 10);
+        if (!isNaN(parsed) && parsed >= 1 && parsed <= totalPorts) {
+          portNum = parsed;
+        }
+      }
+      if (portNum === null && (target?.propiedades as any)?.puertoNumero) {
+        const parsed = parseInt(String((target!.propiedades as any).puertoNumero).replace(/[^\d]/g, ''), 10);
+        if (!isNaN(parsed) && parsed >= 1 && parsed <= totalPorts) {
+          portNum = parsed;
+        }
+      }
+
+      const isPoE = !!(
+        target?.is_intermediate_poe ||
+        (target?.propiedades as any)?.use_poe_injector ||
+        target?.tipo === 'ap' ||
+        (portNum && portNum <= 8)
+      );
+
+      if (portNum !== null) {
+        portMap.set(portNum, {
+          isOccupied: true,
+          isPoE,
+          targetCode: target?.codigo,
+          targetName: target?.nombre,
+        });
+      } else {
+        unassignedItems.push({
+          isPoE,
+          targetCode: target?.codigo,
+          targetName: target?.nombre,
+        });
+      }
+    });
+
+    // Revisar nodos hijos asignados a este switch por parent_element_id que no tengan conexión explícita
+    nodes?.forEach(n => {
+      const isChild = n.parent_element_id === node.id || (node.elemento_id && n.parent_element_id === node.elemento_id);
+      if (isChild && n.puerto_canal) {
+        const parsed = parseInt(n.puerto_canal.replace(/[^\d]/g, ''), 10);
+        if (!isNaN(parsed) && parsed >= 1 && parsed <= totalPorts && !portMap.has(parsed)) {
+          const isPoE = !!((n.propiedades as any)?.use_poe_injector || n.tipo === 'ap' || parsed <= 8);
+          portMap.set(parsed, {
+            isOccupied: true,
+            isPoE,
+            targetCode: n.codigo,
+            targetName: n.nombre,
+          });
+        }
+      }
+    });
+
+    // Asignar los dispositivos sin puerto explícito a los primeros puertos libres disponibles
+    let unassignedIdx = 0;
+    for (let p = 1; p <= totalPorts && unassignedIdx < unassignedItems.length; p++) {
+      if (!portMap.has(p)) {
+        const item = unassignedItems[unassignedIdx++];
+        portMap.set(p, {
+          isOccupied: true,
+          isPoE: item.isPoE,
+          targetCode: item.targetCode,
+          targetName: item.targetName,
+        });
+      }
+    }
+
+    const occupiedCount = portMap.size;
 
     return (
       <div
@@ -113,27 +216,71 @@ export const TopologiaNodeView = memo(function TopologiaNodeView({
             {props?.ip && <span className={styles.switchIpBadge}>{props.ip}</span>}
           </div>
 
-          {/* Matriz de Puertos RJ45 */}
+          {/* Matriz de Puertos RJ45 (2 filas: Impares Arriba, Pares Abajo) */}
           <div className={styles.portsGridWrap}>
             <div className={styles.portsHeaderRow}>
               <span>Puertos RJ45</span>
               <span>{occupiedCount} / {totalPorts}</span>
             </div>
             <div className={styles.portsMatrix}>
-              {Array.from({ length: totalPorts }).map((_, i) => {
-                const portNum = i + 1;
-                const isOcc = portNum <= occupiedCount;
-                const isPoEPort = portNum <= 8; // Ports 1-8 PoE indicator
-                return (
-                  <div
-                    key={i}
-                    className={`${styles.portSquare} ${
-                      isOcc ? (isPoEPort ? styles.portPoE : styles.portOccupied) : ''
-                    }`}
-                    title={`Puerto ${portNum} ${isOcc ? '(Ocupado)' : '(Libre)'}`}
-                  />
-                );
-              })}
+              {/* Fila Superior: Puertos Impares (1, 3, 5, 7, 9...) */}
+              <div
+                className={styles.portsRow}
+                style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+              >
+                {Array.from({ length: columns }).map((_, colIdx) => {
+                  const portNum = colIdx * 2 + 1;
+                  const portInfo = portMap.get(portNum);
+                  const isOcc = !!portInfo?.isOccupied;
+                  const isPoE = !!portInfo?.isPoE;
+
+                  return (
+                    <div
+                      key={`port-${portNum}`}
+                      className={`${styles.portSquare} ${
+                        isOcc ? (isPoE ? styles.portPoE : styles.portOccupied) : ''
+                      }`}
+                      title={
+                        isOcc
+                          ? `Puerto ${portNum} ➔ ${portInfo?.targetCode || 'Dispositivo'}${
+                              portInfo?.targetName ? ` (${portInfo.targetName})` : ''
+                            }`
+                          : `Puerto ${portNum} (Libre)`
+                      }
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Fila Inferior: Puertos Pares (2, 4, 6, 8, 10...) */}
+              <div
+                className={styles.portsRow}
+                style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+              >
+                {Array.from({ length: columns }).map((_, colIdx) => {
+                  const portNum = colIdx * 2 + 2;
+                  if (portNum > totalPorts) return null;
+                  const portInfo = portMap.get(portNum);
+                  const isOcc = !!portInfo?.isOccupied;
+                  const isPoE = !!portInfo?.isPoE;
+
+                  return (
+                    <div
+                      key={`port-${portNum}`}
+                      className={`${styles.portSquare} ${
+                        isOcc ? (isPoE ? styles.portPoE : styles.portOccupied) : ''
+                      }`}
+                      title={
+                        isOcc
+                          ? `Puerto ${portNum} ➔ ${portInfo?.targetCode || 'Dispositivo'}${
+                              portInfo?.targetName ? ` (${portInfo.targetName})` : ''
+                            }`
+                          : `Puerto ${portNum} (Libre)`
+                      }
+                    />
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

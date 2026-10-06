@@ -206,8 +206,13 @@
 }
 
 .portsMatrix {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.portsRow {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
   gap: 0.25rem;
 }
 
@@ -218,6 +223,12 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.15s;
   position: relative;
+  cursor: default;
+}
+
+.portSquare:hover {
+  transform: scale(1.2);
+  z-index: 2;
 }
 
 .portOccupied {

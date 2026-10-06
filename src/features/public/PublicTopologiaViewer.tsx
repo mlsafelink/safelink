@@ -240,6 +240,7 @@ export function PublicTopologiaViewer() {
                 <TopologiaNodeView
                   key={node.id}
                   node={node}
+                  nodes={nodes}
                   isSelected={isSelected}
                   isHighlighted={isHighlighted}
                   isDimmed={isDimmed}

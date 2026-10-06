@@ -310,25 +310,67 @@ export function TopologiaEditorPage() {
   const handleSaveElementModal = (saved: ElementoPlano) => {
     if (!topologia || !selectedNodeId) return;
 
-    // Actualizar nodo en caliente
+    // Actualizar nodo en caliente y sincronizar conexiones
     setTopologia(prev => {
       if (!prev) return null;
+
+      const updatedNodos = prev.nodos.map(n => {
+        if (n.id === selectedNodeId) {
+          return {
+            ...n,
+            codigo: saved.codigo,
+            nombre: saved.nombre,
+            estado: saved.estado,
+            parent_element_id: saved.parent_element_id,
+            puerto_canal: saved.puerto_canal,
+            propiedades: saved.propiedades,
+          };
+        }
+        return n;
+      });
+
+      const portLabel = saved.puerto_canal ? `Pto ${saved.puerto_canal}` : 'LAN';
+      let updatedConexiones = [...prev.conexiones];
+
+      // Buscar si el nodo tiene una conexión entrante o a través de un PoE intermedio
+      const poeConn = updatedConexiones.find(c => c.target_id === selectedNodeId && c.tipo_conexion === 'poe');
+      const directConnIdx = updatedConexiones.findIndex(c => c.target_id === selectedNodeId && c.tipo_conexion !== 'poe');
+      const poeParentConnIdx = poeConn ? updatedConexiones.findIndex(c => c.target_id === poeConn.source_id) : -1;
+      const targetConnIdx = poeParentConnIdx >= 0 ? poeParentConnIdx : directConnIdx;
+
+      if (targetConnIdx >= 0) {
+        let newSourceId = updatedConexiones[targetConnIdx].source_id;
+        if (saved.parent_element_id) {
+          const parentSwitch = prev.nodos.find(
+            n => n.id === saved.parent_element_id || n.elemento_id === saved.parent_element_id
+          );
+          if (parentSwitch) newSourceId = parentSwitch.id;
+        }
+
+        updatedConexiones[targetConnIdx] = {
+          ...updatedConexiones[targetConnIdx],
+          source_id: newSourceId,
+          puerto: portLabel,
+        };
+      } else if (saved.parent_element_id) {
+        const parentSwitch = prev.nodos.find(
+          n => n.id === saved.parent_element_id || n.elemento_id === saved.parent_element_id
+        );
+        if (parentSwitch) {
+          updatedConexiones.push({
+            id: `conn-${parentSwitch.id}-${selectedNodeId}-${Date.now()}`,
+            source_id: parentSwitch.id,
+            target_id: selectedNodeId,
+            tipo_conexion: 'datos',
+            puerto: portLabel,
+          });
+        }
+      }
+
       return {
         ...prev,
-        nodos: prev.nodos.map(n => {
-          if (n.id === selectedNodeId) {
-            return {
-              ...n,
-              codigo: saved.codigo,
-              nombre: saved.nombre,
-              estado: saved.estado,
-              parent_element_id: saved.parent_element_id,
-              puerto_canal: saved.puerto_canal,
-              propiedades: saved.propiedades,
-            };
-          }
-          return n;
-        }),
+        nodos: updatedNodos,
+        conexiones: updatedConexiones,
       };
     });
     setEditingElemento(null);
@@ -683,6 +725,7 @@ export function TopologiaEditorPage() {
                 <TopologiaNodeView
                   key={node.id}
                   node={node}
+                  nodes={nodes}
                   isSelected={isSelected}
                   isHighlighted={isHighlighted}
                   isDimmed={isDimmed}
