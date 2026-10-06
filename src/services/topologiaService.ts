@@ -312,25 +312,39 @@ function saveLocalTopologias(topos: TopologiaRed[]) {
   }
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const TOPO_SELECT_WITH_CLIENTS = `
+  *,
+  consorcio:infrastructure_topologies_consorcio_id_fkey ( id, nombre, direccion ),
+  particular:infrastructure_topologies_particular_id_fkey ( id, nombre, direccion )
+`;
+
 export const topologiaService = {
   /**
    * Obtiene todas las topologías registradas
    */
   async getAll(): Promise<TopologiaRed[]> {
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('infrastructure_topologies')
-        .select(`
-          *,
-          consorcios ( id, nombre, direccion )
-        `)
+        .select(TOPO_SELECT_WITH_CLIENTS)
         .order('updated_at', { ascending: false });
+
+      // Fallback si falla el join con consorcios
+      if (error) {
+        const fallback = await supabase
+          .from('infrastructure_topologies')
+          .select('*')
+          .order('updated_at', { ascending: false });
+        data = fallback.data;
+        error = fallback.error;
+      }
 
       if (!error && data && data.length > 0) {
         return data.map((t: any) => ({
           ...t,
-          consorcio: t.consorcios,
-          particular: t.particular_id ? t.consorcios : null,
+          consorcio: t.consorcio || null,
+          particular: t.particular || null,
           nodos: t.nodos || [],
           conexiones: t.conexiones || [],
         }));
@@ -346,20 +360,27 @@ export const topologiaService = {
    */
   async getById(id: string): Promise<TopologiaRed | null> {
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('infrastructure_topologies')
-        .select(`
-          *,
-          consorcios ( id, nombre, direccion )
-        `)
+        .select(TOPO_SELECT_WITH_CLIENTS)
         .eq('id', id)
         .maybeSingle();
+
+      if (error) {
+        const fallback = await supabase
+          .from('infrastructure_topologies')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+        data = fallback.data;
+        error = fallback.error;
+      }
 
       if (!error && data) {
         return {
           ...data,
-          consorcio: data.consorcios,
-          particular: data.particular_id ? data.consorcios : null,
+          consorcio: data.consorcio || null,
+          particular: data.particular || null,
           nodos: data.nodos || [],
           conexiones: data.conexiones || [],
         };
@@ -377,33 +398,47 @@ export const topologiaService = {
    */
   async getByPublicId(publicId: string): Promise<TopologiaRed | null> {
     try {
-      let { data } = await supabase
-        .from('infrastructure_topologies')
-        .select(`
-          *,
-          consorcios ( id, nombre, direccion )
-        `)
-        .eq('public_id', publicId)
-        .maybeSingle();
+      let data: any = null;
 
-      // Si no se encuentra por public_id, intentar por id directo
+      // 1. Intento por public_id (si es UUID) con join
+      if (UUID_REGEX.test(publicId)) {
+        const res = await supabase
+          .from('infrastructure_topologies')
+          .select(TOPO_SELECT_WITH_CLIENTS)
+          .eq('public_id', publicId)
+          .maybeSingle();
+        if (!res.error && res.data) {
+          data = res.data;
+        }
+      }
+
+      // 2. Si no se encontró por public_id, buscar por id directo con join
       if (!data) {
         const fallbackRes = await supabase
           .from('infrastructure_topologies')
-          .select(`
-            *,
-            consorcios ( id, nombre, direccion )
-          `)
+          .select(TOPO_SELECT_WITH_CLIENTS)
           .eq('id', publicId)
           .maybeSingle();
-        data = fallbackRes.data;
+        if (!fallbackRes.error && fallbackRes.data) {
+          data = fallbackRes.data;
+        }
+      }
+
+      // 3. Fallback a select('*') sin join si fallaron las relaciones
+      if (!data) {
+        let query = supabase.from('infrastructure_topologies').select('*');
+        query = UUID_REGEX.test(publicId) ? query.eq('public_id', publicId) : query.eq('id', publicId);
+        const simpleRes = await query.maybeSingle();
+        if (!simpleRes.error && simpleRes.data) {
+          data = simpleRes.data;
+        }
       }
 
       if (data) {
         return {
           ...data,
-          consorcio: data.consorcios,
-          particular: data.particular_id ? data.consorcios : null,
+          consorcio: data.consorcio || null,
+          particular: data.particular || null,
           nodos: data.nodos || [],
           conexiones: data.conexiones || [],
         };
@@ -718,16 +753,21 @@ export const topologiaService = {
    */
   async save(topologia: TopologiaRed): Promise<TopologiaRed> {
     topologia.updated_at = new Date().toISOString();
-    if (!topologia.public_id) {
+    if (!topologia.public_id || !UUID_REGEX.test(topologia.public_id)) {
       topologia.public_id = crypto.randomUUID();
     }
+
+    // Validar que los campos UUID sean UUIDs reales antes de enviar a Supabase.
+    // IDs demo como 'c1', 'topo-123', 'demo-plan-01' fallarían el cast UUID en Postgres.
+    const toUUID = (val: string | null | undefined) =>
+      val && UUID_REGEX.test(val) ? val : null;
 
     try {
       const { error } = await supabase.from('infrastructure_topologies').upsert({
         id: topologia.id,
-        plan_id: topologia.plan_id || null,
-        consorcio_id: topologia.consorcio_id || null,
-        particular_id: topologia.particular_id || null,
+        plan_id: toUUID(topologia.plan_id),
+        consorcio_id: toUUID(topologia.consorcio_id),
+        particular_id: toUUID(topologia.particular_id),
         public_id: topologia.public_id,
         nombre: topologia.nombre,
         descripcion: topologia.descripcion || null,
@@ -735,10 +775,12 @@ export const topologiaService = {
         nodos: topologia.nodos || [],
         conexiones: topologia.conexiones || [],
         updated_at: topologia.updated_at,
-      });
+      }, { onConflict: 'id' });
 
       if (error) {
-        console.error('[TopologiaService] Error guardando en Supabase:', error);
+        console.error('[TopologiaService] Error guardando en Supabase:', error.message, error.details, error.hint);
+      } else {
+        console.info('[TopologiaService] Topología guardada en Supabase ✓ id:', topologia.id, 'public_id:', topologia.public_id);
       }
     } catch (e) {
       console.warn('[TopologiaService] Excepción guardando en Supabase:', e);
@@ -755,6 +797,7 @@ export const topologiaService = {
 
     return topologia;
   },
+
 
   /**
    * Obtiene todas las topologías de un cliente (consorcio o particular)

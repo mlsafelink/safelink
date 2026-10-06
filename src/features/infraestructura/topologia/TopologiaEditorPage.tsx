@@ -255,9 +255,19 @@ export function TopologiaEditorPage() {
 
   const handleSaveTopology = async () => {
     if (!topologia) return;
-    await topologiaService.save(topologia);
+    const saved = await topologiaService.save(topologia);
+    setTopologia(saved);
     setHasUnsavedChanges(false);
     showToast('Topología guardada correctamente', 'success');
+  };
+
+  const handleOpenShare = async () => {
+    if (topologia) {
+      const saved = await topologiaService.save(topologia);
+      setTopologia(saved);
+      setHasUnsavedChanges(false);
+    }
+    setIsShareModalOpen(true);
   };
 
   const handleDeleteSelectedNode = () => {
@@ -507,7 +517,7 @@ export function TopologiaEditorPage() {
           <Button
             variant="secondary"
             leftIcon={<Share2 size={16} />}
-            onClick={() => setIsShareModalOpen(true)}
+            onClick={handleOpenShare}
             title="Generar enlace público de solo lectura"
           >
             Compartir
