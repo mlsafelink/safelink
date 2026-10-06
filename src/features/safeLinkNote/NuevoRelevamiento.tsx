@@ -29,6 +29,7 @@ import {
   Search,
   ChevronDown,
   Pencil,
+  Download,
 } from 'lucide-react';
 import styles from './NuevoRelevamiento.module.css';
 import { relevamientoService } from '@/services/relevamientoService';
@@ -36,6 +37,8 @@ import type { RelevamientoManoDeObra } from '@/services/relevamientoService';
 import { safeLinkNoteService } from '@/services/safeLinkNoteService';
 import { ClienteSelectorModal, type ClienteItem } from './ClienteSelectorModal';
 import { ClienteNuevoModal } from './ClienteNuevoModal';
+import { RelevamientoFotoModal } from './components/RelevamientoFotoModal';
+import { descargarTodasLasFotosRelevamiento } from './utils/descargarFotos';
 
 // ── Tipos ──────────────────────────────────────────────────────────
 type TipoTrabajo = 'CAMARAS' | 'REDES' | 'ILUMINACION' | 'ELECTRICIDAD' | 'OTRO';
@@ -212,6 +215,7 @@ export function NuevoRelevamiento() {
     tipoTrabajo: ['CAMARAS'], observaciones: '',
   });
   const [fotos,      setFotos]      = useState<Foto[]>([]);
+  const [previewFotoIndex, setPreviewFotoIndex] = useState<number | null>(null);
   const [materiales, setMateriales] = useState<Material[]>([]);
   const [manoDeObra, setManoDeObra] = useState<RelevamientoManoDeObra[]>([]);
 
@@ -870,13 +874,22 @@ export function NuevoRelevamiento() {
             ) : (
               <div className={styles.fotoContentBox}>
                 <div className={styles.fotoGrid}>
-                  {fotos.map(f => (
-                    <div key={f.id} className={styles.fotoThumb}>
+                  {fotos.map((f, idx) => (
+                    <div
+                      key={f.id}
+                      className={styles.fotoThumb}
+                      onClick={() => setPreviewFotoIndex(idx)}
+                      style={{ cursor: 'pointer' }}
+                      title="Clic para ver en tamaño completo y descargar"
+                    >
                       <img src={f.dataUrl} alt="Foto relevamiento" className={styles.thumbImg} />
                       <button
                         type="button"
                         className={styles.thumbRemove}
-                        onClick={() => removePhoto(f.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removePhoto(f.id);
+                        }}
                         aria-label="Eliminar foto"
                       >
                         <X size={13} />
@@ -900,6 +913,15 @@ export function NuevoRelevamiento() {
                   >
                     <ImagePlus size={15} />
                     <span>Desde galería</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.fotoBtnSecondary}
+                    onClick={() => descargarTodasLasFotosRelevamiento(fotos, form.cliente || 'relevamiento')}
+                    title="Descargar fotos a tu dispositivo"
+                  >
+                    <Download size={15} />
+                    <span>Descargar fotos ({fotos.length})</span>
                   </button>
                 </div>
               </div>
@@ -1525,6 +1547,16 @@ export function NuevoRelevamiento() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Visor y Descarga de Fotos */}
+      {previewFotoIndex !== null && (
+        <RelevamientoFotoModal
+          fotos={fotos}
+          initialIndex={previewFotoIndex}
+          clienteNombre={form.cliente || 'Relevamiento'}
+          onClose={() => setPreviewFotoIndex(null)}
+        />
       )}
 
     </div>

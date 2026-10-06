@@ -27,7 +27,14 @@ import {
   Zap,
   Calendar,
   Pencil,
+  Eye,
 } from 'lucide-react';
+import type { RelevamientoFoto } from '@/services/relevamientoService';
+import { RelevamientoFotoModal } from './components/RelevamientoFotoModal';
+import {
+  descargarFotoIndividual,
+  descargarTodasLasFotosRelevamiento,
+} from './utils/descargarFotos';
 import styles from './SafeLinkNotePage.module.css';
 
 // ── Formateo de fecha y hora ───────────────────────────────────────
@@ -68,12 +75,14 @@ function RelevamientoCardLarge({
   onToggleExpand,
   onDelete,
   onEdit,
+  onOpenFotoModal,
 }: {
   rel: Relevamiento;
   isExpanded: boolean;
   onToggleExpand: () => void;
   onDelete: (e: React.MouseEvent) => void;
   onEdit: (e: React.MouseEvent) => void;
+  onOpenFotoModal: (fotos: RelevamientoFoto[], index: number, clienteNombre: string) => void;
 }) {
   const { fecha, hora } = formatDate(rel.created_at);
   const primaryType = getPrimaryWorkTypeInfo(rel.tipos_trabajo);
@@ -245,11 +254,97 @@ function RelevamientoCardLarge({
             );
           })()}
 
+          {/* ── Galería de Fotografías del Relevamiento ── */}
+          {rel.fotos && rel.fotos.length > 0 && (
+            <div className={styles.relFotosSection}>
+              <div className={styles.relFotosHeader}>
+                <div className={styles.relFotosTitle}>
+                  <Camera size={15} />
+                  <span>Fotografías del relevamiento</span>
+                  <span className={styles.relFotosCountBadge}>{rel.fotos.length}</span>
+                </div>
+
+                <div className={styles.relFotosHeaderActions}>
+                  <button
+                    type="button"
+                    className={styles.relFotosDownloadAllBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      descargarTodasLasFotosRelevamiento(rel.fotos, rel.cliente || 'relevamiento');
+                    }}
+                    title="Descargar fotos del relevamiento a tu equipo"
+                  >
+                    <Download size={13} />
+                    <span>
+                      {rel.fotos.length === 1 ? 'Descargar foto' : `Descargar todas (${rel.fotos.length})`}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.relFotosGrid}>
+                {rel.fotos.map((foto, idx) => (
+                  <div
+                    key={foto.id || idx}
+                    className={styles.relFotoCard}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenFotoModal(rel.fotos, idx, rel.cliente || 'Relevamiento');
+                    }}
+                    title={foto.descripcion || `Foto #${idx + 1} - Clic para ver en tamaño completo y descargar`}
+                  >
+                    <img
+                      src={foto.dataUrl}
+                      alt={foto.descripcion || `Foto ${idx + 1}`}
+                      className={styles.relFotoImg}
+                      loading="lazy"
+                    />
+                    <span className={styles.relFotoBadge}>#{idx + 1}</span>
+                    <div className={styles.relFotoOverlay}>
+                      <button
+                        type="button"
+                        className={styles.relFotoActionBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenFotoModal(rel.fotos, idx, rel.cliente || 'Relevamiento');
+                        }}
+                        title="Ver foto en tamaño completo"
+                      >
+                        <Eye size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.relFotoActionBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          descargarFotoIndividual(foto, rel.cliente || 'relevamiento', idx + 1);
+                        }}
+                        title="Descargar esta foto"
+                      >
+                        <Download size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className={styles.relActionsRow}>
             {rel.fotos && rel.fotos.length > 0 && (
-              <span style={{ fontSize: '0.78rem', color: '#94a3b8', marginRight: 'auto' }}>
-                📷 {rel.fotos.length} fotografía{rel.fotos.length !== 1 ? 's' : ''} adjunta{rel.fotos.length !== 1 ? 's' : ''}
-              </span>
+              <button
+                type="button"
+                className={styles.relFotosDownloadAllBtn}
+                style={{ marginRight: 'auto' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenFotoModal(rel.fotos, 0, rel.cliente || 'Relevamiento');
+                }}
+                title="Abrir galería de fotos en pantalla completa"
+              >
+                <Camera size={13} />
+                <span>Ver fotos ({rel.fotos.length})</span>
+              </button>
             )}
 
             <button
@@ -339,6 +434,13 @@ export function SafeLinkNotePage() {
   // Modal Nathulia
   const [selectedFileForNathulia, setSelectedFileForNathulia] = useState<SlnFile | null>(null);
   const [promptText, setPromptText] = useState('');
+
+  // Modal Visor de Fotografías
+  const [modalFotosData, setModalFotosData] = useState<{
+    fotos: RelevamientoFoto[];
+    initialIndex: number;
+    clienteNombre: string;
+  } | null>(null);
 
   const cargarRelevamientos = async () => {
     setLoadingRelevamientos(true);
@@ -558,6 +660,9 @@ export function SafeLinkNotePage() {
                 onToggleExpand={() => setExpandedRelId(prev => prev === rel.id ? null : rel.id)}
                 onDelete={(e) => handleEliminarRelevamiento(rel.id, e)}
                 onEdit={(e) => { e.stopPropagation(); navigate(`/safelink-note/editar/${rel.id}`); }}
+                onOpenFotoModal={(fotos, index, clienteNombre) => {
+                  setModalFotosData({ fotos, initialIndex: index, clienteNombre });
+                }}
               />
             ))}
           </div>
@@ -662,6 +767,16 @@ export function SafeLinkNotePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── 8. MODAL VISOR Y DESCARGA DE FOTOGRAFÍAS ── */}
+      {modalFotosData && (
+        <RelevamientoFotoModal
+          fotos={modalFotosData.fotos}
+          initialIndex={modalFotosData.initialIndex}
+          clienteNombre={modalFotosData.clienteNombre}
+          onClose={() => setModalFotosData(null)}
+        />
       )}
     </div>
   );

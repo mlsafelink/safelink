@@ -251,24 +251,49 @@ export const reporteService = {
     if (!reporte.codigo) {
       reporte.codigo = await generateUniqueDocCode('RT', 'reportes');
     }
-    const { data, error } = await supabase
+    let res = await supabase
       .from('reportes')
       .insert(reporte)
       .select()
       .single();
-    if (error) throw error;
-    return data as Reporte;
+
+    // Fallback si la tabla 'reportes' en Supabase aún no tiene la columna 'codigo'
+    if (res.error && (res.error.message?.includes("'codigo'") || res.error.message?.includes('codigo'))) {
+      console.warn('[reporteService] Columna codigo no existe en reportes, guardando sin código:', res.error.message);
+      const { codigo: _ignored, ...reporteSinCodigo } = reporte;
+      res = await supabase
+        .from('reportes')
+        .insert(reporteSinCodigo)
+        .select()
+        .single();
+    }
+
+    if (res.error) throw res.error;
+    return res.data as Reporte;
   },
 
   async update(id: string, reporte: Partial<Reporte>) {
-    const { data, error } = await supabase
+    let res = await supabase
       .from('reportes')
       .update(reporte)
       .eq('id', id)
       .select()
       .single();
-    if (error) throw error;
-    return data as Reporte;
+
+    // Fallback si la tabla 'reportes' en Supabase aún no tiene la columna 'codigo'
+    if (res.error && (res.error.message?.includes("'codigo'") || res.error.message?.includes('codigo'))) {
+      console.warn('[reporteService] Columna codigo no existe en reportes, actualizando sin código:', res.error.message);
+      const { codigo: _ignored, ...reporteSinCodigo } = reporte;
+      res = await supabase
+        .from('reportes')
+        .update(reporteSinCodigo)
+        .eq('id', id)
+        .select()
+        .single();
+    }
+
+    if (res.error) throw res.error;
+    return res.data as Reporte;
   },
 
   async delete(id: string) {
