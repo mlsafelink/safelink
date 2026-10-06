@@ -181,6 +181,7 @@
 .iconRouter  { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
 .iconServer  { background: rgba(244, 63, 94, 0.15); color: #f43f5e; }
 .iconPrinter { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
+.iconRack    { background: rgba(180, 120, 40, 0.18); color: #b87828; }
 .iconOther   { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
 
 .toolText {

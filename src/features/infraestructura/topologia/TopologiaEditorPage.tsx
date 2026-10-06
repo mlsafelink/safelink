@@ -16,7 +16,7 @@ import {
   Save, Share2, FileText, Sparkles,
   GitBranch, Trash2, Edit3, Globe, Network,
   Wifi, Zap, Printer, Server, Shield, CircleDot,
-  ArrowRight, Maximize2,
+  ArrowRight, Maximize2, Package,
 } from 'lucide-react';
 import type {
   TopologiaRed,
@@ -217,7 +217,8 @@ export function TopologiaEditorPage() {
                    tipo === 'router' ? 'RT' :
                    tipo === 'servidor' ? 'SRV' :
                    tipo === 'impresora' ? 'PRN' :
-                   tipo === 'fuente_poe' ? 'POE' : 'BOCA';
+                   tipo === 'fuente_poe' ? 'POE' :
+                   tipo === 'rack' ? 'RACK' : 'BOCA';
 
     const codigo = `${prefix}-${countOfSameType < 10 ? `0${countOfSameType}` : countOfSameType}`;
 
@@ -230,7 +231,9 @@ export function TopologiaEditorPage() {
       x: 650 + (Math.random() * 80 - 40),
       y: 500 + (Math.random() * 80 - 40),
       estado: 'activo',
-      propiedades: tipo === 'switch' ? { cantidadPuertos: 16 } : {},
+      propiedades: tipo === 'switch' ? { cantidadPuertos: 16 }
+                 : tipo === 'rack' ? { unidades: 12, tipoMontaje: 'Mural' }
+                 : {},
     };
 
     setTopologia(prev => prev ? {
@@ -589,6 +592,16 @@ export function TopologiaEditorPage() {
 
           <div className={styles.sidebarSection}>
             <span className={styles.sidebarHeading}>Otros Dispositivos</span>
+            <button className={styles.toolItem} onClick={() => handleAddEquipment('rack')}>
+              <div className={`${styles.toolIconWrap} ${styles.iconRack}`}>
+                <Package size={16} />
+              </div>
+              <div className={styles.toolText}>
+                <span className={styles.toolTitle}>+ Rack</span>
+                <span className={styles.toolSub}>Mural / Piso / Gabinete</span>
+              </div>
+            </button>
+
             <button className={styles.toolItem} onClick={() => handleAddEquipment('servidor')}>
               <div className={`${styles.toolIconWrap} ${styles.iconServer}`}>
                 <Server size={16} />

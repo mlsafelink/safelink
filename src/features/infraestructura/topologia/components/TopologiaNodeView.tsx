@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import {
   Globe, Server, Wifi, Zap, Printer,
-  Shield, Network, CircleDot,
+  Shield, Network, CircleDot, Package,
 } from 'lucide-react';
 import type { TopologiaNodo, TopologiaConexion } from '@/types/topologia';
 import styles from './TopologiaNodeView.module.css';
@@ -310,7 +310,36 @@ export const TopologiaNodeView = memo(function TopologiaNodeView({
     );
   }
 
-  // 5. ENDPOINTS (BOCA, AP, SERVIDOR, IMPRESORA, ROUTER, OTRO)
+  // 5. RACK
+  if (node.tipo === 'rack') {
+    const props = node.propiedades as any;
+    const units = props?.unidades || 12;
+    const montaje = props?.tipoMontaje || 'Mural';
+    return (
+      <div
+        className={`${styles.nodeWrapper} ${isSelected ? styles.nodeSelected : ''} ${
+          isHighlighted ? styles.nodeHighlighted : ''
+        } ${isDimmed ? styles.nodeDimmed : ''}`}
+        style={{ left: `${node.x}px`, top: `${node.y}px` }}
+        onMouseDown={e => onMouseDown(e, node)}
+        onClick={handleClick}
+      >
+        <div className={styles.rackCard}>
+          <div className={styles.rackHeader}>
+            <Package size={16} className={styles.rackIcon} />
+            <span className={styles.nodeCode}>{node.codigo}</span>
+          </div>
+          <div className={styles.rackBadgeRow}>
+            <span className={styles.rackUBadge}>{units}U</span>
+            <span className={styles.rackMountBadge}>{montaje}</span>
+          </div>
+          <p className={styles.rackNameSub}>{node.nombre}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 6. ENDPOINTS (BOCA, AP, SERVIDOR, IMPRESORA, ROUTER, OTRO)
   const props = node.propiedades as any;
   const usePoe = !!props?.use_poe_injector;
   const poeVoltage = props?.poe_voltage || '24V';

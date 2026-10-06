@@ -384,7 +384,6 @@ export const topologiaService = {
           consorcios ( id, nombre, direccion )
         `)
         .eq('public_id', publicId)
-        .is('deleted_at', null)
         .maybeSingle();
 
       // Si no se encuentra por public_id, intentar por id directo
@@ -396,7 +395,6 @@ export const topologiaService = {
             consorcios ( id, nombre, direccion )
           `)
           .eq('id', publicId)
-          .is('deleted_at', null)
           .maybeSingle();
         data = fallbackRes.data;
       }
