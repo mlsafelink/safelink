@@ -150,15 +150,21 @@ export interface VibeCapabilities {
   instagram: 'pending';
   /** Exportación de contenido */
   export: 'pending';
+  /** Campañas publicitarias multiformato */
+  campaigns: 'available';
 }
 
 export const VIBE_CAPABILITIES: VibeCapabilities = {
   projects: 'available',
   brand: 'available',
   library: 'available',
+  campaigns: 'available',
   videoGeneration: 'pending',
   ttsGeneration: 'pending',
   scriptGeneration: 'pending',
   instagram: 'pending',
   export: 'pending',
 };
+
+export * from './campaigns';
+

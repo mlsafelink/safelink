@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
   Save,
@@ -47,11 +47,22 @@ const VOICES = [
 
 export function CreateContentPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { showToast } = useToast();
+
+  const campaignIdParam = searchParams.get('campaignId');
+  const serviceParam = searchParams.get('service');
+
+  const getInitialService = () => {
+    if (serviceParam === 'seguridad') return 'camaras';
+    if (serviceParam === 'redes') return 'redes';
+    if (serviceParam === 'iluminacion') return 'iluminacion';
+    return SAFELINK_SERVICES[0].id;
+  };
 
   // Form State
   const [format, setFormat] = useState<ContentFormat>('video_9_16');
-  const [service, setService] = useState<string>(SAFELINK_SERVICES[0].id);
+  const [service, setService] = useState<string>(getInitialService);
   const [objective, setObjective] = useState<string>('lead_gen');
   const [title, setTitle] = useState('');
   const [headline, setHeadline] = useState('Protegé lo que más te importa con SafeLink');
@@ -257,7 +268,12 @@ export function CreateContentPage() {
         title: title.trim(),
         format,
         description: `Objetivo: ${objective}. Servicio: ${selectedServiceObj?.name ?? service}`,
-        tags: [service, objective, currentFormatMeta.aspectRatio],
+        tags: [
+          service,
+          objective,
+          currentFormatMeta.aspectRatio,
+          ...(campaignIdParam ? [`campaign:${campaignIdParam}`] : []),
+        ],
         project_data: {
           prompt: `${headline}. ${bodyText}`,
           voiceoverScript: bodyText,
