@@ -7,12 +7,16 @@ import {
   Upload,
   CheckCircle2,
   AlertCircle,
-  HelpCircle,
   Square,
   Smartphone,
   Film,
   Monitor,
   LayoutGrid,
+  Play,
+  Pause,
+  Volume2,
+  Video,
+  Layers,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import styles from './CreateContentPage.module.css';
@@ -20,7 +24,12 @@ import { CONTENT_FORMATS } from '../../constants/formats';
 import type { ContentFormat } from '../../constants/formats';
 import { SAFELINK_SERVICES } from '../../constants/services';
 import { createProject } from '../../services/projectService';
-import { generateScript } from '../../services/vibeApi';
+import {
+  generateScript,
+  generateTts,
+  startVideoGeneration,
+  pollVideoStatus,
+} from '../../services/vibeApi';
 import { useToast } from '@/components/ui/Toast/ToastContext';
 
 const OBJECTIVES = [
@@ -88,6 +97,25 @@ export function CreateContentPage() {
   };
 
   const [isGeneratingScript, setIsGeneratingScript] = useState(false);
+  const [scenes, setScenes] = useState<Array<{
+    time: string;
+    title: string;
+    visualDescription: string;
+    audioLine: string;
+    icon: string;
+  }>>([]);
+  const [veoPrompt, setVeoPrompt] = useState<string>('');
+
+  // Audio State
+  const [audioBase64, setAudioBase64] = useState<string | null>(null);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+
+  // Video Generation State
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [videoStatusText, setVideoStatusText] = useState('');
 
   const handleGenerateWithAI = async () => {
     const selectedServiceObj = SAFELINK_SERVICES.find((s: { id: string }) => s.id === service);
@@ -105,6 +133,8 @@ export function CreateContentPage() {
         if (res.data.headline) setHeadline(res.data.headline);
         if (res.data.voiceoverScript) setBodyText(res.data.voiceoverScript);
         if (res.data.ctaText) setCtaText(res.data.ctaText);
+        if (res.data.scenes) setScenes(res.data.scenes);
+        if (res.data.veoPrompt) setVeoPrompt(res.data.veoPrompt);
         showToast('¡Guión y copy publicitario generados con IA!', 'success');
       } else {
         showToast(
@@ -116,6 +146,100 @@ export function CreateContentPage() {
       showToast('Error de conexión con el backend de IA.', 'error');
     } finally {
       setIsGeneratingScript(false);
+    }
+  };
+
+  const handleGenerateTTS = async () => {
+    if (!bodyText.trim()) {
+      showToast('Escribí o generá un guión primero para sintetizar la voz.', 'error');
+      return;
+    }
+
+    setIsGeneratingAudio(true);
+    try {
+      const res = await generateTts({
+        text: bodyText,
+        voiceName: voiceId === 'es_ar_female_warm' ? 'Kore' : 'Fenrir',
+      });
+
+      if (res.ok) {
+        setAudioBase64(res.data.audioBase64);
+        const audioSrc = `data:${res.data.mimeType};base64,${res.data.audioBase64}`;
+        const audio = new Audio(audioSrc);
+        setAudioElement(audio);
+        audio.onended = () => setIsPlayingAudio(false);
+        audio.play();
+        setIsPlayingAudio(true);
+        showToast('¡Locución generada con éxito!', 'success');
+      } else {
+        showToast(res.error || 'Error al generar locución.', 'error');
+      }
+    } catch {
+      showToast('Error de conexión con el backend de voz.', 'error');
+    } finally {
+      setIsGeneratingAudio(false);
+    }
+  };
+
+  const handleTogglePlayAudio = () => {
+    if (!audioElement) return;
+    if (isPlayingAudio) {
+      audioElement.pause();
+      setIsPlayingAudio(false);
+    } else {
+      audioElement.play();
+      setIsPlayingAudio(true);
+    }
+  };
+
+  const handleGenerateVideo = async () => {
+    const promptToUse = veoPrompt || headline || `Cinematic professional video showcasing ${service} installation for SafeLink`;
+    const targetRatio = currentFormatMeta.aspectRatio === '16:9' ? '16:9' : '9:16';
+
+    setIsGeneratingVideo(true);
+    setVideoProgress(15);
+    setVideoStatusText('Enviando petición a Google Veo...');
+
+    try {
+      const res = await startVideoGeneration({
+        prompt: promptToUse,
+        aspectRatio: targetRatio,
+        resolution: '720p',
+      });
+
+      if (!res.ok) {
+        showToast(res.error || 'Error al iniciar generación de video.', 'error');
+        setIsGeneratingVideo(false);
+        return;
+      }
+
+      const operationName = res.data.operationName;
+      setVideoProgress(35);
+      setVideoStatusText('Renderizando fotogramas con Veo (esto puede demorar unos minutos)...');
+
+      let attempts = 0;
+      const maxAttempts = 30;
+
+      const interval = setInterval(async () => {
+        attempts++;
+        setVideoProgress((prev) => Math.min(prev + 3, 92));
+
+        const statusRes = await pollVideoStatus(operationName);
+        if (statusRes.ok && statusRes.data.done) {
+          clearInterval(interval);
+          setVideoProgress(100);
+          setVideoStatusText('¡Video generado!');
+          setIsGeneratingVideo(false);
+          showToast('¡Video generado con Google Veo!', 'success');
+        } else if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          setIsGeneratingVideo(false);
+          setVideoStatusText('Procesamiento en progreso en Google Cloud.');
+        }
+      }, 5000);
+    } catch {
+      showToast('Error de comunicación con el motor de video.', 'error');
+      setIsGeneratingVideo(false);
     }
   };
 
@@ -397,6 +521,27 @@ export function CreateContentPage() {
                 placeholder="Ej: Escribinos por WhatsApp al..."
               />
             </div>
+
+            {scenes.length > 0 && (
+              <div className={styles.scenesTimeline}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  <Layers size={15} color="var(--vibe-blue)" />
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--vibe-text-primary)' }}>
+                    Guión Desglosado en Escenas ({scenes.length} tomas)
+                  </span>
+                </div>
+                {scenes.map((scene, idx) => (
+                  <div key={idx} className={styles.sceneCard}>
+                    <div className={styles.sceneCardHeader}>
+                      <span className={styles.sceneTitle}>{scene.title}</span>
+                      <span className={styles.sceneTimeBadge}>{scene.time}</span>
+                    </div>
+                    <div className={styles.sceneVisualDesc}>{scene.visualDescription}</div>
+                    <div className={styles.sceneAudioLine}>"{scene.audioLine}"</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 5. Recursos visuales */}
@@ -503,17 +648,86 @@ export function CreateContentPage() {
               </div>
             </div>
 
-            <div className={styles.calloutPhase2}>
-              <HelpCircle size={16} />
-              <div>
-                <strong>Persistencia garantizada:</strong> Esta configuración se guarda de forma estructurada en el proyecto. La síntesis neuronal de voz en off y renderizado en servidor se conectarán en la <strong>Fase 2</strong>.
+            {/* Reproductor y Síntesis de Audio TTS */}
+            <div className={styles.audioPlayerBox}>
+              <div className={styles.audioControlsRow}>
+                <div>
+                  <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--vibe-text-primary)' }}>
+                    Locución Neuronal de Prueba
+                  </div>
+                  <div style={{ fontSize: '0.6875rem', color: 'var(--vibe-text-muted)' }}>
+                    Sintetizá y escuchá la voz generada antes de guardar
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    type="button"
+                    className={styles.audioPlayBtn}
+                    onClick={handleGenerateTTS}
+                    disabled={isGeneratingAudio}
+                  >
+                    <Volume2 size={15} />
+                    <span>{isGeneratingAudio ? 'Sintetizando...' : 'Generar Audio'}</span>
+                  </button>
+
+                  {audioBase64 && (
+                    <button
+                      type="button"
+                      className={styles.audioPlayBtn}
+                      onClick={handleTogglePlayAudio}
+                      style={{ background: 'var(--vibe-blue)', color: 'white' }}
+                    >
+                      {isPlayingAudio ? <Pause size={15} /> : <Play size={15} />}
+                      <span>{isPlayingAudio ? 'Pausar' : 'Escuchar'}</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Columna derecha: Vista previa interactiva en tiempo real */}
+        {/* Columna derecha: Vista previa interactiva y Generador de Video */}
         <div className={styles.previewColumn}>
+          {/* Caja de Generación de Video con Veo */}
+          <div className={styles.videoGenBox}>
+            <div className={styles.videoGenHeader}>
+              <div>
+                <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--vibe-text-primary)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                  <Video size={15} color="var(--vibe-blue)" />
+                  <span>Render de Video con Google Veo</span>
+                </div>
+                <div style={{ fontSize: '0.6875rem', color: 'var(--vibe-text-muted)' }}>
+                  Generación cinematográfica en proporción {currentFormatMeta.aspectRatio}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className={styles.btnPrimary}
+                onClick={handleGenerateVideo}
+                disabled={isGeneratingVideo}
+                style={{ padding: '0.375rem 0.75rem', fontSize: '0.75rem' }}
+              >
+                <Sparkles size={13} />
+                <span>{isGeneratingVideo ? 'Procesando...' : 'Generar Video'}</span>
+              </button>
+            </div>
+
+            {isGeneratingVideo && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <div className={styles.progressBarContainer}>
+                  <div className={styles.progressBarFill} style={{ width: `${videoProgress}%` }} />
+                </div>
+                <div style={{ fontSize: '0.6875rem', color: 'var(--vibe-text-muted)', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>{videoStatusText}</span>
+                  <span>{videoProgress}%</span>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className={styles.previewCard}>
             <div className={styles.previewHeader}>
               <div className={styles.previewTitle}>

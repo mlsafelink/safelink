@@ -516,3 +516,151 @@
   flex-shrink: 0;
   margin-top: 0.125rem;
 }
+
+/* Audio Player */
+.audioPlayerBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: var(--vibe-radius-sm);
+  background: var(--vibe-surface-2);
+  border: 1px solid var(--vibe-border);
+}
+
+.audioControlsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.audioPlayBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.875rem;
+  border-radius: var(--vibe-radius-sm);
+  background: var(--vibe-surface);
+  border: 1px solid var(--vibe-border);
+  color: var(--vibe-text-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--vibe-transition);
+}
+
+.audioPlayBtn:hover {
+  background: rgba(79, 110, 247, 0.1);
+  border-color: var(--vibe-blue);
+  color: var(--vibe-blue);
+}
+
+/* Video Generator Box & Progress */
+.videoGenBox {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: var(--vibe-radius-sm);
+  background: rgba(79, 110, 247, 0.04);
+  border: 1px solid rgba(79, 110, 247, 0.2);
+}
+
+.videoGenHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.progressBarContainer {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--vibe-surface-2);
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--vibe-gradient-primary);
+  transition: width 0.3s ease;
+  animation: pulseProgress 2s ease-in-out infinite;
+}
+
+@keyframes pulseProgress {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; filter: brightness(1.2); }
+  100% { opacity: 0.8; }
+}
+
+/* Scenes Timeline */
+.scenesTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sceneCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--vibe-radius-sm);
+  background: var(--vibe-surface-2);
+  border: 1px solid var(--vibe-border);
+  transition: border-color var(--vibe-transition);
+}
+
+.sceneCard:hover {
+  border-color: var(--vibe-border-hover);
+}
+
+.sceneCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.sceneTimeBadge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: var(--vibe-surface);
+  border: 1px solid var(--vibe-border);
+  color: var(--vibe-blue);
+}
+
+.sceneTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--vibe-text-primary);
+}
+
+.sceneVisualDesc {
+  font-size: 0.75rem;
+  color: var(--vibe-text-muted);
+  line-height: 1.4;
+}
+
+.sceneAudioLine {
+  font-size: 0.75rem;
+  color: var(--vibe-text-secondary);
+  font-style: italic;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 0.375rem 0.5rem;
+  border-radius: 4px;
+  border-left: 2px solid var(--vibe-blue);
+}
+
+.mockVideoPlayer {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  inset: 0;
+}
