@@ -1,0 +1,334 @@
+/* SafeLink Vibe — Plantillas Creativas (Fase 4B) */
+
+.page {
+  padding: 2.25rem 2.5rem;
+  max-width: 1560px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ── Encabezado ── */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: clamp(1.375rem, 3vw, 1.875rem);
+  font-weight: 700;
+  color: var(--vibe-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--vibe-text-muted);
+  max-width: 65ch;
+  line-height: 1.5;
+}
+
+/* ── Barra de filtros ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  background: var(--vibe-surface-2);
+  border: 1px solid var(--vibe-border);
+  border-radius: var(--vibe-radius-lg);
+}
+
+.platformTabs {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.platformTab {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4375rem 0.875rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--vibe-radius-sm);
+  color: var(--vibe-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--vibe-transition);
+}
+
+.platformTab:hover {
+  color: var(--vibe-text-primary);
+  background: var(--vibe-surface-3);
+}
+
+.platformTabActive {
+  color: var(--vibe-text-primary);
+  background: var(--vibe-surface-3);
+  border-color: var(--vibe-border-hover);
+}
+
+.serviceSelect {
+  padding: 0.4375rem 0.875rem;
+  background: var(--vibe-surface-3);
+  border: 1px solid var(--vibe-border);
+  border-radius: var(--vibe-radius-sm);
+  color: var(--vibe-text-primary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+}
+
+/* ── Grilla de plantillas ── */
+.templatesGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .templatesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .templatesGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.templateCard {
+  background: var(--vibe-surface-2);
+  border: 1px solid var(--vibe-border);
+  border-radius: var(--vibe-radius-xl);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+  transition: transform var(--vibe-transition), border-color var(--vibe-transition), box-shadow var(--vibe-transition);
+}
+
+.templateCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--vibe-border-hover);
+  box-shadow: var(--vibe-shadow-md);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.platformBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.badgeHighlight {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 999px;
+  background: var(--vibe-badge-progress-bg);
+  color: var(--vibe-badge-progress-color);
+}
+
+.templateTitle {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--vibe-text-primary);
+  line-height: 1.35;
+}
+
+.templateDesc {
+  font-size: 0.8125rem;
+  color: var(--vibe-text-secondary);
+  line-height: 1.5;
+}
+
+/* ── Desglose de escenas en la tarjeta ── */
+.scenesPreview {
+  background: var(--vibe-surface-3);
+  border: 1px solid var(--vibe-border);
+  border-radius: var(--vibe-radius-md);
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.scenesPreviewTitle {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--vibe-text-muted);
+}
+
+.scenesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.sceneItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--vibe-text-secondary);
+}
+
+.sceneDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--vibe-blue);
+  flex-shrink: 0;
+}
+
+/* ── Botones de acción ── */
+.cardActions {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.useTemplateBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5625rem 1rem;
+  background: var(--vibe-gradient-primary);
+  border: none;
+  border-radius: var(--vibe-radius-sm);
+  color: white;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity var(--vibe-transition);
+}
+
+.useTemplateBtn:hover {
+  opacity: 0.9;
+}
+
+.previewBtn {
+  padding: 0.5625rem 0.875rem;
+  background: transparent;
+  border: 1px solid var(--vibe-border);
+  border-radius: var(--vibe-radius-sm);
+  color: var(--vibe-text-muted);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all var(--vibe-transition);
+}
+
+.previewBtn:hover {
+  color: var(--vibe-text-primary);
+  border-color: var(--vibe-border-hover);
+}
+
+/* ── Modal de Detalle de Plantilla ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal {
+  background: var(--vibe-surface);
+  border: 1px solid var(--vibe-border);
+  border-radius: var(--vibe-radius-xl);
+  max-width: 640px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--vibe-shadow-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--vibe-border);
+}
+
+.modalTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--vibe-text-primary);
+}
+
+.closeModalBtn {
+  background: transparent;
+  border: none;
+  color: var(--vibe-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.modalBody {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.scriptBox {
+  background: var(--vibe-surface-2);
+  border: 1px solid var(--vibe-border);
+  border-radius: var(--vibe-radius-md);
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: var(--vibe-text-secondary);
+  line-height: 1.6;
+}
+
+.modalFooter {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--vibe-border);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}

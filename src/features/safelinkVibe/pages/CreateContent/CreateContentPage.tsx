@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -23,6 +23,7 @@ import styles from './CreateContentPage.module.css';
 import { CONTENT_FORMATS } from '../../constants/formats';
 import type { ContentFormat } from '../../constants/formats';
 import { SAFELINK_SERVICES } from '../../constants/services';
+import { CREATIVE_TEMPLATES } from '../../constants/templates';
 import { createProject } from '../../services/projectService';
 import {
   generateScript,
@@ -52,6 +53,7 @@ export function CreateContentPage() {
 
   const campaignIdParam = searchParams.get('campaignId');
   const serviceParam = searchParams.get('service');
+  const templateIdParam = searchParams.get('templateId');
 
   const getInitialService = () => {
     if (serviceParam === 'seguridad') return 'camaras';
@@ -127,6 +129,32 @@ export function CreateContentPage() {
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
   const [videoStatusText, setVideoStatusText] = useState('');
+
+  // Cargar datos de plantilla si está presente en la URL
+  useEffect(() => {
+    if (!templateIdParam) return;
+    const tpl = CREATIVE_TEMPLATES.find((t) => t.id === templateIdParam);
+    if (!tpl) return;
+
+    setTitle(tpl.name);
+    setFormat(tpl.format);
+    setService(tpl.serviceId);
+    setHeadline(tpl.headline);
+    setBodyText(tpl.script);
+    setCtaText(tpl.cta);
+    if (tpl.scenes.length > 0) {
+      setScenes(
+        tpl.scenes.map((s) => ({
+          time: `00:0${s.order * 5}`,
+          title: s.title,
+          visualDescription: s.visualDescription,
+          audioLine: s.audioLine,
+          icon: 'Video',
+        }))
+      );
+    }
+    showToast(`Plantilla "${tpl.name}" cargada correctamente.`, 'info');
+  }, [templateIdParam]);
 
   const handleGenerateWithAI = async () => {
     const selectedServiceObj = SAFELINK_SERVICES.find((s: { id: string }) => s.id === service);

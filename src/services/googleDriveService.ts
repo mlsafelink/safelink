@@ -270,6 +270,92 @@ export const googleDriveService = {
     return file.id;
   },
 
+  /**
+   * Crea (o reutiliza) la carpeta "SafeLink Cloud > Publicidad Vibe" en Drive.
+   * Retorna el folder ID de la carpeta multimedia.
+   */
+  async getOrCreateMediaFolder(): Promise<string> {
+    const token = await getAccessToken();
+
+    // Buscar o crear carpeta raíz "SafeLink Cloud"
+    const rootSearch = await driveRequest<{ files: DriveFile[] }>(
+      'GET',
+      `${DRIVE_API}/files?q=name%3D'SafeLink Cloud' and mimeType%3D'application/vnd.google-apps.folder' and trashed%3Dfalse&fields=files(id,name)`,
+      token,
+    );
+
+    let parentId: string;
+    if (rootSearch.files.length > 0) {
+      parentId = rootSearch.files[0].id;
+    } else {
+      const rootFolder = await driveRequest<DriveFile>('POST', `${DRIVE_API}/files`, token, {
+        name: 'SafeLink Cloud',
+        mimeType: 'application/vnd.google-apps.folder',
+      });
+      parentId = rootFolder.id;
+    }
+
+    // Buscar o crear carpeta "Publicidad Vibe"
+    const mediaFolderSearch = await driveRequest<{ files: DriveFile[] }>(
+      'GET',
+      `${DRIVE_API}/files?q=name%3D'Publicidad Vibe' and '${parentId}' in parents and mimeType%3D'application/vnd.google-apps.folder' and trashed%3Dfalse&fields=files(id,name)`,
+      token,
+    );
+
+    if (mediaFolderSearch.files.length > 0) {
+      return mediaFolderSearch.files[0].id;
+    }
+
+    const mediaFolder = await driveRequest<DriveFile>('POST', `${DRIVE_API}/files`, token, {
+      name: 'Publicidad Vibe',
+      mimeType: 'application/vnd.google-apps.folder',
+      parents: [parentId],
+    });
+
+    return mediaFolder.id;
+  },
+
+  /**
+   * Sube un archivo multimedia (video, audio, imagen) a Google Drive en "SafeLink Cloud > Publicidad Vibe".
+   */
+  async uploadMedia(blob: Blob, filename: string, mimeType: string = 'video/mp4'): Promise<string> {
+    const token = await getAccessToken();
+    const folderId = await this.getOrCreateMediaFolder();
+
+    const metadata = {
+      name: filename,
+      mimeType,
+      parents: [folderId],
+    };
+
+    const form = new FormData();
+    form.append(
+      'metadata',
+      new Blob([JSON.stringify(metadata)], { type: 'application/json' }),
+    );
+    form.append('file', blob);
+
+    const res = await fetch(
+      `${DRIVE_UPLOAD_API}/files?uploadType=multipart&fields=id,name,webViewLink`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      },
+    );
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(
+        (err as { error?: { message: string } })?.error?.message ??
+          `Error al subir recurso a Drive (${res.status})`,
+      );
+    }
+
+    const file = (await res.json()) as DriveFile;
+    return file.id;
+  },
+
   /** Elimina un archivo de Drive por su ID */
   async deleteFile(fileId: string): Promise<void> {
     const token = await getAccessToken();

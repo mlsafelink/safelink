@@ -1,40 +1,51 @@
-/* SafeLink Vibe — Biblioteca Creativa */
+/* SafeLink Vibe — Biblioteca Creativa (Fase 4B) */
 
 .page {
-  padding: 1.75rem 1.5rem;
-  max-width: 1280px;
+  padding: 2.25rem 2.5rem;
+  max-width: 1560px;
+  width: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 2rem;
 }
 
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .title {
-  font-size: 1.5rem;
+  font-size: clamp(1.375rem, 3vw, 1.875rem);
   font-weight: 700;
   color: var(--vibe-text-primary);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--vibe-text-muted);
-  margin: 0.25rem 0 0;
+  margin: 0.375rem 0 0;
+  max-width: 65ch;
+  line-height: 1.5;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .uploadBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1.25rem;
+  padding: 0.5625rem 1.25rem;
   border-radius: var(--vibe-radius-sm);
   background: var(--vibe-gradient-primary);
   border: none;
@@ -43,84 +54,115 @@
   font-weight: 600;
   cursor: pointer;
   box-shadow: var(--vibe-shadow-glow);
+  transition: opacity var(--vibe-transition);
+}
+
+.uploadBtn:hover {
+  opacity: 0.9;
+}
+
+.gdriveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5625rem 1.125rem;
+  border-radius: var(--vibe-radius-sm);
+  background: var(--vibe-surface-2);
+  border: 1px solid var(--vibe-border);
+  color: var(--vibe-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--vibe-transition);
+}
+
+.gdriveBtn:hover {
+  border-color: var(--vibe-border-hover);
+  color: var(--vibe-text-primary);
+}
+
+.gdriveConnected {
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #4ade80;
+}
+
+/* ── Filtros y búsqueda ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  background: var(--vibe-surface-2);
+  border: 1px solid var(--vibe-border);
+  border-radius: var(--vibe-radius-lg);
 }
 
 .navTabs {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  border-bottom: 1px solid var(--vibe-border);
-  padding-bottom: 0.75rem;
-  overflow-x: auto;
+  gap: 0.375rem;
+  flex-wrap: wrap;
 }
 
 .tabBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.375rem 0.875rem;
-  border-radius: 999px;
-  background: var(--vibe-surface);
-  border: 1px solid var(--vibe-border);
-  color: var(--vibe-text-secondary);
-  font-size: 0.8125rem;
+  padding: 0.4375rem 0.875rem;
+  border-radius: var(--vibe-radius-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--vibe-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all var(--vibe-transition);
 }
 
 .tabBtn:hover {
-  background: var(--vibe-surface-2);
+  background: var(--vibe-surface-3);
   color: var(--vibe-text-primary);
 }
 
 .tabBtnActive {
-  background: rgba(79, 110, 247, 0.15);
-  border-color: var(--vibe-blue);
+  background: var(--vibe-surface-3);
+  border-color: var(--vibe-border-hover);
   color: #fff;
-  font-weight: 600;
 }
 
-.dropzone {
-  border: 2px dashed var(--vibe-border);
-  border-radius: var(--vibe-radius-md);
-  padding: 2.5rem 2rem;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.01);
+.searchBox {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  transition: all var(--vibe-transition);
-}
-
-.dropzone:hover {
-  border-color: var(--vibe-blue);
-  background: rgba(79, 110, 247, 0.02);
-}
-
-.emptyState {
-  padding: 3rem 2rem;
-  text-align: center;
-  background: var(--vibe-surface);
+  gap: 0.5rem;
+  background: var(--vibe-surface-3);
+  padding: 0.4375rem 0.75rem;
+  border-radius: var(--vibe-radius-sm);
   border: 1px solid var(--vibe-border);
-  border-radius: var(--vibe-radius-md);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+  min-width: 240px;
 }
 
+.searchInput {
+  background: transparent;
+  border: none;
+  color: var(--vibe-text-primary);
+  font-size: 0.8125rem;
+  width: 100%;
+  outline: none;
+}
+
+/* ── Grilla ── */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
 }
 
 .itemCard {
-  background: var(--vibe-surface);
+  background: var(--vibe-surface-2);
   border: 1px solid var(--vibe-border);
-  border-radius: var(--vibe-radius-sm);
+  border-radius: var(--vibe-radius-lg);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -130,32 +172,64 @@
 .itemCard:hover {
   border-color: var(--vibe-border-hover);
   transform: translateY(-2px);
+  box-shadow: var(--vibe-shadow-md);
 }
 
 .itemThumb {
-  height: 140px;
-  background: #0d101b;
+  height: 160px;
+  background: #090d16;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  position: relative;
+  cursor: pointer;
 }
 
-.itemThumb img {
+.itemThumb img,
+.itemThumb video {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
+.playOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--vibe-transition);
+}
+
+.itemThumb:hover .playOverlay {
+  opacity: 1;
+}
+
+.playCircle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--vibe-blue);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--vibe-shadow-glow);
+}
+
 .itemMeta {
-  padding: 0.75rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.625rem;
+  flex: 1;
 }
 
 .itemName {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--vibe-text-primary);
   overflow: hidden;
@@ -166,4 +240,114 @@
 .itemDetails {
   font-size: 0.6875rem;
   color: var(--vibe-text-muted);
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--vibe-border);
+  gap: 0.375rem;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.625rem;
+  background: var(--vibe-surface-3);
+  border: 1px solid var(--vibe-border);
+  border-radius: 4px;
+  color: var(--vibe-text-secondary);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--vibe-transition);
+}
+
+.actionBtn:hover {
+  color: var(--vibe-text-primary);
+  border-color: var(--vibe-border-hover);
+}
+
+.actionBtnDanger {
+  color: var(--vibe-text-muted);
+}
+
+.actionBtnDanger:hover {
+  color: var(--vibe-error);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* ── Modal Player ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal {
+  background: var(--vibe-surface);
+  border: 1px solid var(--vibe-border);
+  border-radius: var(--vibe-radius-xl);
+  max-width: 680px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: var(--vibe-shadow-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--vibe-border);
+}
+
+.modalTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--vibe-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.closeModalBtn {
+  background: transparent;
+  border: none;
+  color: var(--vibe-text-muted);
+  cursor: pointer;
+}
+
+.modalBody {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.emptyState {
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--vibe-surface-2);
+  border: 1px dashed var(--vibe-border);
+  border-radius: var(--vibe-radius-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }

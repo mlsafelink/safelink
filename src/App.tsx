@@ -45,6 +45,7 @@ import { LibraryPage } from '@/features/safelinkVibe/pages/Library/LibraryPage';
 import { InstagramPage } from '@/features/safelinkVibe/pages/Instagram/InstagramPage';
 import { BrandConfigPage } from '@/features/safelinkVibe/pages/BrandConfig/BrandConfigPage';
 import { CampaignsPage } from '@/features/safelinkVibe/pages/Campaigns/CampaignsPage';
+import { TemplatesPage } from '@/features/safelinkVibe/pages/Templates/TemplatesPage';
 import { VibePlaceholderPage } from '@/features/safelinkVibe/pages/VibePlaceholder/VibePlaceholderPage';
 
 function App() {
@@ -94,7 +95,7 @@ function App() {
               <Route path="instagram" element={<InstagramPage />} />
               <Route path="configuracion" element={<BrandConfigPage />} />
               <Route path="campanas" element={<CampaignsPage />} />
-              <Route path="plantillas" element={<VibePlaceholderPage title="Plantillas Creativas" description="Estructuras de diseño predefinidas para Instagram Reels, Historias y formatos 1:1." />} />
+              <Route path="plantillas" element={<TemplatesPage />} />
               <Route path="voz" element={<VibePlaceholderPage title="Voz y Subtítulos" description="Laboratorio de síntesis neuronal de voz y personalización de subtítulos dinámicos." />} />
             </Route>
 
