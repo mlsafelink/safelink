@@ -1,0 +1,218 @@
+/* SafeLink Vibe — Layout principal del módulo */
+
+.vibeLayout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background-color: var(--vibe-bg);
+  color: var(--vibe-text-primary);
+}
+
+/* ---- Header ---- */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: var(--vibe-header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  background: var(--vibe-gradient-header);
+  border-bottom: 1px solid var(--vibe-border);
+  backdrop-filter: blur(12px);
+  gap: 1rem;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.headerLogo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.headerLogoMark {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--vibe-radius-sm);
+  background: var(--vibe-gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--vibe-shadow-glow);
+}
+
+.headerLogoMark svg {
+  color: white;
+  width: 16px;
+  height: 16px;
+}
+
+.headerBrandName {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--vibe-text-primary);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.headerBrandSub {
+  font-size: 0.6875rem;
+  color: var(--vibe-text-muted);
+  white-space: nowrap;
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .headerBrandSub { display: block; }
+}
+
+.headerDivider {
+  width: 1px;
+  height: 20px;
+  background: var(--vibe-border);
+  flex-shrink: 0;
+}
+
+.headerSection {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--vibe-text-secondary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.headerApiStatus {
+  display: none;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  color: var(--vibe-text-muted);
+  padding: 0.25rem 0.625rem;
+  background: var(--vibe-surface-2);
+  border: 1px solid var(--vibe-border);
+  border-radius: 999px;
+}
+
+@media (min-width: 768px) {
+  .headerApiStatus { display: flex; }
+}
+
+.apiDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.apiDotPending { background: var(--vibe-warning); }
+.apiDotOnline  { background: var(--vibe-success); }
+.apiDotOffline { background: var(--vibe-error); }
+
+.createButton {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4375rem 0.875rem;
+  background: var(--vibe-gradient-primary);
+  border: none;
+  border-radius: var(--vibe-radius-sm);
+  color: white;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--vibe-transition), transform var(--vibe-transition);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.createButton:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.createButton svg { flex-shrink: 0; }
+
+/* ---- Navegación secundaria (tabs) ---- */
+.navWrapper {
+  border-bottom: 1px solid var(--vibe-border);
+  background: var(--vibe-surface);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.navWrapper::-webkit-scrollbar { display: none; }
+
+.nav {
+  display: flex;
+  gap: 0;
+  padding: 0 1.5rem;
+  min-width: max-content;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--vibe-text-muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: color var(--vibe-transition), border-color var(--vibe-transition);
+  white-space: nowrap;
+  cursor: pointer;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+
+.navItem:hover {
+  color: var(--vibe-text-secondary);
+}
+
+.navItemActive {
+  color: var(--vibe-text-primary);
+  border-bottom-color: var(--vibe-blue);
+}
+
+.navItemPending {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
+.navBadge {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  padding: 0.0625rem 0.3125rem;
+  border-radius: 999px;
+  background: var(--vibe-badge-pending-bg);
+  color: var(--vibe-badge-pending-color);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ---- Contenido principal ---- */
+.content {
+  flex: 1;
+  overflow-y: auto;
+}

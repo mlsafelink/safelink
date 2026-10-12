@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Building2, Building, FileText, LogOut,
   UserCheck, Bell, StickyNote, Bot, DollarSign, Lock,
-  Settings, Radio, Layers, ChevronLeft
+  Settings, Radio, Layers, ChevronLeft, Sparkles
 } from 'lucide-react';
 import logoImg from '@/assets/logo.png';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -125,6 +125,15 @@ export function Sidebar() {
         >
           <Bot size={20} />
           <span>SafeLink IA</span>
+        </NavLink>
+
+        <NavLink
+          to="/vibe"
+          className={({ isActive }) => clsx(styles.navItem, isActive && styles.active)}
+          onClick={handleNavClick}
+        >
+          <Sparkles size={20} />
+          <span>SafeLink Vibe</span>
         </NavLink>
 
         <NavLink

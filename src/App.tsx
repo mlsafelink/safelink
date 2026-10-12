@@ -37,6 +37,14 @@ import { TopologiaEditorPage } from '@/features/infraestructura/topologia/Topolo
 import { TopologiasListPage } from '@/features/infraestructura/topologia/TopologiasListPage';
 import { PublicPlanoViewer } from '@/features/public/PublicPlanoViewer';
 import { PublicTopologiaViewer } from '@/features/public/PublicTopologiaViewer';
+import { VibeLayout } from '@/features/safelinkVibe/components/VibeLayout/VibeLayout';
+import { VibeDashboard } from '@/features/safelinkVibe/pages/VibeDashboard/VibeDashboard';
+import { CreateContentPage } from '@/features/safelinkVibe/pages/CreateContent/CreateContentPage';
+import { ProjectsListPage } from '@/features/safelinkVibe/pages/ProjectsList/ProjectsListPage';
+import { LibraryPage } from '@/features/safelinkVibe/pages/Library/LibraryPage';
+import { InstagramPage } from '@/features/safelinkVibe/pages/Instagram/InstagramPage';
+import { BrandConfigPage } from '@/features/safelinkVibe/pages/BrandConfig/BrandConfigPage';
+import { VibePlaceholderPage } from '@/features/safelinkVibe/pages/VibePlaceholder/VibePlaceholderPage';
 
 function App() {
   return (
@@ -75,6 +83,19 @@ function App() {
             <Route path="/safelink-ia"     element={<SafeLinkIAPage />} />
             <Route path="/boveda"          element={<BóvedaPage />} />
             <Route path="/monitor"         element={<SafeLinkMonitorPage />} />
+
+            {/* SafeLink Vibe — Estudio Creativo */}
+            <Route path="/vibe" element={<VibeLayout />}>
+              <Route index element={<VibeDashboard />} />
+              <Route path="crear" element={<CreateContentPage />} />
+              <Route path="proyectos" element={<ProjectsListPage />} />
+              <Route path="biblioteca" element={<LibraryPage />} />
+              <Route path="instagram" element={<InstagramPage />} />
+              <Route path="configuracion" element={<BrandConfigPage />} />
+              <Route path="campanas" element={<VibePlaceholderPage title="Campañas Publicitarias" description="Creación y gestión de campañas de marketing multiformato con variantes de copy y piezas conectadas." />} />
+              <Route path="plantillas" element={<VibePlaceholderPage title="Plantillas Creativas" description="Estructuras de diseño predefinidas para Instagram Reels, Historias y formatos 1:1." />} />
+              <Route path="voz" element={<VibePlaceholderPage title="Voz y Subtítulos" description="Laboratorio de síntesis neuronal de voz y personalización de subtítulos dinámicos." />} />
+            </Route>
 
             {/* Infraestructura Técnica */}
             <Route path="/infraestructura"               element={<InfraestructuraPage />} />
