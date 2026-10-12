@@ -44,6 +44,16 @@
   min-width: 0;
 }
 
+.mainFullBleed {
+  padding: 0;
+  margin: 0;
+  max-width: none;
+  width: 100%;
+  height: 100vh;
+  overflow-y: auto;
+  background-color: var(--vibe-bg, #090d16);
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;

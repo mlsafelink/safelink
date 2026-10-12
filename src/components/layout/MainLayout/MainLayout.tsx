@@ -1,5 +1,5 @@
 import { forwardRef, type HTMLAttributes } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { Menu } from 'lucide-react';
 import { useDrawer } from '@/contexts/DrawerContext';
@@ -12,8 +12,10 @@ export interface MainLayoutProps extends HTMLAttributes<HTMLDivElement> {
 export const MainLayout = forwardRef<HTMLDivElement, MainLayoutProps>(
   ({ className, sidebar, children, ...props }, ref) => {
     const { isOpen, toggle, close } = useDrawer();
+    const location = useLocation();
 
     const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+    const isFullBleed = location.pathname.startsWith('/vibe');
 
     return (
       <div ref={ref} className={clsx(styles.layout, className)} {...props}>
@@ -51,10 +53,14 @@ export const MainLayout = forwardRef<HTMLDivElement, MainLayoutProps>(
           </aside>
         )}
 
-        <main className={styles.main}>
-          <div className={styles.container}>
-            {children || <Outlet />}
-          </div>
+        <main className={clsx(styles.main, isFullBleed && styles.mainFullBleed)}>
+          {isFullBleed ? (
+            (children || <Outlet />)
+          ) : (
+            <div className={styles.container}>
+              {children || <Outlet />}
+            </div>
+          )}
         </main>
       </div>
     );

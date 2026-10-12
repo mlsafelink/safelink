@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { InstagramIcon } from '../InstagramIcon';
 import { clsx } from 'clsx';
+import { useDrawer } from '@/contexts/DrawerContext';
 import styles from './VibeLayout.module.css';
 import '../../styles/vibe-tokens.css';
 import { checkVibeServerHealth } from '../../services/vibeApi';
@@ -50,6 +51,7 @@ function getSectionLabel(pathname: string): string {
 
 export function VibeLayout() {
   const location = useLocation();
+  const { isOpen } = useDrawer();
   const sectionLabel = getSectionLabel(location.pathname);
   const [serverStatus, setServerStatus] = useState<{ isOnline: boolean; aiConfigured?: boolean }>({
     isOnline: false,
@@ -62,7 +64,10 @@ export function VibeLayout() {
   return (
     <div className={styles.vibeLayout}>
       {/* ---- Header ---- */}
-      <header className={styles.header} role="banner">
+      <header
+        className={clsx(styles.header, !isOpen && styles.headerWithDrawerClosed)}
+        role="banner"
+      >
         <div className={styles.headerLeft}>
           <Link to="/vibe" className={styles.headerLogo} aria-label="SafeLink Vibe — inicio">
             <div className={styles.headerLogoMark} aria-hidden="true">

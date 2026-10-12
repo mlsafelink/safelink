@@ -171,7 +171,7 @@ export function VibeDashboard() {
       {/* ---- Bienvenida ---- */}
       <section className={styles.welcome} aria-labelledby="vibe-welcome-heading">
         <div className={styles.welcomeText}>
-          <p className={styles.welcomeEyebrow}>SafeLink Vibe</p>
+          <p className={styles.welcomeEyebrow}>Estudio Creativo de Publicidad</p>
           <h1 id="vibe-welcome-heading" className={styles.welcomeHeading}>
             Convertí tus ideas en publicidad<br />que hace crecer tu negocio.
           </h1>
