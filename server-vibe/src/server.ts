@@ -6,8 +6,19 @@ import { aiRouter } from './routes/aiRoutes.js';
 const app = express();
 
 // CORS habilitado para el frontend de SafeLink
+// En desarrollo se acepta cualquier puerto localhost (Vite puede variar: 5173, 5174, 5175...)
+const corsOrigin = (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+  // Permitir requests sin origin (curl, Postman, server-to-server)
+  if (!origin) return callback(null, true);
+  // Permitir cualquier localhost o 127.0.0.1 en cualquier puerto
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return callback(null, true);
+  // Permitir el frontendUrl configurado (producción)
+  if (origin === config.frontendUrl) return callback(null, true);
+  callback(new Error(`CORS: origen no permitido → ${origin}`));
+};
+
 app.use(cors({
-  origin: [config.frontendUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: corsOrigin,
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'apikey'],
