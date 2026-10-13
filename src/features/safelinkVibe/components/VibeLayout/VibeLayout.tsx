@@ -31,7 +31,7 @@ const NAV_ITEMS: NavEntry[] = [
   { to: '/vibe/biblioteca', label: 'Biblioteca', icon: <Library size={14} /> },
   { to: '/vibe/campanas', label: 'Campañas', icon: <Megaphone size={14} /> },
   { to: '/vibe/plantillas', label: 'Plantillas', icon: <LayoutTemplate size={14} /> },
-  { to: '/vibe/voz', label: 'Voz y subtítulos', icon: <Mic2 size={14} />, pending: true },
+  { to: '/vibe/voz', label: 'Voz y subtítulos', icon: <Mic2 size={14} /> },
   { to: '/vibe/instagram', label: 'Instagram', icon: <InstagramIcon size={14} /> },
   { to: '/vibe/configuracion', label: 'Marca', icon: <Settings size={14} /> },
 ];

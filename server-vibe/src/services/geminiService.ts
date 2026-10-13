@@ -96,10 +96,12 @@ export async function startVeoVideo(input: VideoGenerationInput): Promise<{ oper
     throw new Error('GEMINI_API_KEY no está configurada en el servidor.');
   }
 
-  // Iniciar operación con Veo
+  // Iniciar operación con Veo (nueva API: prompt va dentro de source)
   const operation = await ai.models.generateVideos({
     model: 'veo-2.0-generate-001',
-    prompt: input.prompt,
+    source: {
+      prompt: input.prompt,
+    },
     config: {
       aspectRatio: input.aspectRatio,
       numberOfVideos: 1,
@@ -166,7 +168,7 @@ export async function generateTTSAudio(text: string, voiceName: string = 'Fenrir
 
   // Generación con Gemini Audio
   const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash',
+    model: 'gemini-2.0-flash-live-001',
     contents: `Lee el siguiente texto publicitario con entonación profesional y natural: "${text}"`,
     config: {
       responseModalities: ['AUDIO'],

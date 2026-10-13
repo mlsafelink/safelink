@@ -47,6 +47,7 @@ import { BrandConfigPage } from '@/features/safelinkVibe/pages/BrandConfig/Brand
 import { CampaignsPage } from '@/features/safelinkVibe/pages/Campaigns/CampaignsPage';
 import { TemplatesPage } from '@/features/safelinkVibe/pages/Templates/TemplatesPage';
 import { VibePlaceholderPage } from '@/features/safelinkVibe/pages/VibePlaceholder/VibePlaceholderPage';
+import { VoiceLabPage } from '@/features/safelinkVibe/pages/VoiceLab/VoiceLabPage';
 
 function App() {
   return (
@@ -96,7 +97,7 @@ function App() {
               <Route path="configuracion" element={<BrandConfigPage />} />
               <Route path="campanas" element={<CampaignsPage />} />
               <Route path="plantillas" element={<TemplatesPage />} />
-              <Route path="voz" element={<VibePlaceholderPage title="Voz y Subtítulos" description="Laboratorio de síntesis neuronal de voz y personalización de subtítulos dinámicos." />} />
+              <Route path="voz" element={<VoiceLabPage />} />
             </Route>
 
             {/* Infraestructura Técnica */}
