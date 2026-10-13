@@ -354,6 +354,11 @@ export const googleDriveService = {
     });
   },
 
+  getFolderId(slot: 'primary' | 'secondary' = 'primary'): string | null {
+    const key = slot === 'primary' ? LS.FOLDER_BAK : LS.FOLDER2;
+    return localStorage.getItem(key);
+  },
+
   getFolderUrl(slot: 'primary' | 'secondary' = 'primary'): string | null {
     const key = slot === 'primary' ? LS.FOLDER_BAK : LS.FOLDER2;
     const id  = localStorage.getItem(key);

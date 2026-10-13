@@ -136,7 +136,7 @@ export function VoiceLabPage() {
 
     const res = await generateTts({ text: scriptText, voiceName: selectedVoice.id });
 
-    if (!res.ok || !res.data) {
+    if (!res.ok) {
       showToast(res.error || 'Error al generar audio.', 'error');
       setIsGenerating(false);
       return;

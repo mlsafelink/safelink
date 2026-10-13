@@ -46,7 +46,6 @@ import { InstagramPage } from '@/features/safelinkVibe/pages/Instagram/Instagram
 import { BrandConfigPage } from '@/features/safelinkVibe/pages/BrandConfig/BrandConfigPage';
 import { CampaignsPage } from '@/features/safelinkVibe/pages/Campaigns/CampaignsPage';
 import { TemplatesPage } from '@/features/safelinkVibe/pages/Templates/TemplatesPage';
-import { VibePlaceholderPage } from '@/features/safelinkVibe/pages/VibePlaceholder/VibePlaceholderPage';
 import { VoiceLabPage } from '@/features/safelinkVibe/pages/VoiceLab/VoiceLabPage';
 
 function App() {
