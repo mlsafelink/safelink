@@ -286,11 +286,25 @@
 
 .galleryItem {
   position: relative;
-  border-radius: 8px;
   overflow: hidden;
   aspect-ratio: 4/3;
+  display: block;
+}
+
+.galleryCardItem {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
   border: 1px solid var(--rv-border);
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  background: #ffffff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.galleryCardItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
 .galleryImg {
@@ -302,6 +316,17 @@
 
 .galleryItem:hover .galleryImg {
   transform: scale(1.05);
+}
+
+.galleryCaption {
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--rv-navy, #1e293b);
+  background: #f8fafc;
+  border-top: 1px solid var(--rv-border);
+  line-height: 1.35;
 }
 
 /* ── FOOTER 3 COLUMNAS ── */

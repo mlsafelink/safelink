@@ -18,6 +18,7 @@ const SAFELINK_VERSION = '1.0.0';
 // Mapeo de tablas a columnas que contienen URLs de Storage
 const STORAGE_COLUMNS: Record<string, string[]> = {
   reportes: ['fotografias'],
+  reportes_trabajo: ['fotografias'],
   presupuestos: [],
   consorcios: ['logo_url', 'firma_url'],
   administraciones: ['logo_url'],
@@ -130,8 +131,9 @@ async function buildZip(
             for (const col of STORAGE_COLUMNS[tabla]) {
               const val = row[col];
               if (!val) continue;
-              const urls = Array.isArray(val) ? val : [val];
-              for (const url of urls) {
+              const rawItems = Array.isArray(val) ? val : [val];
+              for (const item of rawItems) {
+                const url = typeof item === 'object' && item !== null && 'url' in item ? (item as any).url : item;
                 if (typeof url === 'string' && url.startsWith('http')) {
                   const path = getStoragePathFromUrl(url);
                   if (path) {

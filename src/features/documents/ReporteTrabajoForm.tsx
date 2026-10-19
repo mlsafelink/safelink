@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { reporteTrabajoService, presupuestoService, reporteService } from '@/services/documentService';
+import { reporteTrabajoService, presupuestoService, reporteService, normalizeFotos, type FotoItem } from '@/services/documentService';
 import { consorcioService } from '@/services/consorcioService';
 import { particularService } from '@/services/particularService';
 import { Button } from '@/components/ui/Button/Button';
@@ -14,7 +14,7 @@ import {
   ArrowLeft, Save, FileText, Cpu, CheckSquare, Wrench,
   Camera, Shield, UserCheck, Trash2, CheckCircle2, AlertCircle
 } from 'lucide-react';
-import { ImageUploader } from '@/components/ui/ImageUploader/ImageUploader';
+import { DocumentPhotoUploader } from './components/DocumentPhotoUploader';
 import styles from './DocForm.module.css';
 
 const STEPS = [
@@ -57,7 +57,7 @@ interface ReporteTrabajoFormProps {
 export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProps) {
   const queryClient = useQueryClient();
   const isEditing = !!editingId;
-  const [fotografias, setFotografias] = useState<string[]>([]);
+  const [fotografias, setFotografias] = useState<FotoItem[]>([]);
   const [activeStep, setActiveStep] = useState('general');
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -147,7 +147,7 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
           email_soporte: doc.email_soporte || '',
           horario_soporte: doc.horario_soporte || '',
         });
-        setFotografias(doc.fotografias || []);
+        setFotografias(normalizeFotos(doc.fotografias));
       }
     }
   }, [isEditing, reportesTrabajo, editingId, reset]);
@@ -186,10 +186,6 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
 
   const onSubmit = (data: ReporteTrabajoFormData) => {
     mutation.mutate(data);
-  };
-
-  const handleRemovePhoto = (index: number) => {
-    setFotografias(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -385,27 +381,12 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
           {activeStep === 'fotos' && (
             <div className={styles.formGrid}>
               <div className={styles.fullWidth}>
-                <label className={styles.sectionDividerLabel}>Fotografías del Trabajo Finalizado</label>
-                <ImageUploader
-                  onChange={(url) => setFotografias(prev => [...prev, url])}
+                <DocumentPhotoUploader
+                  fotografias={fotografias}
+                  onChange={setFotografias}
+                  label="Fotografías del Trabajo Finalizado"
+                  hint="Sube fotografías de la obra o instalación finalizada. Puedes ingresar una descripción opcional a cada fotografía."
                 />
-
-                {fotografias.length > 0 && (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '0.75rem', marginTop: '1rem' }}>
-                    {fotografias.map((url, idx) => (
-                      <div key={idx} style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '1px solid #cbd5e1' }}>
-                        <img src={url} alt={`Foto ${idx + 1}`} style={{ width: '100%', height: '100px', objectFit: 'cover' }} />
-                        <button
-                          type="button"
-                          onClick={() => handleRemovePhoto(idx)}
-                          style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(239, 68, 68, 0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           )}

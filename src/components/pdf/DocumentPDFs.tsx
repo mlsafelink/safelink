@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
-import { type Reporte, type Presupuesto, type Instructivo, type ReporteTrabajo } from '@/services/documentService';
+import { type Reporte, type Presupuesto, type Instructivo, type ReporteTrabajo, normalizeFoto } from '@/services/documentService';
 import { getInstructivoCamaras } from '@/features/documents/constants/instructivoApps';
 
 const styles = StyleSheet.create({
@@ -87,7 +87,6 @@ const styles = StyleSheet.create({
   },
   photoCard: {
     width: '47%',
-    height: 150,
     borderRadius: 6,
     overflow: 'hidden',
     borderWidth: 1,
@@ -97,8 +96,17 @@ const styles = StyleSheet.create({
   },
   photoImage: {
     width: '100%',
-    height: '100%',
+    height: 130,
     objectFit: 'cover',
+  },
+  photoCaption: {
+    fontSize: 7.5,
+    color: '#334155',
+    paddingVertical: 3,
+    paddingHorizontal: 5,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
   },
   // Table styles for budget
   table: {
@@ -359,11 +367,17 @@ export function ReportePDF({ reporte }: { reporte: Reporte }) {
           <View style={styles.photoSection}>
             <Text style={styles.sectionTitle}>REGISTRO FOTOGRÁFICO DE OBRA</Text>
             <View style={styles.photoGrid}>
-              {reporte.fotografias.map((url, idx) => (
-                <View key={idx} style={styles.photoCard}>
-                  <Image src={url} style={styles.photoImage} />
-                </View>
-              ))}
+              {reporte.fotografias.map((item, idx) => {
+                const foto = normalizeFoto(item);
+                return (
+                  <View key={idx} style={styles.photoCard}>
+                    <Image src={foto.url} style={styles.photoImage} />
+                    {foto.descripcion ? (
+                      <Text style={styles.photoCaption}>{foto.descripcion}</Text>
+                    ) : null}
+                  </View>
+                );
+              })}
             </View>
           </View>
         )}
@@ -783,11 +797,17 @@ export function ReporteTrabajoPDF({ reporte }: { reporte: ReporteTrabajo }) {
           <View style={styles.photoSection}>
             <Text style={styles.sectionTitle}>REGISTRO FOTOGRÁFICO DE OBRA</Text>
             <View style={styles.photoGrid}>
-              {reporte.fotografias.map((url, idx) => (
-                <View key={idx} style={styles.photoCard}>
-                  <Image src={url} style={styles.photoImage} />
-                </View>
-              ))}
+              {reporte.fotografias.map((item, idx) => {
+                const foto = normalizeFoto(item);
+                return (
+                  <View key={idx} style={styles.photoCard}>
+                    <Image src={foto.url} style={styles.photoImage} />
+                    {foto.descripcion ? (
+                      <Text style={styles.photoCaption}>{foto.descripcion}</Text>
+                    ) : null}
+                  </View>
+                );
+              })}
             </View>
           </View>
         )}

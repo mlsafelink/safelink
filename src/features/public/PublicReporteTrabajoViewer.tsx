@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { reporteTrabajoService, trackDocumentAccess } from '@/services/documentService';
+import { reporteTrabajoService, trackDocumentAccess, normalizeFoto, type FotoItem } from '@/services/documentService';
 import {
   Calendar, Building, Shield, FileText,
   Cpu, CheckSquare, Wrench, Image,
@@ -22,7 +22,7 @@ export function PublicReporteTrabajoViewer() {
   }, [publicId]);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<FotoItem | null>(null);
 
   const { data: reporteTrabajo, isLoading, isError } = useQuery({
     queryKey: ['public-reporte-trabajo', publicId],
@@ -298,16 +298,28 @@ export function PublicReporteTrabajoViewer() {
               <span>Registro Fotográfico de Obra</span>
             </div>
             <div className={styles.galleryGrid}>
-              {reporteTrabajo.fotografias.map((url, idx) => (
-                <div
-                  key={idx}
-                  className={styles.galleryItem}
-                  onClick={() => setSelectedImage(url)}
-                  style={{ cursor: 'zoom-in' }}
-                >
-                  <img src={url} alt={`Trabajo ${idx + 1}`} className={styles.galleryImg} />
-                </div>
-              ))}
+              {reporteTrabajo.fotografias.map((item, idx) => {
+                const foto = normalizeFoto(item);
+                return (
+                  <div
+                    key={idx}
+                    className={styles.galleryCardItem}
+                    onClick={() => setSelectedImage(foto)}
+                    style={{ cursor: 'zoom-in' }}
+                  >
+                    <div className={styles.galleryItem}>
+                      <img
+                        src={foto.url}
+                        alt={foto.descripcion || `Trabajo ${idx + 1}`}
+                        className={styles.galleryImg}
+                      />
+                    </div>
+                    {foto.descripcion && (
+                      <p className={styles.galleryCaption}>{foto.descripcion}</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -351,7 +363,7 @@ export function PublicReporteTrabajoViewer() {
             style={{
               position: 'fixed', inset: 0, zIndex: 9999,
               background: 'rgba(0,0,0,0.88)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               padding: '1.5rem',
             }}
           >
@@ -361,7 +373,7 @@ export function PublicReporteTrabajoViewer() {
               onClick={(e) => e.stopPropagation()}
             >
               <a
-                href={selectedImage}
+                href={selectedImage.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
@@ -388,20 +400,43 @@ export function PublicReporteTrabajoViewer() {
 
             {/* Imagen ampliada */}
             <motion.img
-              src={selectedImage}
-              alt="Fotografía ampliada"
+              src={selectedImage.url}
+              alt={selectedImage.descripcion || "Fotografía ampliada"}
               initial={{ scale: 0.85, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.85, opacity: 0 }}
               transition={{ duration: 0.25 }}
               onClick={(e) => e.stopPropagation()}
               style={{
-                maxWidth: '90vw', maxHeight: '88vh',
+                maxWidth: '90vw', maxHeight: selectedImage.descripcion ? '78vh' : '88vh',
                 borderRadius: '12px',
                 boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
                 objectFit: 'contain',
               }}
             />
+
+            {selectedImage.descripcion && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  marginTop: '1rem',
+                  background: 'rgba(15, 23, 42, 0.85)',
+                  backdropFilter: 'blur(8px)',
+                  color: '#ffffff',
+                  padding: '0.65rem 1.25rem',
+                  borderRadius: '10px',
+                  maxWidth: '85vw',
+                  textAlign: 'center',
+                  fontSize: '0.92rem',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                }}
+              >
+                {selectedImage.descripcion}
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

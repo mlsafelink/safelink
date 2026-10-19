@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { reporteService, trackDocumentAccess } from '@/services/documentService';
+import { reporteService, trackDocumentAccess, normalizeFoto } from '@/services/documentService';
 import {
   Calendar, Building, ClipboardList, Clock, HelpCircle, Shield,
   FileText, Cpu, Eye, AlertTriangle, CheckSquare, Phone, Mail, Image,
@@ -199,17 +199,28 @@ export function PublicReporteViewer() {
               <span>Registro Fotográfico</span>
             </div>
             <div className={styles.galleryGrid}>
-              {reporte.fotografias.map((url, i) => (
-                <a
-                  key={i}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.galleryItem}
-                >
-                  <img src={url} alt={`Evidencia ${i + 1}`} className={styles.galleryImg} />
-                </a>
-              ))}
+              {reporte.fotografias.map((item, i) => {
+                const foto = normalizeFoto(item);
+                return (
+                  <div key={i} className={styles.galleryCardItem}>
+                    <a
+                      href={foto.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.galleryItem}
+                    >
+                      <img
+                        src={foto.url}
+                        alt={foto.descripcion || `Evidencia ${i + 1}`}
+                        className={styles.galleryImg}
+                      />
+                    </a>
+                    {foto.descripcion && (
+                      <p className={styles.galleryCaption}>{foto.descripcion}</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

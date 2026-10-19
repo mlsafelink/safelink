@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { reporteService } from '@/services/documentService';
+import { reporteService, normalizeFotos, type FotoItem } from '@/services/documentService';
 import { consorcioService } from '@/services/consorcioService';
 import { particularService } from '@/services/particularService';
 import { Button } from '@/components/ui/Button/Button';
@@ -14,7 +14,7 @@ import {
   ArrowLeft, Save, Trash2, ClipboardList, FileText,
   Cpu, Eye, AlertTriangle, CheckSquare, Camera, Globe,
 } from 'lucide-react';
-import { ImageUploader } from '@/components/ui/ImageUploader/ImageUploader';
+import { DocumentPhotoUploader } from './components/DocumentPhotoUploader';
 import styles from './DocForm.module.css';
 
 const STEPS = [
@@ -53,7 +53,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
   const queryClient = useQueryClient();
   const isEditing = !!editingId;
   const [isDataLoaded, setIsDataLoaded] = useState(!isEditing);
-  const [fotografias, setFotografias] = useState<string[]>([]);
+  const [fotografias, setFotografias] = useState<FotoItem[]>([]);
   const [activeStep, setActiveStep] = useState('descripcion');
 
   const { data: consorcios = [] } = useQuery({
@@ -119,7 +119,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
           email_soporte: reporte.email_soporte || 'soporte@safelink.com.ar',
           horario_soporte: reporte.horario_soporte || 'Lunes a Viernes de 9:00 a 18:00 hs.',
         });
-        setFotografias(reporte.fotografias || []);
+        setFotografias(normalizeFotos(reporte.fotografias));
         setIsDataLoaded(true);
       }
     }
@@ -271,33 +271,12 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
 
           {/* ── Fotografías ── */}
           <div className={styles.sectionBlock} onFocus={() => setActiveStep('fotos')}>
-            <div className={styles.sectionTitle}>
-              <Camera size={16} />
-              <span>Registro Fotográfico</span>
-            </div>
-            {fotografias.length > 0 && (
-              <div className={styles.imageGrid}>
-                {fotografias.map((url, index) => (
-                  <div key={index} className={styles.imageItem}>
-                    <img src={url} alt={`Foto ${index + 1}`} className={styles.imageItemPreview} />
-                    <button
-                      type="button"
-                      className={styles.imageRemoveBtn}
-                      onClick={() => setFotografias(prev => prev.filter((_, i) => i !== index))}
-                      title="Eliminar foto"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div style={{ maxWidth: '400px', marginTop: '0.5rem' }}>
-              <ImageUploader
-                onChange={(url) => url && setFotografias(prev => [...prev, url])}
-                label="Agregar fotografía de evidencia"
-              />
-            </div>
+            <DocumentPhotoUploader
+              fotografias={fotografias}
+              onChange={setFotografias}
+              label="Registro Fotográfico de Evidencia"
+              hint="Sube imágenes de la inspección o relevamiento técnico. Puedes añadir una descripción opcional a cada fotografía."
+            />
           </div>
 
           {/* ── Datos de Soporte (¿Necesita ayuda?) ── */}

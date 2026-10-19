@@ -5,6 +5,28 @@ import { normalizeNombreEnlace, generatePublicCode } from '@/features/documents/
 // ---- Tipos base ----
 export type DocumentStatus = 'draft' | 'published';
 
+export type FotoItem = {
+  url: string;
+  descripcion?: string;
+};
+
+export type DocumentFoto = string | FotoItem;
+
+export function normalizeFoto(foto: DocumentFoto): FotoItem {
+  if (typeof foto === 'string') {
+    return { url: foto, descripcion: '' };
+  }
+  return {
+    url: foto?.url || '',
+    descripcion: foto?.descripcion || '',
+  };
+}
+
+export function normalizeFotos(fotos?: DocumentFoto[] | null): FotoItem[] {
+  if (!fotos || !Array.isArray(fotos)) return [];
+  return fotos.map(normalizeFoto);
+}
+
 export type Reporte = {
   id: string;
   consorcio_id: string;
@@ -18,7 +40,7 @@ export type Reporte = {
   trabajo_realizado: string | null;
   recomendaciones: string | null;
   conclusiones: string | null;
-  fotografias: string[];
+  fotografias: DocumentFoto[];
   observaciones: string | null;
 
   // Campos de plantilla y soporte
@@ -94,7 +116,7 @@ export type ReporteTrabajo = {
   materiales_utilizados: string | null;
   configuraciones_realizadas: string | null;
   observaciones: string | null;
-  fotografias: string[];
+  fotografias: DocumentFoto[];
   garantia: string | null;
   firmas: any[];
   presupuesto_id?: string | null;
