@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/Input/Input';
 import { Select } from '@/components/ui/Select/Select';
 import { Card } from '@/components/ui/Card/Card';
 import {
-  ArrowLeft, Save, Trash2, ClipboardList, FileText,
+  ArrowLeft, Save, ClipboardList, FileText,
   Cpu, Eye, AlertTriangle, CheckSquare, Camera, Globe,
 } from 'lucide-react';
 import { DocumentPhotoUploader } from './components/DocumentPhotoUploader';

@@ -12,7 +12,7 @@ import { Select } from '@/components/ui/Select/Select';
 import { Card } from '@/components/ui/Card/Card';
 import {
   ArrowLeft, Save, FileText, Cpu, CheckSquare, Wrench,
-  Camera, Shield, UserCheck, Trash2, CheckCircle2, AlertCircle
+  Camera, Shield, UserCheck, CheckCircle2, AlertCircle
 } from 'lucide-react';
 import { DocumentPhotoUploader } from './components/DocumentPhotoUploader';
 import styles from './DocForm.module.css';
