@@ -46,6 +46,54 @@ export type FacturaInsert = Omit<
   'id' | 'public_id' | 'created_at' | 'updated_at' | 'consorcios' | 'presupuestos' | 'reportes_trabajo'
 >;
 
+/**
+ * Determina si un registro de factura tiene numeración oficial emitida en ARCA
+ * o si corresponde a un ingreso interno "Sin Datos" / sin comprobante fiscal vinculado.
+ */
+export function esFacturaArca(factura: {
+  numero_factura?: string | null;
+  pdf_url?: string | null;
+}): boolean {
+  if (!factura?.numero_factura) return false;
+  const num = factura.numero_factura.trim().toLowerCase();
+  if (!num) return false;
+
+  // Si tiene PDF cargado de comprobante ARCA
+  if (factura.pdf_url) return true;
+
+  // Variantes comunes de sin factura / sin datos / pendiente
+  const sinDatosKeywords = [
+    'sin datos',
+    'sin dato',
+    's/d',
+    'sd',
+    's/f',
+    'sf',
+    's/n',
+    'sn',
+    'sin factura',
+    'sin numero',
+    'sin número',
+    'sin numeracion',
+    'sin numeración',
+    'no emitida',
+    'no emitido',
+    'pendiente de factura',
+    'pendiente factura',
+    'sin comprobante',
+    '—',
+    '-',
+  ];
+  if (sinDatosKeywords.includes(num)) return false;
+
+  // Prefijos automáticos de ingresos internos del calendario sin factura oficial
+  if (num.startsWith('ing-') || num.startsWith('ing_') || num.startsWith('ing ')) {
+    return false;
+  }
+
+  return true;
+}
+
 // ── SELECT base con JOINs ────────────────────────────────────────────────────
 
 const SELECT_FULL = `
