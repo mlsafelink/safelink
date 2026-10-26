@@ -128,7 +128,6 @@ export function DiscriminacionIngresosCard({ facturas }: Props) {
   const metricasSemana = useMemo(() => calcularMetricas(facturasSemana), [facturasSemana]);
   const metricasMes = useMemo(() => calcularMetricas(facturasMes), [facturasMes]);
   const metricasAnio = useMemo(() => calcularMetricas(facturasAnio), [facturasAnio]);
-  const metricasTotal = useMemo(() => calcularMetricas(facturas), [facturas]);
 
   // Facturas del período actualmente seleccionado para la lista detallada
   const facturasPeriodoSeleccionado = useMemo(() => {
