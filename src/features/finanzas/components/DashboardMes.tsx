@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { TrendingUp } from 'lucide-react';
-import { type Factura } from '@/services/facturaService';
+import { type Factura, esFacturaArca } from '@/services/facturaService';
 import { formatMonto, isVencida } from '../FinanzasPage';
 import styles from './FinanzasDashboard.module.css';
 
@@ -37,6 +37,9 @@ export function DashboardMes({ facturas }: Props) {
     f => f.estado !== 'pagado' && !isVencida(f)
   ).length;
 
+  const arcaMes = facturasMes.filter(esFacturaArca).length;
+  const sinDatosMes = facturasMes.length - arcaMes;
+
   return (
     <div className={styles.mesCard}>
       <div className={styles.mesCardTitle}>
@@ -53,6 +56,11 @@ export function DashboardMes({ facturas }: Props) {
         <div className={styles.mesStat}>
           <div className={styles.mesStatValue}>{facturasMes.length}</div>
           <div className={styles.mesStatLabel}>Facturas emitidas</div>
+          <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+            <span style={{ color: '#34d399', fontWeight: 600 }}>{arcaMes} ARCA</span>
+            {' • '}
+            <span style={{ color: '#38bdf8', fontWeight: 600 }}>{sinDatosMes} S/D</span>
+          </div>
         </div>
         <div className={styles.mesStat}>
           <div className={styles.mesStatValue} style={{ color: '#4ade80' }}>

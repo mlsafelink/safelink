@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell
 } from 'recharts';
@@ -16,6 +16,7 @@ const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'O
 
 export function EstadisticasAnuales({ facturas }: Props) {
   const anioActual = new Date().getFullYear();
+  const [mesSeleccionado, setMesSeleccionado] = useState<number | null>(null);
 
   const facturasAnio = useMemo(
     () =>
@@ -135,7 +136,7 @@ export function EstadisticasAnuales({ facturas }: Props) {
           </ResponsiveContainer>
         </div>
 
-        {/* Gráfico cantidad de facturas por mes */}
+        {/* Facturas emitidas por mes con discriminación ARCA vs Sin Datos */}
         <div className={styles.anualCard}>
           <div className={styles.anualCardTitle} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
             <span>Facturas emitidas por mes</span>
@@ -144,14 +145,23 @@ export function EstadisticasAnuales({ facturas }: Props) {
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
                 {totalAnualConNumeracion} con N° ARCA
               </span>
-              <span style={{ color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#64748b' }} />
+              <span style={{ color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#38bdf8' }} />
                 {totalAnualSinDatos} Sin Datos
               </span>
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={140}>
-            <BarChart data={facturacionPorMes} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+          <ResponsiveContainer width="100%" height={145}>
+            <BarChart
+              data={facturacionPorMes}
+              margin={{ top: 4, right: 4, left: 0, bottom: 0 }}
+              style={{ cursor: 'pointer' }}
+              onClick={(e: any) => {
+                if (e && e.activeTooltipIndex !== undefined) {
+                  setMesSeleccionado(e.activeTooltipIndex);
+                }
+              }}
+            >
               <XAxis
                 dataKey="mes"
                 tick={{ fill: '#64748b', fontSize: 10 }}
@@ -176,11 +186,14 @@ export function EstadisticasAnuales({ facturas }: Props) {
                         <div style={{ color: '#34d399', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           <span>●</span> Con numeración ARCA: <strong>{data.conFactura}</strong>
                         </div>
-                        <div style={{ color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.2rem' }}>
+                        <div style={{ color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.2rem' }}>
                           <span>●</span> Sin Datos: <strong>{data.sinDatos}</strong>
                         </div>
                         <div style={{ color: '#60a5fa', borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '0.35rem', paddingTop: '0.25rem', fontWeight: 700 }}>
                           Total registros: {data.cantidad}
+                        </div>
+                        <div style={{ color: '#94a3b8', fontSize: '0.68rem', marginTop: '0.2rem', fontStyle: 'italic' }}>
+                          Click para filtrar en el detalle abajo
                         </div>
                       </div>
                     );
@@ -188,8 +201,8 @@ export function EstadisticasAnuales({ facturas }: Props) {
                   return null;
                 }}
               />
-              <Bar dataKey="conFactura" name="Con numeración ARCA" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} maxBarSize={24} />
-              <Bar dataKey="sinDatos" name="Sin Datos" stackId="a" fill="#64748b" radius={[4, 4, 0, 0]} maxBarSize={24} />
+              <Bar dataKey="conFactura" name="Con numeración ARCA" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={14} />
+              <Bar dataKey="sinDatos" name="Sin Datos" fill="#38bdf8" radius={[4, 4, 0, 0]} maxBarSize={14} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -240,7 +253,7 @@ export function EstadisticasAnuales({ facturas }: Props) {
             </div>
             <div className={styles.rankingItem}>
               <span className={styles.rankingName} style={{ color: '#94a3b8' }}>Sin Datos</span>
-              <span className={styles.rankingMonto} style={{ color: '#94a3b8' }}>{totalAnualSinDatos}</span>
+              <span className={styles.rankingMonto} style={{ color: '#38bdf8' }}>{totalAnualSinDatos}</span>
             </div>
             <div className={styles.rankingItem}>
               <span className={styles.rankingName} style={{ color: '#94a3b8' }}>Promedio por trabajo</span>
@@ -254,11 +267,15 @@ export function EstadisticasAnuales({ facturas }: Props) {
             )}
           </div>
         </div>
+      </div>
 
-        {/* Nueva Card: Discriminación de Ingresos (Facturas ARCA vs Sin Datos) */}
-        <div style={{ gridColumn: '1 / -1' }}>
-          <DiscriminacionIngresosCard facturas={facturas} />
-        </div>
+      {/* Nueva Card: Discriminación de Ingresos (Facturas ARCA vs Sin Datos) a ancho completo */}
+      <div style={{ marginTop: '1.5rem', width: '100%' }}>
+        <DiscriminacionIngresosCard
+          facturas={facturas}
+          mesSeleccionado={mesSeleccionado}
+          onSelectMes={setMesSeleccionado}
+        />
       </div>
     </div>
   );

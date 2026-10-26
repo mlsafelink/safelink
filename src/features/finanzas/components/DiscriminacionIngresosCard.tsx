@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   FileCheck2,
   FileQuestion,
@@ -15,10 +15,18 @@ import styles from './DiscriminacionIngresosCard.module.css';
 
 interface Props {
   facturas: Factura[];
+  mesSeleccionado?: number | null;
+  onSelectMes?: (mes: number | null) => void;
 }
 
 type PeriodoFiltro = 'semana' | 'mes' | 'anio' | 'todo';
 type TipoComprobanteFiltro = 'todos' | 'con_arca' | 'sin_datos';
+
+export const MESES_CORTOS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+export const MESES_LARGOS = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+];
 
 function getLunesYDomingoSemana(): { lunes: Date; domingo: Date } {
   const hoy = new Date();
@@ -40,16 +48,25 @@ function parseFecha(fechaStr: string | null | undefined): Date | null {
   return new Date(fechaStr + 'T12:00:00');
 }
 
-export function DiscriminacionIngresosCard({ facturas }: Props) {
-  const [periodoActivo, setPeriodoActivo] = useState<PeriodoFiltro>('mes');
+export function DiscriminacionIngresosCard({ facturas, mesSeleccionado = null, onSelectMes }: Props) {
+  const [periodoActivo, setPeriodoActivo] = useState<PeriodoFiltro>('anio');
+  const [mesFiltro, setMesFiltro] = useState<number | null>(mesSeleccionado ?? null);
   const [tipoFiltro, setTipoFiltro] = useState<TipoComprobanteFiltro>('todos');
   const [busqueda, setBusqueda] = useState('');
-  const [limiteVista, setLimiteVista] = useState(12);
+  const [limiteVista, setLimiteVista] = useState(25);
 
   const hoy = new Date();
   const anioActual = hoy.getFullYear();
   const mesActual = hoy.getMonth();
   const { lunes, domingo } = useMemo(getLunesYDomingoSemana, []);
+
+  // Sincronizar si cambia desde prop externo (por ejemplo al hacer click en el gráfico superior)
+  useEffect(() => {
+    if (mesSeleccionado !== undefined && mesSeleccionado !== null) {
+      setMesFiltro(mesSeleccionado);
+      setPeriodoActivo('mes');
+    }
+  }, [mesSeleccionado]);
 
   // Etiqueta de la semana actual
   const labelSemana = useMemo(() => {
@@ -124,6 +141,18 @@ export function DiscriminacionIngresosCard({ facturas }: Props) {
     });
   }, [facturas, anioActual]);
 
+  // Facturas por cada mes del año para el selector de meses
+  const facturasPorMesAnio = useMemo(() => {
+    const mapa = Array.from({ length: 12 }, () => [] as Factura[]);
+    facturasAnio.forEach(f => {
+      const d = parseFecha(f.fecha_emision);
+      if (d) {
+        mapa[d.getMonth()].push(f);
+      }
+    });
+    return mapa;
+  }, [facturasAnio]);
+
   // Métricas de cada período
   const metricasSemana = useMemo(() => calcularMetricas(facturasSemana), [facturasSemana]);
   const metricasMes = useMemo(() => calcularMetricas(facturasMes), [facturasMes]);
@@ -131,6 +160,10 @@ export function DiscriminacionIngresosCard({ facturas }: Props) {
 
   // Facturas del período actualmente seleccionado para la lista detallada
   const facturasPeriodoSeleccionado = useMemo(() => {
+    if (mesFiltro !== null) {
+      return facturasPorMesAnio[mesFiltro] || [];
+    }
+
     switch (periodoActivo) {
       case 'semana':
         return facturasSemana;
@@ -142,7 +175,7 @@ export function DiscriminacionIngresosCard({ facturas }: Props) {
       default:
         return facturas;
     }
-  }, [periodoActivo, facturasSemana, facturasMes, facturasAnio, facturas]);
+  }, [mesFiltro, periodoActivo, facturasPorMesAnio, facturasSemana, facturasMes, facturasAnio, facturas]);
 
   // Filtrado por Tipo (ARCA vs Sin Datos) y Búsqueda
   const facturasFiltradas = useMemo(() => {
@@ -193,6 +226,12 @@ export function DiscriminacionIngresosCard({ facturas }: Props) {
     return facturasFiltradas.slice(0, limiteVista);
   }, [facturasFiltradas, limiteVista]);
 
+  const handleSelectMes = (m: number | null) => {
+    setMesFiltro(m);
+    setLimiteVista(15);
+    if (onSelectMes) onSelectMes(m);
+  };
+
   return (
     <div className={styles.cardContainer}>
       {/* ── Encabezado Principal ── */}
@@ -230,10 +269,10 @@ export function DiscriminacionIngresosCard({ facturas }: Props) {
       <div className={styles.periodsGrid}>
         {/* Semana */}
         <div
-          className={`${styles.periodCard} ${periodoActivo === 'semana' ? styles.periodCardActive : ''}`}
+          className={`${styles.periodCard} ${periodoActivo === 'semana' && mesFiltro === null ? styles.periodCardActive : ''}`}
           onClick={() => {
             setPeriodoActivo('semana');
-            setLimiteVista(12);
+            handleSelectMes(null);
           }}
           title="Ver ingresos de esta semana"
         >
@@ -287,10 +326,10 @@ export function DiscriminacionIngresosCard({ facturas }: Props) {
 
         {/* Mes */}
         <div
-          className={`${styles.periodCard} ${periodoActivo === 'mes' ? styles.periodCardActive : ''}`}
+          className={`${styles.periodCard} ${(periodoActivo === 'mes' || mesFiltro === mesActual) ? styles.periodCardActive : ''}`}
           onClick={() => {
             setPeriodoActivo('mes');
-            setLimiteVista(12);
+            handleSelectMes(null);
           }}
           title="Ver ingresos de este mes"
         >
@@ -346,10 +385,10 @@ export function DiscriminacionIngresosCard({ facturas }: Props) {
 
         {/* Año */}
         <div
-          className={`${styles.periodCard} ${periodoActivo === 'anio' ? styles.periodCardActive : ''}`}
+          className={`${styles.periodCard} ${periodoActivo === 'anio' && mesFiltro === null ? styles.periodCardActive : ''}`}
           onClick={() => {
             setPeriodoActivo('anio');
-            setLimiteVista(12);
+            handleSelectMes(null);
           }}
           title="Ver ingresos de este año"
         >
@@ -404,41 +443,91 @@ export function DiscriminacionIngresosCard({ facturas }: Props) {
 
       {/* ── Controles y Filtros del Detalle ── */}
       <div className={styles.controlsSection}>
+        {/* Selector de Meses del Año */}
+        <div className={styles.mesesRow}>
+          <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600, marginRight: '0.2rem' }}>
+            Mes específico:
+          </span>
+          <button
+            className={`${styles.mesPill} ${mesFiltro === null ? styles.mesPillActive : ''}`}
+            onClick={() => handleSelectMes(null)}
+          >
+            Todos
+          </button>
+          {MESES_CORTOS.map((mesNombre, idx) => {
+            const countMes = facturasPorMesAnio[idx]?.length || 0;
+            const arcaMes = facturasPorMesAnio[idx]?.filter(esFacturaArca).length || 0;
+            const sinDatosMes = countMes - arcaMes;
+            const isSelected = mesFiltro === idx;
+            const hasData = countMes > 0;
+
+            return (
+              <button
+                key={idx}
+                className={`${styles.mesPill} ${isSelected ? styles.mesPillActive : ''} ${hasData ? styles.mesPillHasData : ''}`}
+                onClick={() => handleSelectMes(idx)}
+                title={`${MESES_LARGOS[idx]}: ${arcaMes} con ARCA, ${sinDatosMes} Sin Datos`}
+              >
+                {mesNombre}
+                {hasData && (
+                  <span style={{ marginLeft: '0.3rem', fontSize: '0.68rem', fontWeight: 700, color: arcaMes > 0 ? '#34d399' : '#94a3b8' }}>
+                    ({countMes})
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {mesFiltro !== null && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.3)', padding: '0.45rem 0.85rem', borderRadius: '8px', fontSize: '0.78rem', color: '#93c5fd' }}>
+            <span>
+              Filtrando por <strong>{MESES_LARGOS[mesFiltro]} {anioActual}</strong> — 🟢 {countsPeriodo.conArca} con Factura ARCA • ⚪ {countsPeriodo.sinDatos} Sin Datos
+            </span>
+            <button
+              onClick={() => handleSelectMes(null)}
+              style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem', textDecoration: 'underline' }}
+            >
+              Restablecer período
+            </button>
+          </div>
+        )}
+
         <div className={styles.controlsRow}>
           {/* Selector de Período Activo */}
           <div className={styles.filterGroup}>
             <button
-              className={`${styles.filterBtn} ${periodoActivo === 'semana' ? styles.filterBtnActive : ''}`}
+              className={`${styles.filterBtn} ${periodoActivo === 'semana' && mesFiltro === null ? styles.filterBtnActive : ''}`}
               onClick={() => {
                 setPeriodoActivo('semana');
-                setLimiteVista(12);
+                handleSelectMes(null);
               }}
             >
               Semana
             </button>
             <button
-              className={`${styles.filterBtn} ${periodoActivo === 'mes' ? styles.filterBtnActive : ''}`}
+              className={`${styles.filterBtn} ${periodoActivo === 'mes' && mesFiltro === null ? styles.filterBtnActive : ''}`}
               onClick={() => {
                 setPeriodoActivo('mes');
-                setLimiteVista(12);
+                handleSelectMes(null);
               }}
             >
-              Mes
+              Mes Actual
             </button>
             <button
-              className={`${styles.filterBtn} ${periodoActivo === 'anio' ? styles.filterBtnActive : ''}`}
+              className={`${styles.filterBtn} ${periodoActivo === 'anio' && mesFiltro === null ? styles.filterBtnActive : ''}`}
               onClick={() => {
                 setPeriodoActivo('anio');
-                setLimiteVista(12);
+                handleSelectMes(null);
               }}
             >
               Año {anioActual}
             </button>
             <button
-              className={`${styles.filterBtn} ${periodoActivo === 'todo' ? styles.filterBtnActive : ''}`}
+              className={`${styles.filterBtn} ${periodoActivo === 'todo' && mesFiltro === null ? styles.filterBtnActive : ''}`}
               onClick={() => {
                 setPeriodoActivo('todo');
-                setLimiteVista(12);
+                handleSelectMes(null);
               }}
             >
               Histórico Todo

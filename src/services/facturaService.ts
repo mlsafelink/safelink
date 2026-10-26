@@ -58,33 +58,34 @@ export function esFacturaArca(factura: {
   const num = factura.numero_factura.trim().toLowerCase();
   if (!num) return false;
 
+  // Si contiene explícitamente "sin dato" o "sin factura"
+  if (
+    num.includes('sin dato') ||
+    num.includes('sin datos') ||
+    num.includes('sin factura') ||
+    num.includes('sin numero') ||
+    num.includes('sin número') ||
+    num.includes('sin numeracion') ||
+    num.includes('sin numeración') ||
+    num.includes('no emitida') ||
+    num.includes('no emitido') ||
+    num.includes('pendiente de factura') ||
+    num.includes('pendiente factura') ||
+    num.includes('sin comprobante') ||
+    num === 's/d' ||
+    num === 'sd' ||
+    num === 's/f' ||
+    num === 'sf' ||
+    num === 's/n' ||
+    num === 'sn' ||
+    num === '—' ||
+    num === '-'
+  ) {
+    return false;
+  }
+
   // Si tiene PDF cargado de comprobante ARCA
   if (factura.pdf_url) return true;
-
-  // Variantes comunes de sin factura / sin datos / pendiente
-  const sinDatosKeywords = [
-    'sin datos',
-    'sin dato',
-    's/d',
-    'sd',
-    's/f',
-    'sf',
-    's/n',
-    'sn',
-    'sin factura',
-    'sin numero',
-    'sin número',
-    'sin numeracion',
-    'sin numeración',
-    'no emitida',
-    'no emitido',
-    'pendiente de factura',
-    'pendiente factura',
-    'sin comprobante',
-    '—',
-    '-',
-  ];
-  if (sinDatosKeywords.includes(num)) return false;
 
   // Prefijos automáticos de ingresos internos del calendario sin factura oficial
   if (num.startsWith('ing-') || num.startsWith('ing_') || num.startsWith('ing ')) {

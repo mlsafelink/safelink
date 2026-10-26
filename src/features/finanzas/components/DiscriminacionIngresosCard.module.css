@@ -297,6 +297,45 @@
   border-radius: 10px;
   font-size: 0.7rem;
   font-weight: 700;
+/* Selector de Meses */
+.mesesRow {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding: 0.25rem 0;
+  align-items: center;
+  scrollbar-width: thin;
+}
+
+.mesPill {
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: #94a3b8;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.mesPill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+}
+
+.mesPillActive {
+  background: rgba(37, 99, 235, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+  color: #93c5fd;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+}
+
+.mesPillHasData {
+  border-color: rgba(56, 189, 248, 0.25);
+  color: #cbd5e1;
 }
 
 .searchBox {

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { facturaService, type Factura, type FacturaEstado } from '@/services/facturaService';
+import { facturaService, type Factura, type FacturaEstado, esFacturaArca } from '@/services/facturaService';
 import { notificacionService } from '@/services/notificacionService';
 import { Card } from '@/components/ui/Card/Card';
 import { Button } from '@/components/ui/Button/Button';
@@ -78,6 +78,7 @@ export function FinanzasPage() {
   const [detalleId, setDetalleId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filterEstado, setFilterEstado] = useState<FilterEstado>('todos');
+  const [filterTipoComprobante, setFilterTipoComprobante] = useState<'todos' | 'con_arca' | 'sin_datos'>('todos');
   const [search, setSearch] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -132,6 +133,12 @@ export function FinanzasPage() {
       result = result.filter(f => f.estado === filterEstado);
     }
 
+    if (filterTipoComprobante === 'con_arca') {
+      result = result.filter(f => esFacturaArca(f));
+    } else if (filterTipoComprobante === 'sin_datos') {
+      result = result.filter(f => !esFacturaArca(f));
+    }
+
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(f => {
@@ -143,7 +150,7 @@ export function FinanzasPage() {
     }
 
     return result;
-  }, [facturas, filterEstado, search]);
+  }, [facturas, filterEstado, filterTipoComprobante, search]);
 
   const handleNew = () => { setEditingId(null); setViewMode('form'); };
   const handleEdit = (id: string) => { setEditingId(id); setViewMode('form'); };
@@ -189,6 +196,9 @@ export function FinanzasPage() {
     pagado: facturas.filter(f => f.estado === 'pagado').length,
     vencida: facturas.filter(f => isVencida(f)).length,
   };
+
+  const countArca = facturas.filter(esFacturaArca).length;
+  const countSinDatos = facturas.length - countArca;
 
   const FILTROS: { key: FilterEstado; label: string; count: number; color?: string }[] = [
     { key: 'todos',     label: 'Todos',      count: counts.todos },
@@ -253,7 +263,7 @@ export function FinanzasPage() {
         <EstadisticasAnuales facturas={facturas} />
       )}
 
-      {/* ── TAB HISTORIAL (sección existente sin modificar) ── */}
+      {/* ── TAB HISTORIAL ── */}
       {activeTab === 'historial' && (
         <>
       <Card variant="glass" className={styles.filtersCard}>
@@ -271,6 +281,32 @@ export function FinanzasPage() {
             <Filter size={14} />
             <span>{facturasFiltradas.length} resultado{facturasFiltradas.length !== 1 ? 's' : ''}</span>
           </div>
+        </div>
+
+        {/* Filtro Discriminación ARCA vs Sin Datos */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+          <button
+            className={`${styles.filtroBtn} ${filterTipoComprobante === 'todos' ? styles.filtroBtnActive : ''}`}
+            onClick={() => setFilterTipoComprobante('todos')}
+          >
+            Todos los tipos ({facturas.length})
+          </button>
+          <button
+            className={`${styles.filtroBtn} ${filterTipoComprobante === 'con_arca' ? styles.filtroBtnActive : ''}`}
+            style={filterTipoComprobante === 'con_arca' ? { borderColor: '#10b981', color: '#34d399' } : undefined}
+            onClick={() => setFilterTipoComprobante('con_arca')}
+          >
+            🟢 Con Factura ARCA
+            <span className={styles.filtroCount}>{countArca}</span>
+          </button>
+          <button
+            className={`${styles.filtroBtn} ${filterTipoComprobante === 'sin_datos' ? styles.filtroBtnActive : ''}`}
+            style={filterTipoComprobante === 'sin_datos' ? { borderColor: '#38bdf8', color: '#38bdf8' } : undefined}
+            onClick={() => setFilterTipoComprobante('sin_datos')}
+          >
+            ⚪ Sin Datos
+            <span className={styles.filtroCount}>{countSinDatos}</span>
+          </button>
         </div>
 
         <div className={styles.filtrosRow}>
@@ -331,7 +367,36 @@ export function FinanzasPage() {
                         className={styles.tableRow}
                       >
                         <td className={styles.tdNumero}>
-                          <span className={styles.numFactura}>{f.numero_factura}</span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                            <span className={styles.numFactura}>{f.numero_factura}</span>
+                            {esFacturaArca(f) ? (
+                              <span style={{
+                                fontSize: '0.65rem',
+                                color: '#34d399',
+                                background: 'rgba(16,185,129,0.12)',
+                                border: '1px solid rgba(16,185,129,0.3)',
+                                borderRadius: '4px',
+                                padding: '1px 5px',
+                                width: 'fit-content',
+                                fontWeight: 700,
+                              }}>
+                                🟢 ARCA
+                              </span>
+                            ) : (
+                              <span style={{
+                                fontSize: '0.65rem',
+                                color: '#94a3b8',
+                                background: 'rgba(148,163,184,0.1)',
+                                border: '1px solid rgba(148,163,184,0.2)',
+                                borderRadius: '4px',
+                                padding: '1px 5px',
+                                width: 'fit-content',
+                                fontWeight: 600,
+                              }}>
+                                ⚪ Sin Datos
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td>
                           <span className={styles.tipoBadge}>Tipo {f.tipo_factura}</span>
