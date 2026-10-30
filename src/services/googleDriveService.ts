@@ -8,7 +8,7 @@
  *  - Exportación masiva de la biblioteca a cualquiera de las dos cuentas
  */
 
-const DEFAULT_CLIENT_ID = '545141398782-okeuohc20m7rnuuc3v0s715gsn2slvbp.apps.googleusercontent.com';
+const DEFAULT_CLIENT_ID = '776738048733-a5h5a7qg4d06foioqh1r3hp3aot5ijo4.apps.googleusercontent.com';
 const CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) || DEFAULT_CLIENT_ID;
 const SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email';
 const DRIVE_API = 'https://www.googleapis.com/drive/v3';
