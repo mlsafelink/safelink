@@ -12,7 +12,7 @@ import { Select } from '@/components/ui/Select/Select';
 import { Card } from '@/components/ui/Card/Card';
 import {
   ArrowLeft, Save, ClipboardList, FileText,
-  Cpu, Eye, AlertTriangle, CheckSquare, Camera, Globe,
+  Cpu, AlertTriangle, Camera, Globe,
 } from 'lucide-react';
 import { DocumentPhotoUploader } from './components/DocumentPhotoUploader';
 import styles from './DocForm.module.css';
