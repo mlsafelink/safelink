@@ -41,6 +41,7 @@ export type Reporte = {
   recomendaciones: string | null;
   conclusiones: string | null;
   fotografias: DocumentFoto[];
+  incluir_fotografias?: boolean | null;
   observaciones: string | null;
 
   // Campos de plantilla y soporte

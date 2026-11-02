@@ -18,11 +18,9 @@ import { DocumentPhotoUploader } from './components/DocumentPhotoUploader';
 import styles from './DocForm.module.css';
 
 const STEPS = [
-  { id: 'descripcion',         label: 'Situación',     icon: FileText },
-  { id: 'equipo',              label: 'Equipo',        icon: Cpu },
-  { id: 'inspeccion',         label: 'Inspección',    icon: Eye },
+  { id: 'situacion',           label: 'Situación',     icon: FileText },
+  { id: 'relevamiento',        label: 'Relevam.',      icon: Cpu },
   { id: 'diagnostico',        label: 'Diagnóstico',   icon: AlertTriangle },
-  { id: 'recomendaciones',    label: 'Recomend.',     icon: CheckSquare },
   { id: 'fotos',              label: 'Fotos',         icon: Camera },
   { id: 'soporte',            label: 'Soporte',       icon: Globe },
 ];
@@ -54,7 +52,8 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
   const isEditing = !!editingId;
   const [isDataLoaded, setIsDataLoaded] = useState(!isEditing);
   const [fotografias, setFotografias] = useState<FotoItem[]>([]);
-  const [activeStep, setActiveStep] = useState('descripcion');
+  const [incluirFotografias, setIncluirFotografias] = useState<boolean>(true);
+  const [activeStep, setActiveStep] = useState('situacion');
 
   const { data: consorcios = [] } = useQuery({
     queryKey: ['consorcios'],
@@ -120,6 +119,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
           horario_soporte: reporte.horario_soporte || 'Lunes a Viernes de 9:00 a 18:00 hs.',
         });
         setFotografias(normalizeFotos(reporte.fotografias));
+        setIncluirFotografias(reporte.incluir_fotografias !== false);
         setIsDataLoaded(true);
       }
     }
@@ -127,7 +127,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
 
   const mutation = useMutation({
     mutationFn: (data: ReporteFormData) => {
-      const payload = { ...data, fotografias };
+      const payload = { ...data, fotografias, incluir_fotografias: incluirFotografias };
       return isEditing
         ? reporteService.update(editingId!, payload)
         : reporteService.create(payload);
@@ -210,76 +210,94 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
               <span>Desarrollo del Reporte</span>
             </div>
 
+            {/* 1. Situación y alcance */}
             <div>
-              <label className={styles.textareaLabel}>SECCIÓN 1 — Descripción de la situación</label>
+              <label className={styles.textareaLabel}>SECCIÓN 1 — Situación y alcance</label>
               <textarea
                 className={styles.textArea}
                 rows={4}
-                placeholder="Escriba la descripción de la situación encontrada..."
+                placeholder="Describa la situación encontrada y el alcance de la intervención..."
                 {...register('descripcion')}
-                onFocus={() => setActiveStep('descripcion')}
+                onFocus={() => setActiveStep('situacion')}
               />
             </div>
 
+            {/* 2. Relevamiento técnico */}
             <div style={{ marginTop: '1rem' }}>
-              <label className={styles.textareaLabel}>SECCIÓN 2 — Equipo relevado</label>
-              <textarea
-                className={styles.textArea}
-                rows={3}
-                placeholder="Detalle los equipos encontrados (marca, modelo, estado)..."
-                {...register('equipo_relevado')}
-                onFocus={() => setActiveStep('equipo')}
-              />
+              <label className={styles.textareaLabel}>SECCIÓN 2 — Relevamiento técnico</label>
+              <div style={{ marginTop: '0.5rem' }}>
+                <label className={styles.textareaLabel} style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Equipo relevado</label>
+                <textarea
+                  className={styles.textArea}
+                  rows={3}
+                  placeholder="Detalle los equipos encontrados (marca, modelo, estado)..."
+                  {...register('equipo_relevado')}
+                  onFocus={() => setActiveStep('relevamiento')}
+                />
+              </div>
+              <div style={{ marginTop: '0.75rem' }}>
+                <label className={styles.textareaLabel} style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Inspección realizada</label>
+                <textarea
+                  className={styles.textArea}
+                  rows={4}
+                  placeholder="Detalle las pruebas e inspecciones llevadas a cabo..."
+                  {...register('inspeccion_realizada')}
+                  onFocus={() => setActiveStep('relevamiento')}
+                />
+              </div>
             </div>
 
+            {/* 3. Diagnóstico y recomendaciones */}
             <div style={{ marginTop: '1rem' }}>
-              <label className={styles.textareaLabel}>SECCIÓN 3 — Inspección realizada</label>
-              <textarea
-                className={styles.textArea}
-                rows={4}
-                placeholder="Detalle las pruebas e inspecciones llevadas a cabo..."
-                {...register('inspeccion_realizada')}
-                onFocus={() => setActiveStep('inspeccion')}
-              />
-            </div>
-
-            <div style={{ marginTop: '1rem' }}>
-              <label className={styles.textareaLabel}>SECCIÓN 4 — Diagnóstico</label>
-              <textarea
-                className={styles.textArea}
-                rows={4}
-                placeholder="Conclusión técnica sobre la situación encontrada..."
-                {...register('diagnostico')}
-                onFocus={() => setActiveStep('diagnostico')}
-              />
-            </div>
-
-            <div style={{ marginTop: '1rem' }}>
-              <label className={styles.textareaLabel}>SECCIÓN 5 — Recomendaciones</label>
-              <textarea
-                className={styles.textArea}
-                rows={4}
-                placeholder="• Una recomendación por línea&#10;• Agregar bullet • al inicio de cada una"
-                {...register('recomendaciones')}
-                onFocus={() => setActiveStep('recomendaciones')}
-              />
-              <p className={styles.sectionHint} style={{ marginTop: '0.4rem' }}>
-                Usá "•" al inicio de cada línea para mostrarlas como viñetas en el reporte.
-              </p>
+              <label className={styles.textareaLabel}>SECCIÓN 3 — Diagnóstico y recomendaciones</label>
+              <div style={{ marginTop: '0.5rem' }}>
+                <label className={styles.textareaLabel} style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Diagnóstico</label>
+                <textarea
+                  className={styles.textArea}
+                  rows={4}
+                  placeholder="Conclusión técnica sobre la situación encontrada..."
+                  {...register('diagnostico')}
+                  onFocus={() => setActiveStep('diagnostico')}
+                />
+              </div>
+              <div style={{ marginTop: '0.75rem' }}>
+                <label className={styles.textareaLabel} style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Recomendaciones</label>
+                <textarea
+                  className={styles.textArea}
+                  rows={4}
+                  placeholder="• Una recomendación por línea&#10;• Agregar bullet • al inicio de cada una"
+                  {...register('recomendaciones')}
+                  onFocus={() => setActiveStep('diagnostico')}
+                />
+                <p className={styles.sectionHint} style={{ marginTop: '0.4rem' }}>
+                  Usá "•" al inicio de cada línea para mostrarlas como viñetas en el reporte.
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* ── Fotografías ── */}
+          {/* ── Registro fotográfico (opcional) ── */}
           <div className={styles.sectionBlock} onFocus={() => setActiveStep('fotos')}>
-            <DocumentPhotoUploader
-              fotografias={fotografias}
-              onChange={setFotografias}
-              label="Registro Fotográfico de Evidencia"
-              hint="Sube imágenes de la inspección o relevamiento técnico. Puedes añadir una descripción opcional a cada fotografía."
-            />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', userSelect: 'none', marginBottom: '0.75rem' }}>
+              <input
+                type="checkbox"
+                checked={incluirFotografias}
+                onChange={e => setIncluirFotografias(e.target.checked)}
+                style={{ width: '1.1rem', height: '1.1rem', accentColor: 'var(--primary)', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Incluir registro fotográfico</span>
+            </label>
+            {incluirFotografias && (
+              <DocumentPhotoUploader
+                fotografias={fotografias}
+                onChange={setFotografias}
+                label="Registro Fotográfico de Evidencia"
+                hint="Subí imágenes de la inspección o relevamiento técnico. Podés añadir una descripción opcional a cada fotografía."
+              />
+            )}
           </div>
 
-          {/* ── Datos de Soporte (¿Necesita ayuda?) ── */}
+                    {/* ── Datos de Soporte (¿Necesita ayuda?) ── */}
           <div className={styles.sectionBlock} onFocus={() => setActiveStep('soporte')}>
             <div className={styles.sectionTitle}>
               <Globe size={16} />

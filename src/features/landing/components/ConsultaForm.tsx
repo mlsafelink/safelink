@@ -30,15 +30,25 @@ export function ConsultaForm({ servicioPreseleccionado }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const cleanNombre = nombre.trim();
+    const cleanWhatsapp = whatsapp.trim();
+    const cleanDescripcion = descripcion.trim();
+
+    if (!cleanNombre || !cleanWhatsapp || !cleanDescripcion) {
+      setError('Por favor completá todos los campos requeridos antes de enviar.');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
       await landingService.createConsulta({
-        nombre: nombre.trim(),
-        whatsapp: whatsapp.trim(),
+        nombre: cleanNombre,
+        whatsapp: cleanWhatsapp,
         servicio,
-        descripcion: descripcion.trim(),
+        descripcion: cleanDescripcion,
         monto_cotizado: null,
       });
       setEnviado(true);

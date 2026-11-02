@@ -342,30 +342,73 @@ export function ReportePDF({ reporte }: { reporte: Reporte }) {
 
         <Text style={styles.title}>{reporte.titulo}</Text>
 
+        {/* Sección 1: Situación y alcance */}
+        {reporte.descripcion && String(reporte.descripcion).trim() !== '' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Situación y alcance</Text>
+            <Text style={styles.sectionBody}>{reporte.descripcion}</Text>
+          </View>
+        )}
+
+        {/* Sección 2: Relevamiento técnico */}
+        {(reporte.equipo_relevado || reporte.inspeccion_realizada) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Relevamiento técnico</Text>
+            {reporte.equipo_relevado && String(reporte.equipo_relevado).trim() !== '' && (
+              <View style={{ marginBottom: 6 }}>
+                <Text style={[styles.sectionBody, { fontWeight: 'bold', marginBottom: 2 }]}>Equipo relevado</Text>
+                <Text style={styles.sectionBody}>{reporte.equipo_relevado}</Text>
+              </View>
+            )}
+            {reporte.inspeccion_realizada && String(reporte.inspeccion_realizada).trim() !== '' && (
+              <View>
+                <Text style={[styles.sectionBody, { fontWeight: 'bold', marginBottom: 2 }]}>Inspección realizada</Text>
+                <Text style={styles.sectionBody}>{reporte.inspeccion_realizada}</Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Sección 3: Diagnóstico y recomendaciones */}
+        {(reporte.diagnostico || reporte.recomendaciones) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Diagnóstico y recomendaciones</Text>
+            {reporte.diagnostico && String(reporte.diagnostico).trim() !== '' && (
+              <View style={{ marginBottom: 6 }}>
+                <Text style={[styles.sectionBody, { fontWeight: 'bold', marginBottom: 2 }]}>Diagnóstico</Text>
+                <Text style={styles.sectionBody}>{reporte.diagnostico}</Text>
+              </View>
+            )}
+            {reporte.recomendaciones && String(reporte.recomendaciones).trim() !== '' && (
+              <View>
+                <Text style={[styles.sectionBody, { fontWeight: 'bold', marginBottom: 2 }]}>Recomendaciones</Text>
+                <Text style={styles.sectionBody}>{reporte.recomendaciones}</Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Campos heredados (compatibilidad histórica) */}
         {[
           { key: 'motivo', label: 'Motivo de la Visita' },
-          { key: 'descripcion', label: 'Descripción de la Situación' },
-          { key: 'equipo_relevado', label: 'Equipo Relevado' },
-          { key: 'inspeccion_realizada', label: 'Inspección Realizada' },
-          { key: 'diagnostico', label: 'Diagnóstico Técnico' },
           { key: 'trabajo_realizado', label: 'Trabajos Realizados' },
-          { key: 'recomendaciones', label: 'Recomendaciones' },
           { key: 'conclusiones', label: 'Conclusiones' },
           { key: 'observaciones', label: 'Observaciones' },
         ].map((sec) => {
-          const content = (reporte as any)[sec.key];
-          if (!content || String(content).trim() === '') return null;
+          const val = (reporte as any)[sec.key];
+          if (!val || String(val).trim() === '') return null;
           return (
             <View key={sec.key} style={styles.section}>
               <Text style={styles.sectionTitle}>{sec.label}</Text>
-              <Text style={styles.sectionBody}>{content}</Text>
+              <Text style={styles.sectionBody}>{val}</Text>
             </View>
           );
         })}
 
-        {reporte.fotografias && reporte.fotografias.length > 0 && (
+        {/* Sección 4: Registro fotográfico (solo si incluir_fotografias !== false) */}
+        {reporte.incluir_fotografias !== false && reporte.fotografias && reporte.fotografias.length > 0 && (
           <View style={styles.photoSection}>
-            <Text style={styles.sectionTitle}>REGISTRO FOTOGRÁFICO DE OBRA</Text>
+            <Text style={styles.sectionTitle}>REGISTRO FOTOGRÁFICO</Text>
             <View style={styles.photoGrid}>
               {reporte.fotografias.map((item, idx) => {
                 const foto = normalizeFoto(item);

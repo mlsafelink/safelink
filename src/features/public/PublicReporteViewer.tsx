@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { reporteService, trackDocumentAccess, normalizeFoto } from '@/services/documentService';
 import {
   Calendar, Building, ClipboardList, Clock, HelpCircle, Shield,
-  FileText, Cpu, Eye, AlertTriangle, CheckSquare, Phone, Mail, Image,
+  FileText, Cpu, AlertTriangle, Phone, Mail, Image,
 } from 'lucide-react';
 import styles from './ReporteViewer.module.css';
 
@@ -125,9 +125,10 @@ export function PublicReporteViewer() {
       </div>
 
       {/* ── CONTENIDO PRINCIPAL (CARDS) ── */}
+
       <main className={styles.main}>
 
-        {/* Card 1: Descripción de la situación */}
+        {/* Card 1: Situación y alcance */}
         {reporte.descripcion && (
           <div className={styles.card}>
             <div className={styles.cardLeft}>
@@ -137,62 +138,72 @@ export function PublicReporteViewer() {
               <span className={styles.stepLabel}>Situación</span>
             </div>
             <div className={styles.cardRight}>
-              <h2 className={styles.cardHeading}>Descripción de la situación</h2>
+              <h2 className={styles.cardHeading}>Situación y alcance</h2>
               <p className={styles.cardText}>{reporte.descripcion}</p>
             </div>
           </div>
         )}
 
-        {/* Card 2: Equipo relevado */}
-        {reporte.equipo_relevado && (
+        {/* Card 2: Relevamiento técnico */}
+        {(reporte.equipo_relevado || reporte.inspeccion_realizada) && (
           <div className={styles.card}>
             <div className={styles.cardLeft}>
               <span className={styles.stepNum}>Sección</span>
               <span className={styles.stepNumber}>2</span>
               <div className={styles.stepIcon}><Cpu size={18} /></div>
-              <span className={styles.stepLabel}>Equipos</span>
+              <span className={styles.stepLabel}>Relevam.</span>
             </div>
             <div className={styles.cardRight}>
-              <h2 className={styles.cardHeading}>Equipo relevado</h2>
-              <p className={styles.cardText}>{reporte.equipo_relevado}</p>
+              <h2 className={styles.cardHeading}>Relevamiento técnico</h2>
+              {reporte.equipo_relevado && (
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--rv-text-secondary)', marginBottom: '0.25rem' }}>Equipo relevado</p>
+                  <p className={styles.cardText}>{reporte.equipo_relevado}</p>
+                </div>
+              )}
+              {reporte.inspeccion_realizada && (
+                <div>
+                  <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--rv-text-secondary)', marginBottom: '0.25rem' }}>Inspección realizada</p>
+                  <p className={styles.cardText}>{reporte.inspeccion_realizada}</p>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Card 3: Inspección realizada */}
-        {reporte.inspeccion_realizada && (
+        {/* Card 3: Diagnóstico y recomendaciones */}
+        {(reporte.diagnostico || listRecomendaciones.length > 0) && (
           <div className={styles.card}>
             <div className={styles.cardLeft}>
               <span className={styles.stepNum}>Sección</span>
               <span className={styles.stepNumber}>3</span>
-              <div className={styles.stepIcon}><Eye size={18} /></div>
-              <span className={styles.stepLabel}>Inspección</span>
-            </div>
-            <div className={styles.cardRight}>
-              <h2 className={styles.cardHeading}>Inspección realizada</h2>
-              <p className={styles.cardText}>{reporte.inspeccion_realizada}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Card 4: Diagnóstico */}
-        {reporte.diagnostico && (
-          <div className={styles.card}>
-            <div className={styles.cardLeft}>
-              <span className={styles.stepNum}>Sección</span>
-              <span className={styles.stepNumber}>4</span>
               <div className={styles.stepIcon}><AlertTriangle size={18} /></div>
-              <span className={styles.stepLabel}>Diagnóstico</span>
+              <span className={styles.stepLabel}>Diagnóst.</span>
             </div>
             <div className={styles.cardRight}>
-              <h2 className={styles.cardHeading}>Diagnóstico Técnico</h2>
-              <p className={styles.cardText}>{reporte.diagnostico}</p>
+              <h2 className={styles.cardHeading}>Diagnóstico y recomendaciones</h2>
+              {reporte.diagnostico && (
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--rv-text-secondary)', marginBottom: '0.25rem' }}>Diagnóstico</p>
+                  <p className={styles.cardText}>{reporte.diagnostico}</p>
+                </div>
+              )}
+              {listRecomendaciones.length > 0 && (
+                <div>
+                  <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--rv-text-secondary)', marginBottom: '0.25rem' }}>Recomendaciones</p>
+                  <ul className={styles.footerBullets} style={{ marginTop: '0.25rem' }}>
+                    {listRecomendaciones.map((rec, i) => (
+                      <li key={i} style={{ fontSize: '0.88rem', color: 'var(--rv-text)', lineHeight: 1.6 }}>{rec}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Fotografías */}
-        {reporte.fotografias && reporte.fotografias.length > 0 && (
+        {/* Card 4: Registro fotográfico (solo si incluir_fotografias !== false) */}
+        {reporte.incluir_fotografias !== false && reporte.fotografias && reporte.fotografias.length > 0 && (
           <div className={styles.galleryCard}>
             <div className={styles.galleryHeader}>
               <Image size={18} />
@@ -221,25 +232,6 @@ export function PublicReporteViewer() {
                   </div>
                 );
               })}
-            </div>
-          </div>
-        )}
-        {/* Card 5: Recomendaciones */}
-        {listRecomendaciones.length > 0 && (
-          <div className={styles.card}>
-            <div className={styles.cardLeft}>
-              <span className={styles.stepNum}>Sección</span>
-              <span className={styles.stepNumber}>5</span>
-              <div className={styles.stepIcon}><CheckSquare size={18} /></div>
-              <span className={styles.stepLabel}>Recomend.</span>
-            </div>
-            <div className={styles.cardRight}>
-              <h2 className={styles.cardHeading}>Recomendaciones</h2>
-              <ul className={styles.footerBullets} style={{ marginTop: '0.25rem' }}>
-                {listRecomendaciones.map((rec, i) => (
-                  <li key={i} style={{ fontSize: '0.88rem', color: 'var(--rv-text)', lineHeight: 1.6 }}>{rec}</li>
-                ))}
-              </ul>
             </div>
           </div>
         )}

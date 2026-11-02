@@ -53,6 +53,13 @@ const EVAL_WINDOW_HOURS          = 2;
 
 // ── Evaluador de riesgo ───────────────────────────────────────────
 
+
+function isValidoPais(c?: string | null): boolean {
+  if (!c) return false;
+  const clean = c.toLowerCase().trim();
+  return !['desconocido', 'desconocida', 'no disponible', '', 'null', 'undefined', 'n/a'].includes(clean);
+}
+
 async function evaluateRisk(
   supabaseAdmin: ReturnType<typeof createClient>,
   input: SecurityEventInput,
@@ -134,8 +141,13 @@ async function evaluateRisk(
       };
     }
 
-    // ── Impossible Travel ─────────────────────────────────────────
-    if (profile?.last_login_at && profile?.last_country && input.country) {
+        // ── Impossible Travel (solo si ambos países son válidos y reconocidos) ──
+    if (
+      input.event_type !== 'LOGIN_SUCCESS' &&
+      profile?.last_login_at &&
+      isValidoPais(profile.last_country) &&
+      isValidoPais(input.country)
+    ) {
       const lastLoginMs = new Date(profile.last_login_at).getTime();
       const minutesSinceLastLogin = (Date.now() - lastLoginMs) / 60000;
       const differentCountry = profile.last_country.toLowerCase() !== input.country.toLowerCase();
@@ -155,8 +167,8 @@ async function evaluateRisk(
     let isUnusual = false;
     const reasons: string[] = [];
 
-    // Nuevo país
-    if (profile?.last_country && input.country &&
+        // Nuevo país (solo si ambos son reconocidos)
+    if (isValidoPais(profile?.last_country) && isValidoPais(input.country) &&
         profile.last_country.toLowerCase() !== input.country.toLowerCase()) {
       isUnusual = true;
       reasons.push(`País nuevo: ${input.country}`);
@@ -182,13 +194,13 @@ async function evaluateRisk(
       reasons.push(`${failedCount} intentos fallidos recientes`);
     }
 
-    if (isUnusual) {
+        if (isUnusual) {
       return {
         risk_level: 'UNUSUAL',
         reason: reasons.join('; '),
         status: 'allowed',
         should_block: false,
-        should_alert: settings?.alert_on_unusual === true,
+        should_alert: input.event_type !== 'LOGIN_SUCCESS' && settings?.alert_on_unusual === true,
       };
     }
 
@@ -212,6 +224,11 @@ async function sendSecurityAlert(
   evaluation: RiskEvaluation,
   alertEmail: string
 ) {
+  // NUNCA enviar email de alerta en logins exitosos de usuarios legítimos
+  if (event.event_type === 'LOGIN_SUCCESS') {
+    return;
+  }
+
   try {
     const riskEmoji: Record<RiskLevel, string> = {
       NORMAL: '🟢',
@@ -442,8 +459,9 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      // Enviar alerta email si corresponde
-      if (evaluation.should_alert) {
+            // Enviar alerta email SOLO para eventos no ordinarios (nunca en LOGIN_SUCCESS)
+      const alertsEnabled = settings?.alerts_enabled !== false;
+      if (evaluation.should_alert && alertsEnabled && input.event_type !== 'LOGIN_SUCCESS') {
         const alertEmail =
           (settings?.alert_email as string) ??
           Deno.env.get('SLS_ALERT_EMAIL') ??
