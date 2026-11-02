@@ -159,6 +159,11 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
           horario_soporte: doc.horario_soporte || '',
         });
         setFotografias(normalizeFotos(doc.fotografias));
+        if (doc.codigo_publico) {
+          setCodigoPublico(doc.codigo_publico);
+        } else {
+          setCodigoPublico(generatePublicCode(4));
+        }
       }
     }
   }, [isEditing, reportesTrabajo, editingId, reset]);
