@@ -104,7 +104,7 @@ export function DocumentPage() {
   const handleBack = () => { setEditingId(null); setViewMode('list'); };
 
   const getDocPublicIdentifier = (doc: any) => {
-    if (activeTab === 'instructivos' && doc.public_slug) {
+    if (doc.public_slug) {
       return doc.public_slug;
     }
     return doc.public_id;
@@ -200,7 +200,7 @@ export function DocumentPage() {
                     {(doc as any).codigo && (
                       <span className={styles.version}>{(doc as any).codigo}</span>
                     )}
-                    {activeTab === 'instructivos' && (doc as any).public_slug && (
+                    {(doc as any).public_slug && (
                       <span
                         className={styles.version}
                         style={{

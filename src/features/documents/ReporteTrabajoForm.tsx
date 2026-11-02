@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { reporteTrabajoService, presupuestoService, reporteService, normalizeFotos, type FotoItem } from '@/services/documentService';
+import { normalizeNombreEnlace, generatePublicCode } from '@/features/documents/constants/instructivoApps';
 import { consorcioService } from '@/services/consorcioService';
 import { particularService } from '@/services/particularService';
 import { Button } from '@/components/ui/Button/Button';
@@ -12,7 +13,7 @@ import { Select } from '@/components/ui/Select/Select';
 import { Card } from '@/components/ui/Card/Card';
 import {
   ArrowLeft, Save, FileText, Cpu, CheckSquare, Wrench,
-  Camera, Shield, UserCheck, CheckCircle2, AlertCircle
+  Camera, Shield, UserCheck, CheckCircle2, AlertCircle, Link as LinkIcon
 } from 'lucide-react';
 import { DocumentPhotoUploader } from './components/DocumentPhotoUploader';
 import styles from './DocForm.module.css';
@@ -30,6 +31,7 @@ const reporteTrabajoSchema = z.object({
   consorcio_id: z.string().min(1, 'Seleccione un cliente / consorcio'),
   fecha: z.string().min(1, 'La fecha es requerida'),
   titulo: z.string().min(1, 'El título es requerido'),
+  nombre_enlace: z.string().optional(),
   tecnico_nombre: z.string().min(1, 'Nombre del técnico es requerido'),
   cliente_nombre: z.string().optional(),
   cliente_direccion: z.string().optional(),
@@ -61,6 +63,7 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
   const [activeStep, setActiveStep] = useState('general');
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [codigoPublico, setCodigoPublico] = useState<string>(() => generatePublicCode(4));
 
   const { data: consorcios = [] } = useQuery({
     queryKey: ['consorcios'],
@@ -99,12 +102,13 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
     },
   ];
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<ReporteTrabajoFormData>({
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<ReporteTrabajoFormData>({
     resolver: zodResolver(reporteTrabajoSchema),
     defaultValues: {
       consorcio_id: '',
       fecha: new Date().toISOString().split('T')[0],
       titulo: 'Reporte de Trabajo Efectuado',
+      nombre_enlace: '',
       tecnico_nombre: 'Técnico SafeLink',
       cliente_nombre: '',
       cliente_direccion: '',
@@ -123,6 +127,12 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
     },
   });
 
+  const watchedNombreEnlace = watch('nombre_enlace');
+  const normalizedSlugName = normalizeNombreEnlace(watchedNombreEnlace || '');
+  const previewSlug = normalizedSlugName
+    ? `${normalizedSlugName}-${codigoPublico}`
+    : `nombre-enlace-${codigoPublico}`;
+
   useEffect(() => {
     if (isEditing && reportesTrabajo.length > 0) {
       const doc = reportesTrabajo.find(x => x.id === editingId);
@@ -131,6 +141,7 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
           consorcio_id: doc.consorcio_id,
           fecha: doc.fecha,
           titulo: doc.titulo,
+          nombre_enlace: doc.nombre_enlace ?? '',
           tecnico_nombre: doc.tecnico_nombre || '',
           cliente_nombre: doc.cliente_nombre || '',
           cliente_direccion: doc.cliente_direccion || '',
@@ -159,9 +170,24 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
       const selectedParticular = particulares.find(p => p.id === data.consorcio_id);
       const clienteNombre = data.cliente_nombre || selectedConsorcio?.nombre || selectedParticular?.nombre || 'Cliente';
 
+      let finalSlug: string | null = null;
+      let finalCode = codigoPublico;
+      if (data.nombre_enlace && data.nombre_enlace.trim()) {
+        const uniqueRes = await reporteTrabajoService.ensureUniqueSlug(
+          data.nombre_enlace,
+          codigoPublico,
+          editingId || undefined
+        );
+        finalSlug = uniqueRes.public_slug;
+        finalCode = uniqueRes.codigo_publico;
+      }
+
       const payload = {
         ...data,
         cliente_nombre: clienteNombre,
+        nombre_enlace: data.nombre_enlace ? normalizeNombreEnlace(data.nombre_enlace) : null,
+        codigo_publico: finalCode,
+        public_slug: finalSlug,
         fotografias,
         firmas: [{ tipo: 'digital', estado: 'preparada' }],
       };
@@ -271,6 +297,46 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
                 error={errors.titulo?.message}
                 {...register('titulo')}
               />
+
+              {/* ── Nombre del enlace y Previsualización ── */}
+              <div className={styles.fullWidth} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.35rem' }}>
+                <Input
+                  label="Nombre del enlace"
+                  placeholder="ej: Obra-Finalizada-CCTV-Perez, Mantenimiento-Belgrano..."
+                  error={errors.nombre_enlace?.message}
+                  {...register('nombre_enlace')}
+                  className={styles.fullWidth}
+                />
+                <p className={styles.sectionHint} style={{ margin: 0, fontSize: '0.78rem' }}>
+                  Identificador personalizado que formará parte de la URL pública. El sistema normalizará espacios y caracteres incompatibles.
+                </p>
+                <div style={{
+                  fontSize: '0.82rem',
+                  color: 'var(--text-secondary, #718096)',
+                  marginTop: '0.35rem',
+                  background: 'rgba(49, 130, 206, 0.05)',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(49, 130, 206, 0.15)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.35rem',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600, color: 'var(--text-primary, #2d3748)' }}>
+                      <LinkIcon size={14} style={{ color: '#3182ce' }} />
+                      <span>URL pública:</span>
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: '#4a5568', background: '#e2e8f0', padding: '0.15rem 0.5rem', borderRadius: '4px', fontFamily: 'monospace' }}>
+                      Código aleatorio: <strong>{codigoPublico}</strong>
+                    </span>
+                  </div>
+                  <div style={{ wordBreak: 'break-all', fontFamily: 'monospace', color: '#3182ce', fontSize: '0.85rem' }}>
+                    {typeof window !== 'undefined' ? window.location.origin : 'https://safelinkcloud.online'}/p/reporte-trabajo/
+                    <strong style={{ color: '#2b6cb0' }}>{previewSlug}</strong>
+                  </div>
+                </div>
+              </div>
 
               <Input
                 label="Fecha *"

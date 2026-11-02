@@ -43,6 +43,9 @@ export type Reporte = {
   fotografias: DocumentFoto[];
   incluir_fotografias?: boolean | null;
   observaciones: string | null;
+  nombre_enlace?: string | null;
+  codigo_publico?: string | null;
+  public_slug?: string | null;
 
   // Campos de plantilla y soporte
   equipo_relevado: string | null;
@@ -86,6 +89,9 @@ export type Presupuesto = {
   email_soporte: string | null;
   horario_soporte: string | null;
   url_sitio_web: string | null;
+  nombre_enlace?: string | null;
+  codigo_publico?: string | null;
+  public_slug?: string | null;
   estado?: PresupuestoEstado;
   aceptado_at?: string | null;
   access_count?: number;
@@ -126,6 +132,9 @@ export type ReporteTrabajo = {
   telefono_soporte: string | null;
   email_soporte: string | null;
   horario_soporte: string | null;
+  nombre_enlace?: string | null;
+  codigo_publico?: string | null;
+  public_slug?: string | null;
   access_count?: number;
   version: number;
   created_at: string;
@@ -248,6 +257,39 @@ export async function generateUniqueDocCode(
 }
 
 // ---- Servicios ----
+
+export async function ensureUniqueDocumentSlug(
+  tableName: 'reportes' | 'presupuestos' | 'reportes_trabajo' | 'instructivos',
+  nombreEnlace: string,
+  currentCode: string,
+  excludeId?: string
+): Promise<{ public_slug: string; codigo_publico: string }> {
+  let code = currentCode || generatePublicCode(4);
+  const normalized = normalizeNombreEnlace(nombreEnlace);
+  if (!normalized) return { public_slug: '', codigo_publico: code };
+
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const slug = `${normalized}-${code}`;
+    let query = supabase
+      .from(tableName)
+      .select('id')
+      .eq('public_slug', slug)
+      .is('deleted_at', null);
+
+    if (excludeId) {
+      query = query.neq('id', excludeId);
+    }
+
+    const { data } = await query.maybeSingle();
+    if (!data) {
+      return { public_slug: slug, codigo_publico: code };
+    }
+    code = generatePublicCode(4);
+  }
+
+  return { public_slug: `${normalized}-${code}-${Date.now().toString().slice(-4)}`, codigo_publico: code };
+}
+
 export const reporteService = {
   async getAll() {
     const { data, error } = await supabase
@@ -259,15 +301,37 @@ export const reporteService = {
     return data as Reporte[];
   },
 
-  async getByPublicId(publicId: string) {
-    const { data, error } = await supabase
+  async getByPublicId(identifier: string) {
+    // 1. Buscar primero por public_slug
+    let { data } = await supabase
       .from('reportes')
       .select(`*, consorcios (nombre, direccion, administraciones (nombre))`)
-      .eq('public_id', publicId)
+      .eq('public_slug', identifier)
       .is('deleted_at', null)
-      .single();
-    if (error) throw error;
+      .maybeSingle();
+
+    // 2. Si no se encontró por slug y es formato UUID válido, buscar por public_id o id
+    if (!data) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier);
+      if (isUuid) {
+        const res = await supabase
+          .from('reportes')
+          .select(`*, consorcios (nombre, direccion, administraciones (nombre))`)
+          .or(`public_id.eq.${identifier},id.eq.${identifier}`)
+          .is('deleted_at', null)
+          .maybeSingle();
+        data = res.data;
+      }
+    }
+
+    if (!data) {
+      throw new Error('Reporte no encontrado');
+    }
     return data as Reporte & { consorcios: { nombre: string; direccion?: string; administraciones: { nombre: string } } };
+  },
+
+  async ensureUniqueSlug(nombreEnlace: string, currentCode: string, excludeId?: string) {
+    return ensureUniqueDocumentSlug('reportes', nombreEnlace, currentCode, excludeId);
   },
 
   async create(reporte: Partial<Reporte>) {
@@ -349,28 +413,58 @@ export const presupuestoService = {
     return data as Presupuesto[];
   },
 
-  async getByPublicId(publicId: string) {
+  async getByPublicId(identifier: string) {
+    // 1. Buscar primero por public_slug
     let { data, error } = await supabase
       .from('presupuestos')
-      .select(`*, consorcios (nombre, direccion, administraciones (nombre)), reportes (id, codigo, titulo, public_id)`)
-      .eq('public_id', publicId)
+      .select(`*, consorcios (nombre, direccion, administraciones (nombre)), reportes (id, codigo, titulo, public_id, public_slug)`)
+      .eq('public_slug', identifier)
       .is('deleted_at', null)
-      .single();
+      .maybeSingle();
 
     if (error) {
       const res = await supabase
         .from('presupuestos')
         .select(`*, consorcios (nombre, direccion, administraciones (nombre))`)
-        .eq('public_id', publicId)
+        .eq('public_slug', identifier)
         .is('deleted_at', null)
-        .single();
-      if (res.error) throw res.error;
+        .maybeSingle();
       data = res.data;
+    }
+
+    // 2. Si no se encontró por slug y es formato UUID válido, buscar por public_id o id
+    if (!data) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier);
+      if (isUuid) {
+        let res = await supabase
+          .from('presupuestos')
+          .select(`*, consorcios (nombre, direccion, administraciones (nombre)), reportes (id, codigo, titulo, public_id, public_slug)`)
+          .or(`public_id.eq.${identifier},id.eq.${identifier}`)
+          .is('deleted_at', null)
+          .maybeSingle();
+        if (res.error) {
+          res = await supabase
+            .from('presupuestos')
+            .select(`*, consorcios (nombre, direccion, administraciones (nombre))`)
+            .or(`public_id.eq.${identifier},id.eq.${identifier}`)
+            .is('deleted_at', null)
+            .maybeSingle();
+        }
+        data = res.data;
+      }
+    }
+
+    if (!data) {
+      throw new Error('Presupuesto no encontrado');
     }
     return data as Presupuesto & {
       consorcios: { nombre: string; direccion?: string; administraciones: { nombre: string } };
-      reportes?: { id: string; codigo?: string; titulo: string; public_id: string } | null;
+      reportes?: { id: string; codigo?: string; titulo: string; public_id: string; public_slug?: string } | null;
     };
+  },
+
+  async ensureUniqueSlug(nombreEnlace: string, currentCode: string, excludeId?: string) {
+    return ensureUniqueDocumentSlug('presupuestos', nombreEnlace, currentCode, excludeId);
   },
 
   async create(presupuesto: Partial<Presupuesto>) {
@@ -421,20 +515,41 @@ export const reporteTrabajoService = {
     return (data || []) as ReporteTrabajo[];
   },
 
-  async getByPublicId(publicId: string) {
-    const { data, error } = await supabase
+  async getByPublicId(identifier: string) {
+    // 1. Buscar primero por public_slug
+    let { data } = await supabase
       .from('reportes_trabajo')
-      .select(`*, consorcios (nombre, direccion, administraciones (nombre)), presupuestos (id, codigo, titulo, public_id)`)
-      .eq('public_id', publicId)
+      .select(`*, consorcios (nombre, direccion, administraciones (nombre)), presupuestos (id, codigo, titulo, public_id, public_slug), reportes (id, codigo, titulo, public_id, public_slug)`)
+      .eq('public_slug', identifier)
       .is('deleted_at', null)
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
+    // 2. Si no se encontró por slug y es formato UUID válido, buscar por public_id o id
+    if (!data) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier);
+      if (isUuid) {
+        const res = await supabase
+          .from('reportes_trabajo')
+          .select(`*, consorcios (nombre, direccion, administraciones (nombre)), presupuestos (id, codigo, titulo, public_id, public_slug), reportes (id, codigo, titulo, public_id, public_slug)`)
+          .or(`public_id.eq.${identifier},id.eq.${identifier}`)
+          .is('deleted_at', null)
+          .maybeSingle();
+        data = res.data;
+      }
+    }
+
+    if (!data) {
+      throw new Error('Reporte de trabajo no encontrado');
+    }
     return data as ReporteTrabajo & {
       consorcios: { nombre: string; direccion?: string; administraciones: { nombre: string } };
-      presupuestos?: { id: string; codigo?: string; titulo: string; public_id: string } | null;
-      reportes?: { id: string; codigo?: string; titulo: string; public_id: string } | null;
+      presupuestos?: { id: string; codigo?: string; titulo: string; public_id: string; public_slug?: string } | null;
+      reportes?: { id: string; codigo?: string; titulo: string; public_id: string; public_slug?: string } | null;
     };
+  },
+
+  async ensureUniqueSlug(nombreEnlace: string, currentCode: string, excludeId?: string) {
+    return ensureUniqueDocumentSlug('reportes_trabajo', nombreEnlace, currentCode, excludeId);
   },
 
   async create(reporteTrabajo: Partial<ReporteTrabajo>) {
@@ -518,31 +633,8 @@ export const instructivoService = {
     return data as Instructivo & { consorcios: { nombre: string; administraciones: { nombre: string } } };
   },
 
-  async ensureUniqueSlug(nombreEnlace: string, currentCode: string, excludeId?: string): Promise<{ public_slug: string; codigo_publico: string }> {
-    let code = currentCode || generatePublicCode(4);
-    const normalized = normalizeNombreEnlace(nombreEnlace);
-    if (!normalized) return { public_slug: '', codigo_publico: code };
-
-    for (let attempt = 0; attempt < 10; attempt++) {
-      const slug = `${normalized}-${code}`;
-      let query = supabase
-        .from('instructivos')
-        .select('id')
-        .eq('public_slug', slug)
-        .is('deleted_at', null);
-
-      if (excludeId) {
-        query = query.neq('id', excludeId);
-      }
-
-      const { data } = await query.maybeSingle();
-      if (!data) {
-        return { public_slug: slug, codigo_publico: code };
-      }
-      code = generatePublicCode(4);
-    }
-
-    return { public_slug: `${normalized}-${code}-${Date.now().toString().slice(-4)}`, codigo_publico: code };
+  async ensureUniqueSlug(nombreEnlace: string, currentCode: string, excludeId?: string) {
+    return ensureUniqueDocumentSlug('instructivos', nombreEnlace, currentCode, excludeId);
   },
 
   async create(instructivo: Partial<Instructivo>) {
