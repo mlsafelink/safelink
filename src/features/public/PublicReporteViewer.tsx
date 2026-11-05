@@ -60,12 +60,8 @@ export function PublicReporteViewer() {
 
   // Convertir recomendaciones separadas por salto de línea en un array
   const listRecomendaciones = reporte.recomendaciones
-    ? reporte.recomendaciones.split('\n').map(r => r.replace(/^•\s*/, '').trim()).filter(Boolean)
-    : [
-        'Mantener el equipo en un área ventilada y limpia.',
-        'No compartir credenciales con terceros.',
-        'Realizar mantenimientos preventivos trimestrales.',
-      ];
+    ? reporte.recomendaciones.split('\n').map(r => r.replace(/^\u2022\s*/, '').trim()).filter(Boolean)
+    : [];
 
   return (
     <div className={styles.page}>
