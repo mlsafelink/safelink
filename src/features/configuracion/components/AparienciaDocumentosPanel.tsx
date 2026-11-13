@@ -201,7 +201,7 @@ export function AparienciaDocumentosPanel() {
                   <div className={styles.presetBannerRow}>
                     <div
                       className={`${styles.presetCard} ${form.banner_url === '/banner-corporeo.png' ? styles.presetCardActive : ''}`}
-                      onClick={() => updateField('banner_url', '/banner-corporeo.png')}
+                      onClick={() => setForm(prev => ({ ...prev, banner_url: '/banner-corporeo.png', usar_banner_personalizado: true }))}
                     >
                       <div className={styles.presetPreview}>
                         <img src="/banner-corporeo.png" alt="Banner Corpóreo" />
@@ -228,19 +228,31 @@ export function AparienciaDocumentosPanel() {
                       disabled={isUploading}
                     >
                       <Upload size={16} />
-                      {isUploading ? 'Subiendo imagen...' : 'Seleccionar archivo PNG / JPG'}
+                      {isUploading ? 'Subiendo a Supabase Storage...' : 'Seleccionar archivo PNG / JPG'}
                     </button>
                     {form.banner_url && form.banner_url !== '/banner-corporeo.png' && (
                       <button
                         type="button"
                         className={styles.btnSecondary}
                         style={{ padding: '0.45rem 0.75rem', fontSize: '0.75rem' }}
-                        onClick={() => updateField('banner_url', '/banner-corporeo.png')}
+                        onClick={() => setForm(prev => ({ ...prev, banner_url: '/banner-corporeo.png', usar_banner_personalizado: true }))}
                       >
                         Volver a Corpóreo
                       </button>
                     )}
                   </div>
+                  {form.banner_url && (
+                    <div style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: '#94a3b8' }}>
+                      <span style={{ color: '#38bdf8', fontWeight: 600 }}>Origen actual: </span>
+                      {form.banner_url.startsWith('http') ? (
+                        <span>☁️ Supabase Storage (Bucket: <code>documents/branding</code>)</span>
+                      ) : form.banner_url === '/banner-corporeo.png' ? (
+                        <span>🏢 Banner Corpóreo Institucional (<code>/banner-corporeo.png</code>)</span>
+                      ) : (
+                        <span>📁 Imagen cargada</span>
+                      )}
+                    </div>
+                  )}
                   <span className={styles.fieldHint}>
                     Se recomienda un formato horizontal (1500x400 px o superior). Se almacena de forma persistente.
                   </span>
