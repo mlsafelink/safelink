@@ -127,6 +127,12 @@
 }
 
 /* Individual button styles */
+.btnHistory:hover {
+  color: #0b192c;
+  background: rgba(11, 25, 44, 0.08);
+  border-color: rgba(11, 25, 44, 0.2);
+}
+
 .btnDownload:hover {
   color: #3182ce;
   background: rgba(49, 130, 206, 0.08);

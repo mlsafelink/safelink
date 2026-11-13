@@ -1,4 +1,6 @@
 import { NavLink } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { notificacionService } from '@/services/notificacionService';
 import {
   LayoutDashboard, Building2, Building, FileText, LogOut,
   UserCheck, Bell, StickyNote, Bot, DollarSign, Lock,
@@ -15,6 +17,15 @@ export function Sidebar() {
   const { signOut } = useAuth();
   const { hasUnread } = useSafeLinkNote();
   const { close } = useDrawer();
+
+  const { data: eventos = [] } = useQuery({
+    queryKey: ['notificaciones-eventos'],
+    queryFn: notificacionService.getAll,
+  });
+
+  const hasUnreadNotificaciones = eventos.some(
+    ev => ev.leida !== true && ev.detalles?.leida !== true
+  );
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
@@ -96,14 +107,17 @@ export function Sidebar() {
           <span>Finanzas</span>
         </NavLink>
 
-        <NavLink
-          to="/notificaciones"
-          className={({ isActive }) => clsx(styles.navItem, isActive && styles.active)}
-          onClick={handleNavClick}
-        >
-          <Bell size={20} />
-          <span>Notificaciones</span>
-        </NavLink>
+        <div className={styles.navItemWrapper}>
+          <NavLink
+            to="/notificaciones"
+            className={({ isActive }) => clsx(styles.navItem, isActive && styles.active)}
+            onClick={handleNavClick}
+          >
+            <Bell size={20} />
+            <span>Notificaciones</span>
+          </NavLink>
+          {hasUnreadNotificaciones && <span className={styles.unreadBadge} />}
+        </div>
 
         {/* SafeLink Note con badge de no leído */}
         <div className={styles.navItemWrapper}>

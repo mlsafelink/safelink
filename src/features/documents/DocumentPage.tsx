@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card/Card';
 import { Button } from '@/components/ui/Button/Button';
 import {
   FileText, ClipboardList, BookOpen, Plus, ExternalLink,
-  Edit, Copy, Download, Trash2, Check, X, Wrench, Eye,
+  Edit, Copy, Download, Trash2, Check, X, Wrench, Eye, History,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { pdf } from '@react-pdf/renderer';
@@ -15,6 +15,7 @@ import { ReporteForm } from './ReporteForm';
 import { PresupuestoForm } from './PresupuestoForm';
 import { InstructivoForm } from './InstructivoForm';
 import { ReporteTrabajoForm } from './ReporteTrabajoForm';
+import { ReporteHistorialModal } from './components/ReporteHistorialModal';
 import { copyToClipboard } from '@/utils/clipboard';
 import type { ReactElement } from 'react';
 import type { DocumentProps } from '@react-pdf/renderer';
@@ -61,6 +62,7 @@ export function DocumentPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [historialReporte, setHistorialReporte] = useState<any | null>(null);
 
   const { data: reportes = [], isLoading: loadingReportes } = useQuery({
     queryKey: ['reportes'],
@@ -324,6 +326,17 @@ export function DocumentPage() {
 
                       <div className={styles.actionsDivider} />
 
+                      {/* Historial de versiones y conformidad (solo reportes técnicos) */}
+                      {activeTab === 'reportes' && (
+                        <button
+                          className={`${styles.actionBtn} ${styles.btnHistory}`}
+                          onClick={() => setHistorialReporte(doc)}
+                          title="Historial de versiones y conformidad"
+                        >
+                          <History size={15} />
+                        </button>
+                      )}
+
                       {/* Editar */}
                       <button
                         className={`${styles.actionBtn} ${styles.btnEdit}`}
@@ -359,6 +372,16 @@ export function DocumentPage() {
             </motion.div>
           ))}
         </div>
+      )}
+
+      {historialReporte && (
+        <ReporteHistorialModal
+          isOpen={!!historialReporte}
+          onClose={() => setHistorialReporte(null)}
+          reporteId={historialReporte.id}
+          reporteTitulo={historialReporte.titulo}
+          reporteCodigo={historialReporte.codigo}
+        />
       )}
     </div>
   );

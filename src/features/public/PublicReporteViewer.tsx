@@ -1,15 +1,25 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { reporteService, trackDocumentAccess, normalizeFoto } from '@/services/documentService';
+import { getReporteHistorial, aceptarReporte, solicitarModificacion } from '@/services/reporteConformidadService';
+import { useToast } from '@/components/ui/Toast/ToastContext';
 import {
   Calendar, Building, ClipboardList, Clock, HelpCircle, Shield,
-  FileText, Cpu, AlertTriangle, Phone, Mail, Image,
+  FileText, Cpu, AlertTriangle, Phone, Mail, Image, CheckCircle2,
+  ShieldCheck
 } from 'lucide-react';
 import styles from './ReporteViewer.module.css';
 
 export function PublicReporteViewer() {
   const { publicId } = useParams<{ publicId: string }>();
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const [showModifyForm, setShowModifyForm] = useState(false);
+  const [solicitudTexto, setSolicitudTexto] = useState('');
+  const [submitting, setSubmitting] = useState<'accept' | 'modify' | null>(null);
+  const [confirmModal, setConfirmModal] = useState<'accept' | 'modify' | null>(null);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   useEffect(() => {
     if (publicId) {
@@ -20,6 +30,13 @@ export function PublicReporteViewer() {
   const { data: reporte, isLoading, isError } = useQuery({
     queryKey: ['public-reporte', publicId],
     queryFn: () => reporteService.getByPublicId(publicId!),
+    enabled: !!publicId,
+    retry: false,
+  });
+
+  const { data: historial = [] } = useQuery({
+    queryKey: ['public-reporte-historial', publicId],
+    queryFn: () => getReporteHistorial(publicId!),
     enabled: !!publicId,
     retry: false,
   });
@@ -49,6 +66,65 @@ export function PublicReporteViewer() {
   const consorcioNombre = (reporte.consorcios as any)?.nombre;
   const urlSitioWeb = reporte.url_sitio_web ?? 'www.safelink.com.ar';
 
+  const currentVersionNum = reporte.version ?? 1;
+  const currentVersionRecord = historial.find(v => v.version === currentVersionNum);
+  const isCurrentVersionApproved = currentVersionRecord?.estado === 'aprobada' || !!currentVersionRecord?.accepted_at;
+
+  const handleEjecutarAceptacion = async () => {
+    if (!publicId) return;
+    setConfirmModal(null);
+
+    try {
+      setSubmitting('accept');
+      const result = await aceptarReporte(publicId, reporte.cliente_nombre ?? undefined);
+
+      queryClient.invalidateQueries({ queryKey: ['public-reporte', publicId] });
+      queryClient.invalidateQueries({ queryKey: ['public-reporte-historial', publicId] });
+
+      if (result?.already_accepted) {
+        showToast('Esta versión ya se encontraba previamente aprobada.', 'info');
+        setSuccessBanner(`Esta versión (v${result.version}) ya se encuentra formalmente aprobada.`);
+      } else {
+        const msg = `¡Conformidad registrada con éxito! Versión v${result?.version ?? currentVersionNum} aprobada.`;
+        showToast(msg, 'success');
+        setSuccessBanner(msg);
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'No se pudo registrar la aceptación.';
+      showToast(msg, 'error');
+    } finally {
+      setSubmitting(null);
+    }
+  };
+
+  const handleEjecutarModificacion = async () => {
+    if (!publicId) return;
+    const texto = solicitudTexto.trim();
+    if (!texto) {
+      showToast('Escribí los cambios que querés solicitar.', 'warning');
+      return;
+    }
+    setConfirmModal(null);
+
+    try {
+      setSubmitting('modify');
+      await solicitarModificacion(publicId, texto, reporte.cliente_nombre ?? undefined);
+
+      queryClient.invalidateQueries({ queryKey: ['public-reporte-historial', publicId] });
+
+      const msg = 'Tu solicitud de modificación ha sido enviada al equipo técnico de SafeLink.';
+      showToast(msg, 'success');
+      setSuccessBanner(msg);
+      setSolicitudTexto('');
+      setShowModifyForm(false);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'No se pudo enviar la solicitud.';
+      showToast(msg, 'error');
+    } finally {
+      setSubmitting(null);
+    }
+  };
+
   const formatFecha = (f: string | null) => {
     if (!f) return '';
     try {
@@ -58,7 +134,6 @@ export function PublicReporteViewer() {
     } catch { return f; }
   };
 
-  // Convertir recomendaciones separadas por salto de línea en un array
   const listRecomendaciones = reporte.recomendaciones
     ? reporte.recomendaciones.split('\n').map(r => r.replace(/^\u2022\s*/, '').trim()).filter(Boolean)
     : [];
@@ -114,14 +189,15 @@ export function PublicReporteViewer() {
             <HelpCircle size={18} className={styles.infoIcon} />
             <div>
               <span className={styles.infoLabel}>Estado</span>
-              <span className={styles.infoValue}>v{reporte.version} (Vigente)</span>
+              <span className={styles.infoValue}>
+                v{reporte.version} {isCurrentVersionApproved ? '(Aprobado)' : '(Vigente)'}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
       {/* ── CONTENIDO PRINCIPAL (CARDS) ── */}
-
       <main className={styles.main}>
 
         {/* Card 1: Situación y alcance */}
@@ -198,7 +274,7 @@ export function PublicReporteViewer() {
           </div>
         )}
 
-        {/* Card 4: Registro fotográfico (solo si incluir_fotografias !== false) */}
+        {/* Card 4: Registro fotográfico */}
         {reporte.incluir_fotografias !== false && reporte.fotografias && reporte.fotografias.length > 0 && (
           <div className={styles.galleryCard}>
             <div className={styles.galleryHeader}>
@@ -233,6 +309,162 @@ export function PublicReporteViewer() {
         )}
 
       </main>
+
+      {/* ── SECCIÓN DE CONFORMIDAD Y BOTONES AL FINAL DEL REPORTE ── */}
+      <div className={styles.actionsWrap}>
+        <div className={styles.actionsHeader}>Conformidad y trazabilidad</div>
+
+        {isCurrentVersionApproved && (
+          <div className={styles.approvedBanner}>
+            <div className={styles.approvedHeader}>
+              <ShieldCheck size={20} />
+              <span>Reporte técnico formalmente aprobado</span>
+            </div>
+            <div className={styles.approvedMeta}>
+              <span>
+                Versión <strong>v{currentVersionNum}</strong> aceptada
+                {currentVersionRecord?.accepted_at && ` el ${new Date(currentVersionRecord.accepted_at).toLocaleString('es-AR')}`}
+                {reporte.cliente_nombre && ` por ${reporte.cliente_nombre}`}.
+              </span>
+              {currentVersionRecord?.sha256 && (
+                <div className={styles.approvedHash}>
+                  Huella SHA-256: {currentVersionRecord.sha256}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {successBanner && (
+          <div className={styles.successAlert}>
+            <CheckCircle2 size={18} />
+            <span>{successBanner}</span>
+          </div>
+        )}
+
+        <div className={styles.buttonRow}>
+          <button
+            type="button"
+            className={styles.primaryButton}
+            onClick={() => setConfirmModal('accept')}
+            disabled={submitting !== null || isCurrentVersionApproved}
+          >
+            {isCurrentVersionApproved
+              ? `Aprobado (v${currentVersionNum}) ✓`
+              : submitting === 'accept'
+              ? 'Registrando...'
+              : 'Estoy de acuerdo'}
+          </button>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => setShowModifyForm(!showModifyForm)}
+            disabled={submitting !== null}
+          >
+            Quiero modificar algo
+          </button>
+        </div>
+
+        {showModifyForm && (
+          <div className={styles.modificationCard}>
+            <label className={styles.modificationLabel}>Describí los cambios solicitados</label>
+            <textarea
+              className={styles.modificationInput}
+              value={solicitudTexto}
+              onChange={(event) => setSolicitudTexto(event.target.value)}
+              rows={4}
+              placeholder="Detallá los cambios, consultas o correcciones que necesitás sobre este reporte..."
+            />
+            <div className={styles.modificationActions}>
+              <button
+                type="button"
+                className={styles.primaryButton}
+                onClick={() => {
+                  if (!solicitudTexto.trim()) {
+                    showToast('Escribí los cambios que querés solicitar antes de enviar.', 'warning');
+                    return;
+                  }
+                  setConfirmModal('modify');
+                }}
+                disabled={submitting !== null}
+              >
+                {submitting === 'modify' ? 'Enviando...' : 'Enviar solicitud'}
+              </button>
+              <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={() => setShowModifyForm(false)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── MODAL DE CONFIRMACIÓN: ESTOY DE ACUERDO ── */}
+      {confirmModal === 'accept' && (
+        <div className={styles.modalBackdrop} onClick={() => setConfirmModal(null)}>
+          <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Confirmar aceptación del reporte</h3>
+            <p className={styles.modalText}>
+              ¿Confirmás tu conformidad con este reporte técnico?
+            </p>
+            <p className={styles.modalText} style={{ fontSize: '0.82rem', color: 'var(--rv-muted)' }}>
+              Al aceptar, se registrará la fecha y hora oficial del servidor, la versión exacta (v{currentVersionNum}) y la huella digital SHA-256 del documento como copia inalterable.
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={() => setConfirmModal(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.primaryButton}
+                onClick={handleEjecutarAceptacion}
+                disabled={submitting !== null}
+              >
+                {submitting === 'accept' ? 'Registrando...' : 'Sí, confirmar aceptación'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL DE CONFIRMACIÓN: SOLICITAR MODIFICACIÓN ── */}
+      {confirmModal === 'modify' && (
+        <div className={styles.modalBackdrop} onClick={() => setConfirmModal(null)}>
+          <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Confirmar envío de modificaciones</h3>
+            <p className={styles.modalText}>
+              ¿Deseás enviar esta solicitud de modificación al equipo técnico de SafeLink?
+            </p>
+            <p className={styles.modalText} style={{ fontSize: '0.82rem', color: 'var(--rv-muted)' }}>
+              Esta acción no alterará el contenido del reporte original ni registrará una aceptación.
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={() => setConfirmModal(null)}
+              >
+                Volver a revisar
+              </button>
+              <button
+                type="button"
+                className={styles.primaryButton}
+                onClick={handleEjecutarModificacion}
+                disabled={submitting !== null}
+              >
+                {submitting === 'modify' ? 'Enviando...' : 'Enviar modificaciones'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── FOOTER — solo ¿Necesita ayuda? ── */}
       <footer className={styles.footer}>

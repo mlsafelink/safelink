@@ -133,6 +133,20 @@ function getEventConfig(tipo: EventoTipo): EventConfig {
         bgColor: 'rgba(34, 197, 94, 0.12)',
         label: 'Factura marcada como pagada',
       };
+    case 'reporte_aceptado':
+      return {
+        icon: CheckCircle2,
+        color: '#22c55e',
+        bgColor: 'rgba(34, 197, 94, 0.12)',
+        label: 'Reporte aprobado por el cliente',
+      };
+    case 'reporte_modificacion_solicitada':
+      return {
+        icon: Wrench,
+        color: '#f59e0b',
+        bgColor: 'rgba(245, 158, 11, 0.12)',
+        label: 'Solicitud de modificación de reporte',
+      };
     default:
       return {
         icon: Bell,
@@ -167,8 +181,16 @@ export function NotificacionesPage() {
     };
   }, [queryClient]);
 
-  const handleMarcarAtendida = async (eventoId: string, consultaId?: string) => {
+  const handleMarcarLeida = async (eventoId: string) => {
     setAtendidasState(prev => ({ ...prev, [eventoId]: true }));
+    queryClient.setQueryData<EventoSistema[]>(['notificaciones-eventos'], (old = []) =>
+      old.map(e => (e.id === eventoId ? { ...e, leida: true, detalles: { ...(e.detalles || {}), leida: true } } : e))
+    );
+    await notificacionService.marcarLeida(eventoId);
+  };
+
+  const handleMarcarAtendida = async (eventoId: string, consultaId?: string) => {
+    handleMarcarLeida(eventoId);
     if (consultaId) {
       try {
         await landingService.marcarAtendida(consultaId);
@@ -226,10 +248,17 @@ export function NotificacionesPage() {
             const { fecha, hora } = formatFechaHora(ev.created_at);
             const cliente = ev.cliente_nombre || ev.consorcio_nombre || 'Cliente';
             const codigo = ev.codigo_presupuesto ? ` ${ev.codigo_presupuesto}` : '';
+            const reportePublicId = ev.detalles?.reporte_public_id ?? ev.reporte_public_id ?? null;
+            const versionReporte = ev.reporte_version ?? ev.detalles?.version ?? null;
+            const reporteTitulo = ev.detalles?.titulo ?? null;
+            const detalleTexto = ev.detalles?.descripcion ?? ev.detalles?.mensaje ?? '';
+            const isReporteEvento = ev.tipo === 'reporte_aceptado' || ev.tipo === 'reporte_modificacion_solicitada';
 
-            // Estado "leído" para notificaciones SafeLink Note
+            // Estado "leído"
             const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
-            const isRead = config.isSln && !!lastVisit && ev.created_at < lastVisit;
+            const isSlnRead = config.isSln && !!lastVisit && ev.created_at < lastVisit;
+            const isPersistedRead = ev.leida === true || ev.detalles?.leida === true || atendidasState[ev.id] === true;
+            const isRead = isPersistedRead || isSlnRead;
             const slnFile = ev.detalles?.archivo as string | undefined;
 
             // Datos de consulta_web
@@ -240,7 +269,7 @@ export function NotificacionesPage() {
             const monto = detalles.monto_cotizado ? Number(detalles.monto_cotizado) : undefined;
             const descripcion = detalles.descripcion as string | undefined;
             const consultaId = detalles.consulta_id as string | undefined;
-            const isAtendida = atendidasState[ev.id] || detalles.estado === 'atendida';
+            const isAtendida = atendidasState[ev.id] || detalles.estado === 'atendida' || isPersistedRead;
 
             const cleanPhone = whatsappNum ? whatsappNum.replace(/\D/g, '') : '';
             const waUrl = cleanPhone
@@ -336,12 +365,82 @@ export function NotificacionesPage() {
                         </div>
                       )}
                     </>
+                  ) : isReporteEvento ? (
+                    <>
+                      <div className={styles.notifText}>
+                        <span className={styles.highlight}>{config.label}</span>
+                        {isRead && <span className={styles.leidaTag}>Leída</span>}
+                      </div>
+
+                      <div className={styles.consultaDetails}>
+                        <div className={styles.consultaField}>
+                          <span className={styles.consultaFieldLabel}>Reporte:</span>
+                          <span>{reporteTitulo || 'Reporte técnico'}</span>
+                        </div>
+                        <div className={styles.consultaField}>
+                          <span className={styles.consultaFieldLabel}>Cliente:</span>
+                          <span>{cliente}</span>
+                        </div>
+                        {versionReporte !== null && (
+                          <div className={styles.consultaField}>
+                            <span className={styles.consultaFieldLabel}>Versión aprobada / referenciada:</span>
+                            <span>v{versionReporte}</span>
+                          </div>
+                        )}
+                        {ev.tipo === 'reporte_modificacion_solicitada' && detalleTexto && (
+                          <div className={styles.consultaField} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.35rem' }}>
+                            <span className={styles.consultaFieldLabel}>Modificaciones solicitadas:</span>
+                            <div className={styles.consultaMensaje} style={{ width: '100%', fontStyle: 'normal' }}>
+                              {detalleTexto}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className={styles.consultaActions}>
+                        {reportePublicId && (
+                          <a
+                            href={`/p/reporte/${reportePublicId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.actionBtnWa}
+                          >
+                            Abrir reporte
+                          </a>
+                        )}
+                        {!isRead && (
+                          <button
+                            className={styles.actionBtnAtendida}
+                            onClick={() => handleMarcarLeida(ev.id)}
+                          >
+                            <Check size={14} />
+                            Marcar como leída
+                          </button>
+                        )}
+                      </div>
+                    </>
                   ) : (
                     <div className={styles.notifText}>
                       <span className={styles.highlight}>{cliente}</span> {config.label}
                       {codigo && <span className={styles.highlight}>{codigo}</span>}
+                      {isRead && <span className={styles.leidaTag}>Leída</span>}
                     </div>
                   )}
+
+                  {!isConsulta && !config.isSln && !isReporteEvento && (
+                    <div className={styles.consultaActions} style={{ marginTop: '0.5rem' }}>
+                      {!isRead && (
+                        <button
+                          className={styles.actionBtnAtendida}
+                          onClick={() => handleMarcarLeida(ev.id)}
+                        >
+                          <Check size={14} />
+                          Marcar como leída
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   <div className={styles.notifMeta}>
                     <Clock size={12} />
                     <span>{fecha} a las {hora} hs.</span>

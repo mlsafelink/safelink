@@ -15,7 +15,9 @@ export type EventoTipo =
   | 'factura_compartida'
   | 'factura_proxima_vencer'
   | 'factura_pagada'
-  | 'consulta_web';
+  | 'consulta_web'
+  | 'reporte_aceptado'
+  | 'reporte_modificacion_solicitada';
 
 export type EventoSistema = {
   id: string;
@@ -24,6 +26,10 @@ export type EventoSistema = {
   codigo_presupuesto?: string | null;
   cliente_nombre?: string | null;
   consorcio_nombre?: string | null;
+  reporte_id?: string | null;
+  reporte_version?: number | null;
+  reporte_public_id?: string | null;
+  leida?: boolean;
   detalles?: Record<string, any> | null;
   created_at: string;
 };
@@ -41,7 +47,7 @@ export const notificacionService = {
       console.error('Error fetching eventos:', error);
       return [];
     }
-    return data as EventoSistema[];
+    return (data || []) as EventoSistema[];
   },
 
   async create(evento: EventoInsert) {
@@ -71,6 +77,46 @@ export const notificacionService = {
       return false;
     }
     return (data && data.length > 0);
+  },
+
+  async marcarLeida(eventoId: string): Promise<boolean> {
+    try {
+      const { data: current } = await supabase
+        .from('eventos_sistema')
+        .select('detalles')
+        .eq('id', eventoId)
+        .maybeSingle();
+
+      const updatedDetalles = {
+        ...(current?.detalles || {}),
+        leida: true,
+        leida_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase
+        .from('eventos_sistema')
+        .update({
+          leida: true,
+          detalles: updatedDetalles,
+        })
+        .eq('id', eventoId);
+
+      if (error) {
+        // Si la columna leida no existe todavía, actualizar sólo detalles
+        const { error: errDetalles } = await supabase
+          .from('eventos_sistema')
+          .update({ detalles: updatedDetalles })
+          .eq('id', eventoId);
+        if (errDetalles) {
+          console.error('[notificacionService] Error marcando evento como leído:', errDetalles);
+          return false;
+        }
+      }
+      return true;
+    } catch (e) {
+      console.error('[notificacionService] Excepción al marcar leído:', e);
+      return false;
+    }
   },
 
   subscribeToEventos(onNewEvento: (evento: EventoSistema) => void) {

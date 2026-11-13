@@ -13,9 +13,10 @@ import { Select } from '@/components/ui/Select/Select';
 import { Card } from '@/components/ui/Card/Card';
 import {
   ArrowLeft, Save, ClipboardList, FileText,
-  Cpu, AlertTriangle, Camera, Globe, Link as LinkIcon,
+  Cpu, AlertTriangle, Camera, Globe, Link as LinkIcon, History,
 } from 'lucide-react';
 import { DocumentPhotoUploader } from './components/DocumentPhotoUploader';
+import { ReporteHistorialModal } from './components/ReporteHistorialModal';
 import styles from './DocForm.module.css';
 
 const STEPS = [
@@ -57,6 +58,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
   const [incluirFotografias, setIncluirFotografias] = useState<boolean>(true);
   const [activeStep, setActiveStep] = useState('situacion');
   const [codigoPublico, setCodigoPublico] = useState<string>(() => generatePublicCode(4));
+  const [showHistorialModal, setShowHistorialModal] = useState(false);
 
   const { data: consorcios = [] } = useQuery({
     queryKey: ['consorcios'],
@@ -178,8 +180,20 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <Button variant="ghost" leftIcon={<ArrowLeft size={18} />} onClick={onBack}>Volver</Button>
-        <h1>{isEditing ? 'Editar Reporte Técnico' : 'Nuevo Reporte Técnico'}</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <Button variant="ghost" leftIcon={<ArrowLeft size={18} />} onClick={onBack}>Volver</Button>
+          <h1>{isEditing ? 'Editar Reporte Técnico' : 'Nuevo Reporte Técnico'}</h1>
+        </div>
+        {isEditing && editingId && (
+          <Button
+            type="button"
+            variant="secondary"
+            leftIcon={<History size={16} />}
+            onClick={() => setShowHistorialModal(true)}
+          >
+            Historial de versiones
+          </Button>
+        )}
       </div>
 
       <Card variant="neumorphic" className={styles.formCard}>
@@ -422,6 +436,16 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
           )}
         </form>
       </Card>
+
+      {isEditing && editingId && (
+        <ReporteHistorialModal
+          isOpen={showHistorialModal}
+          onClose={() => setShowHistorialModal(false)}
+          reporteId={editingId}
+          reporteTitulo={watch('titulo') || 'Reporte Técnico'}
+          reporteCodigo={codigoPublico}
+        />
+      )}
     </div>
   );
 }
