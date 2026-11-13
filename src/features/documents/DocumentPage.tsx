@@ -158,13 +158,6 @@ export function DocumentPage() {
     : activeTab === 'reportes_trabajo' ? 'reporte-trabajo'
     : 'reporte';
 
-  if (viewMode === 'form') {
-    if (activeTab === 'reportes') return <ReporteForm onBack={handleBack} editingId={editingId} />;
-    if (activeTab === 'presupuestos') return <PresupuestoForm onBack={handleBack} editingId={editingId} />;
-    if (activeTab === 'instructivos') return <InstructivoForm onBack={handleBack} editingId={editingId} />;
-    if (activeTab === 'reportes_trabajo') return <ReporteTrabajoForm onBack={handleBack} editingId={editingId} />;
-  }
-
   const isLoading = loadingReportes || loadingPresupuestos || loadingInstructivos || loadingReportesTrabajo;
 
   const currentData =
@@ -240,6 +233,13 @@ export function DocumentPage() {
     { id: 'instructivos', label: 'Instructivos', icon: BookOpen, color: '#e53e3e' },
     { id: 'reportes_trabajo', label: 'Informes de Trabajos Realizados', icon: Wrench, color: '#10b981' },
   ];
+
+  if (viewMode === 'form') {
+    if (activeTab === 'reportes') return <ReporteForm onBack={handleBack} editingId={editingId} />;
+    if (activeTab === 'presupuestos') return <PresupuestoForm onBack={handleBack} editingId={editingId} />;
+    if (activeTab === 'instructivos') return <InstructivoForm onBack={handleBack} editingId={editingId} />;
+    if (activeTab === 'reportes_trabajo') return <ReporteTrabajoForm onBack={handleBack} editingId={editingId} />;
+  }
 
   return (
     <div className={styles.container}>
