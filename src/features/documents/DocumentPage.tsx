@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reporteService, presupuestoService, instructivoService, reporteTrabajoService } from '@/services/documentService';
 import { Card } from '@/components/ui/Card/Card';
@@ -56,13 +57,27 @@ type ActiveTab = 'reportes' | 'presupuestos' | 'instructivos' | 'reportes_trabaj
 type ViewMode = 'list' | 'form';
 
 export function DocumentPage() {
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<ActiveTab>('reportes');
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const initialEditId = searchParams.get('edit');
+  const initialTab = (searchParams.get('tab') as ActiveTab) || 'reportes';
+
+  const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab);
+  const [viewMode, setViewMode] = useState<ViewMode>(initialEditId ? 'form' : 'list');
+  const [editingId, setEditingId] = useState<string | null>(initialEditId);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [historialReporte, setHistorialReporte] = useState<any | null>(null);
+
+  useEffect(() => {
+    const editParam = searchParams.get('edit');
+    const tabParam = searchParams.get('tab') as ActiveTab | null;
+    if (editParam) {
+      if (tabParam) setActiveTab(tabParam);
+      setEditingId(editParam);
+      setViewMode('form');
+    }
+  }, [searchParams]);
 
   const { data: reportes = [], isLoading: loadingReportes } = useQuery({
     queryKey: ['reportes'],

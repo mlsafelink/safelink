@@ -14,7 +14,7 @@ import {
   Wrench, CheckSquare, ShieldAlert, FileText, BookOpen, FileArchive,
   DollarSign, Download, AlertTriangle, MessageCircle, MessageSquare, Check,
   Trash2, CheckCheck, Square, X, User, Calendar, ChevronDown, ChevronUp,
-  Send, ExternalLink, CornerDownRight
+  Send, ExternalLink, CornerDownRight, Edit3
 } from 'lucide-react';
 import { LAST_VISIT_KEY } from '@/features/safeLinkNote/SafeLinkNoteContext';
 import styles from './NotificacionesPage.module.css';
@@ -160,15 +160,29 @@ function SolicitudConversacionModal({ ev, onClose }: { ev: EventoSistema; onClos
         {/* Cabecera del cuadro */}
         <div className={styles.modalHeader}>
           <div className={styles.modalTitleBox}>
-            <Wrench size={18} style={{ color: '#f59e0b' }} />
+            <Wrench size={20} style={{ color: '#f59e0b' }} />
             <div>
               <h2 className={styles.modalTitle}>Solicitud de modificación de reporte</h2>
               <span className={styles.modalSubtitle}>{reporteTitulo}</span>
             </div>
           </div>
-          <button className={styles.modalCloseBtn} onClick={onClose} title="Cerrar">
-            <X size={18} />
-          </button>
+          <div className={styles.modalHeaderActions}>
+            {reporteId && (
+              <a
+                href={`/documentos?tab=reportes&edit=${reporteId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.btnEditarReporte}
+                title="Abrir este reporte en modo edición para realizar las modificaciones"
+              >
+                <Edit3 size={15} />
+                <span>Editar reporte</span>
+              </a>
+            )}
+            <button className={styles.modalCloseBtn} onClick={onClose} title="Cerrar">
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Metadatos principales */}
@@ -196,18 +210,34 @@ function SolicitudConversacionModal({ ev, onClose }: { ev: EventoSistema; onClos
               </div>
             </div>
           )}
+          {reporteId && (
+            <div className={styles.modalMetaChip}>
+              <Edit3 size={14} className={styles.metaIconEdit} />
+              <div>
+                <span className={styles.metaLabel}>Modo Edición</span>
+                <a
+                  href={`/documentos?tab=reportes&edit=${reporteId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.metaLinkEdit}
+                >
+                  Abrir editor ↗
+                </a>
+              </div>
+            </div>
+          )}
           {reportePublicId && (
             <div className={styles.modalMetaChip}>
               <ExternalLink size={14} className={styles.metaIcon} />
               <div>
-                <span className={styles.metaLabel}>Acceso directo</span>
+                <span className={styles.metaLabel}>Acceso público</span>
                 <a
                   href={`/p/reporte/${reportePublicId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={styles.metaLink}
                 >
-                  Abrir reporte público
+                  Ver reporte ↗
                 </a>
               </div>
             </div>
