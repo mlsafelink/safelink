@@ -183,3 +183,30 @@ export async function solicitarModificacion(
 
   return data as ReporteModificacionResultado;
 }
+
+/**
+ * Registra una respuesta de la administración asociada a la solicitud de modificación del reporte.
+ * Se guarda en Supabase en `reporte_solicitudes_modificacion` vinculado al reporte.
+ */
+export async function responderSolicitudModificacion(
+  reporteId: string,
+  respuesta: string,
+  emisor: string = 'SafeLink (Administración)'
+): Promise<ReporteSolicitudModificacion | null> {
+  const { data, error } = await supabase
+    .from('reporte_solicitudes_modificacion')
+    .insert({
+      reporte_id: reporteId,
+      descripcion: respuesta,
+      cliente_nombre: emisor,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('[reporteConformidadService] Error respondiendo solicitud:', error);
+    throw new Error(error.message || 'No se pudo enviar la respuesta.');
+  }
+
+  return data as ReporteSolicitudModificacion;
+}

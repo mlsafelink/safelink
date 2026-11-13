@@ -2,6 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { notificacionService, type EventoSistema, type EventoTipo } from '@/services/notificacionService';
 import { landingService } from '@/services/landingService';
+import {
+  getReporteSolicitudesModificacion,
+  responderSolicitudModificacion,
+  type ReporteSolicitudModificacion,
+} from '@/services/reporteConformidadService';
 import { Card } from '@/components/ui/Card/Card';
 import { clsx } from 'clsx';
 import {
@@ -9,6 +14,7 @@ import {
   Wrench, CheckSquare, ShieldAlert, FileText, BookOpen, FileArchive,
   DollarSign, Download, AlertTriangle, MessageCircle, MessageSquare, Check,
   Trash2, CheckCheck, Square, X, User, Calendar, ChevronDown, ChevronUp,
+  Send, ExternalLink, CornerDownRight
 } from 'lucide-react';
 import { LAST_VISIT_KEY } from '@/features/safeLinkNote/SafeLinkNoteContext';
 import styles from './NotificacionesPage.module.css';
@@ -23,8 +29,29 @@ type EventConfig = {
   isConsultaWeb?: boolean;
 };
 
-function getEventConfig(tipo: EventoTipo): EventConfig {
-  switch (tipo) {
+function getEventConfig(tipo: EventoTipo, detalles?: Record<string, any> | null): EventConfig {
+  const normTipo = (tipo || '').toLowerCase().trim();
+  const mensaje = detalles?.mensaje || '';
+
+  if (normTipo === 'reporte_modificacion_solicitada' || mensaje === 'Solicitud de modificación de reporte') {
+    return {
+      icon: Wrench,
+      color: '#f59e0b',
+      bgColor: 'rgba(245, 158, 11, 0.12)',
+      label: 'Solicitud de modificación de reporte',
+    };
+  }
+
+  if (normTipo === 'reporte_aceptado' || mensaje === 'Reporte aprobado por el cliente') {
+    return {
+      icon: CheckCircle2,
+      color: '#22c55e',
+      bgColor: 'rgba(34, 197, 94, 0.12)',
+      label: 'Reporte aprobado por el cliente',
+    };
+  }
+
+  switch (normTipo) {
     case 'consulta_web':
       return {
         icon: MessageCircle,
@@ -68,23 +95,33 @@ function getEventConfig(tipo: EventoTipo): EventConfig {
       return { icon: AlertTriangle, color: '#f59e0b', bgColor: 'rgba(245, 158, 11, 0.12)', label: 'Factura próxima a vencer' };
     case 'factura_pagada':
       return { icon: CheckCircle2, color: '#22c55e', bgColor: 'rgba(34, 197, 94, 0.12)', label: 'Factura marcada como pagada' };
-    case 'reporte_aceptado':
-      return { icon: CheckCircle2, color: '#22c55e', bgColor: 'rgba(34, 197, 94, 0.12)', label: 'Reporte aprobado por el cliente' };
-    case 'reporte_modificacion_solicitada':
-      return { icon: Wrench, color: '#f59e0b', bgColor: 'rgba(245, 158, 11, 0.12)', label: 'Solicitud de modificación de reporte' };
     default:
       return { icon: Bell, color: '#64748b', bgColor: 'rgba(100, 116, 139, 0.12)', label: 'Notificación del sistema' };
   }
 }
 
-// ── Panel de detalle para solicitudes de modificación ──────────────────────────
-function SolicitudDetallePanel({ ev, onClose }: { ev: EventoSistema; onClose: () => void }) {
+// ── Cuadro de conversación y detalle de solicitud de modificación ─────────────
+function SolicitudConversacionModal({ ev, onClose }: { ev: EventoSistema; onClose: () => void }) {
+  const queryClient = useQueryClient();
   const detalles = ev.detalles || {};
   const cliente = ev.cliente_nombre || detalles.cliente_nombre || 'Cliente';
   const reporteTitulo = detalles.titulo || 'Reporte técnico';
+  const reporteId = ev.reporte_id || detalles.reporte_id || null;
   const reportePublicId = detalles.reporte_public_id ?? ev.reporte_public_id ?? null;
   const versionReporte = ev.reporte_version ?? detalles.version ?? null;
-  const mensaje = detalles.descripcion ?? detalles.mensaje ?? '';
+  const mensajeOriginal = detalles.descripcion ?? detalles.mensaje ?? '';
+
+  const [respuestaTexto, setRespuestaTexto] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  // Cargar historial de mensajes asociados a este reporte
+  const { data: mensajes = [], isLoading: cargandoHistorial } = useQuery({
+    queryKey: ['reporte-solicitudes-mensajes', reporteId],
+    queryFn: () => (reporteId ? getReporteSolicitudesModificacion(reporteId) : Promise.resolve([])),
+    enabled: !!reporteId,
+  });
+
   const fechaHora = (() => {
     try {
       const d = new Date(ev.created_at);
@@ -92,65 +129,161 @@ function SolicitudDetallePanel({ ev, onClose }: { ev: EventoSistema; onClose: ()
     } catch { return ev.created_at; }
   })();
 
+  const formatFechaItem = (iso: string) => {
+    try {
+      const d = new Date(iso);
+      return d.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch { return iso; }
+  };
+
+  const handleEnviarRespuesta = async () => {
+    const txt = respuestaTexto.trim();
+    if (!txt || !reporteId) return;
+
+    try {
+      setEnviando(true);
+      await responderSolicitudModificacion(reporteId, txt, 'SafeLink (Administración)');
+      setRespuestaTexto('');
+      setFeedback('Respuesta registrada con éxito.');
+      queryClient.invalidateQueries({ queryKey: ['reporte-solicitudes-mensajes', reporteId] });
+      setTimeout(() => setFeedback(null), 3000);
+    } catch (err) {
+      setFeedback(err instanceof Error ? err.message : 'Error al registrar respuesta');
+    } finally {
+      setEnviando(false);
+    }
+  };
+
   return (
-    <div className={styles.detallePanel}>
-      <div className={styles.detallePanelHeader}>
-        <div className={styles.detallePanelTitle}>
-          <Wrench size={16} style={{ color: '#f59e0b' }} />
-          Solicitud de modificación
-        </div>
-        <button className={styles.detallePanelClose} onClick={onClose} title="Cerrar">
-          <X size={16} />
-        </button>
-      </div>
-
-      <div className={styles.detallePanelBody}>
-        <div className={styles.detallePanelField}>
-          <User size={13} style={{ color: 'var(--text-secondary)' }} />
-          <span className={styles.detallePanelLabel}>Cliente:</span>
-          <span className={styles.detallePanelValue}>{cliente}</span>
-        </div>
-
-        <div className={styles.detallePanelField}>
-          <FileText size={13} style={{ color: 'var(--text-secondary)' }} />
-          <span className={styles.detallePanelLabel}>Reporte:</span>
-          <span className={styles.detallePanelValue}>{reporteTitulo}</span>
-        </div>
-
-        {versionReporte !== null && (
-          <div className={styles.detallePanelField}>
-            <span className={styles.detallePanelLabel}>Versión:</span>
-            <span className={styles.detallePanelValue}>v{versionReporte}</span>
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        {/* Cabecera del cuadro */}
+        <div className={styles.modalHeader}>
+          <div className={styles.modalTitleBox}>
+            <Wrench size={18} style={{ color: '#f59e0b' }} />
+            <div>
+              <h2 className={styles.modalTitle}>Solicitud de modificación de reporte</h2>
+              <span className={styles.modalSubtitle}>{reporteTitulo}</span>
+            </div>
           </div>
-        )}
-
-        <div className={styles.detallePanelField}>
-          <Calendar size={13} style={{ color: 'var(--text-secondary)' }} />
-          <span className={styles.detallePanelLabel}>Recibida el:</span>
-          <span className={styles.detallePanelValue}>{fechaHora} hs.</span>
+          <button className={styles.modalCloseBtn} onClick={onClose} title="Cerrar">
+            <X size={18} />
+          </button>
         </div>
 
-        {mensaje && (
-          <div className={styles.detallePanelMensaje}>
-            <span className={styles.detallePanelLabel} style={{ marginBottom: '0.4rem', display: 'block' }}>
-              Mensaje del cliente:
-            </span>
-            <div className={styles.detallePanelMensajeTexto}>{mensaje}</div>
+        {/* Metadatos principales */}
+        <div className={styles.modalMetaGrid}>
+          <div className={styles.modalMetaChip}>
+            <User size={14} className={styles.metaIcon} />
+            <div>
+              <span className={styles.metaLabel}>Cliente</span>
+              <strong className={styles.metaValue}>{cliente}</strong>
+            </div>
           </div>
-        )}
+          <div className={styles.modalMetaChip}>
+            <Calendar size={14} className={styles.metaIcon} />
+            <div>
+              <span className={styles.metaLabel}>Fecha y hora</span>
+              <span className={styles.metaValue}>{fechaHora} hs.</span>
+            </div>
+          </div>
+          {versionReporte !== null && (
+            <div className={styles.modalMetaChip}>
+              <FileText size={14} className={styles.metaIcon} />
+              <div>
+                <span className={styles.metaLabel}>Versión</span>
+                <span className={styles.metaValue}>v{versionReporte}</span>
+              </div>
+            </div>
+          )}
+          {reportePublicId && (
+            <div className={styles.modalMetaChip}>
+              <ExternalLink size={14} className={styles.metaIcon} />
+              <div>
+                <span className={styles.metaLabel}>Acceso directo</span>
+                <a
+                  href={`/p/reporte/${reportePublicId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.metaLink}
+                >
+                  Abrir reporte público
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
 
-        {reportePublicId && (
-          <a
-            href={`/p/reporte/${reportePublicId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.actionBtnWa}
-            style={{ marginTop: '0.25rem', alignSelf: 'flex-start' }}
-          >
-            <FileText size={13} />
-            Abrir reporte
-          </a>
-        )}
+        {/* Historial de la conversación */}
+        <div className={styles.conversacionArea}>
+          <h3 className={styles.conversacionTitle}>
+            Historial de mensajes y solicitudes
+          </h3>
+
+          <div className={styles.conversacionList}>
+            {cargandoHistorial ? (
+              <p className={styles.conversacionLoading}>Cargando historial...</p>
+            ) : mensajes.length > 0 ? (
+              // Mostrar mensajes de reporte_solicitudes_modificacion en orden cronológico
+              [...mensajes].reverse().map((msg: ReporteSolicitudModificacion) => {
+                const isAdmin = msg.cliente_nombre?.toLowerCase().includes('safelink') || msg.cliente_nombre?.toLowerCase().includes('admin');
+                return (
+                  <div
+                    key={msg.id}
+                    className={clsx(
+                      styles.msgBubble,
+                      isAdmin ? styles.msgBubbleAdmin : styles.msgBubbleCliente
+                    )}
+                  >
+                    <div className={styles.msgHeader}>
+                      <span className={styles.msgAuthor}>
+                        {isAdmin ? 'SafeLink (Administración)' : (msg.cliente_nombre || cliente)}
+                      </span>
+                      <span className={styles.msgTime}>{formatFechaItem(msg.created_at)}</span>
+                    </div>
+                    <div className={styles.msgBody}>{msg.descripcion}</div>
+                  </div>
+                );
+              })
+            ) : (
+              // Fallback si la tabla aún no tiene múltiples mensajes: mostrar el mensaje actual
+              <div className={clsx(styles.msgBubble, styles.msgBubbleCliente)}>
+                <div className={styles.msgHeader}>
+                  <span className={styles.msgAuthor}>{cliente}</span>
+                  <span className={styles.msgTime}>{fechaHora}</span>
+                </div>
+                <div className={styles.msgBody}>{mensajeOriginal}</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Formulario para responder desde el mismo cuadro */}
+        <div className={styles.conversacionReplyBox}>
+          <div className={styles.replyBoxLabel}>
+            <CornerDownRight size={14} />
+            <span>Responder o registrar nota administrativa sobre esta solicitud</span>
+          </div>
+          <textarea
+            className={styles.replyTextarea}
+            value={respuestaTexto}
+            onChange={(e) => setRespuestaTexto(e.target.value)}
+            placeholder="Escribí una respuesta o aclaración vinculada a este reporte..."
+            rows={3}
+          />
+          <div className={styles.replyFooter}>
+            {feedback && <span className={styles.replyFeedback}>{feedback}</span>}
+            <button
+              type="button"
+              className={styles.replySendBtn}
+              onClick={handleEnviarRespuesta}
+              disabled={enviando || !respuestaTexto.trim() || !reporteId}
+            >
+              <Send size={14} />
+              {enviando ? 'Guardando...' : 'Enviar respuesta'}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -163,11 +296,12 @@ export function NotificacionesPage() {
 
   // Selección múltiple
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [deletingIds, setDeletingIds] = useState<string[] | null>(null); // ids pendientes de confirmación
+  const [deletingIds, setDeletingIds] = useState<string[] | null>(null);
   const [bulkWorking, setBulkWorking] = useState(false);
 
-  // Panel de detalle de solicitud
-  const [detalleEvento, setDetalleEvento] = useState<EventoSistema | null>(null);
+  // Cuadro de conversación modal para solicitudes de modificación
+  const [conversacionEvento, setConversacionEvento] = useState<EventoSistema | null>(null);
+
   // Expandir texto largo en tarjetas
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
@@ -206,7 +340,8 @@ export function NotificacionesPage() {
   };
 
   // ── Selección múltiple ─────────────────────────────────────────────────────
-  const toggleSelect = (id: string) => {
+  const toggleSelect = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setSelected(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -247,13 +382,11 @@ export function NotificacionesPage() {
     setBulkWorking(true);
     const ids = deletingIds;
     setDeletingIds(null);
-    // Ocultar optimísticamente de la lista
     queryClient.setQueryData<EventoSistema[]>(['notificaciones-eventos'], (old = []) =>
       old.filter(e => !ids.includes(e.id))
     );
     clearSelection();
     await notificacionService.eliminarNotificaciones(ids);
-    // Refetch para sincronizar con servidor
     queryClient.invalidateQueries({ queryKey: ['notificaciones-eventos'] });
     setBulkWorking(false);
   };
@@ -278,7 +411,8 @@ export function NotificacionesPage() {
     }
   };
 
-  const toggleExpanded = (id: string) => {
+  const toggleExpanded = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setExpandedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -286,7 +420,6 @@ export function NotificacionesPage() {
     });
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -300,25 +433,26 @@ export function NotificacionesPage() {
         </div>
       </div>
 
-      {/* ── Barra de acciones bulk ── */}
+      {/* ── Barra de administración y selección múltiple ── */}
       {eventos.length > 0 && (
         <div className={styles.bulkBar}>
-          {/* Selector "todos" */}
           <button
+            type="button"
             className={styles.bulkSelectAll}
             onClick={allSelected ? clearSelection : selectAll}
             title={allSelected ? 'Deseleccionar todas' : 'Seleccionar todas'}
           >
-            {allSelected
-              ? <CheckCheck size={15} />
-              : <Square size={15} />}
+            {allSelected ? <CheckCheck size={16} /> : <Square size={16} />}
             <span>{allSelected ? 'Deseleccionar todas' : 'Seleccionar todas'}</span>
           </button>
 
           {selectedCount > 0 && (
             <div className={styles.bulkActions}>
-              <span className={styles.bulkCount}>{selectedCount} seleccionada{selectedCount !== 1 ? 's' : ''}</span>
+              <span className={styles.bulkCount}>
+                {selectedCount} seleccionada{selectedCount !== 1 ? 's' : ''}
+              </span>
               <button
+                type="button"
                 className={styles.bulkBtnLeidas}
                 onClick={handleBulkMarcarLeidas}
                 disabled={bulkWorking}
@@ -328,15 +462,21 @@ export function NotificacionesPage() {
                 Marcar leídas
               </button>
               <button
+                type="button"
                 className={styles.bulkBtnEliminar}
                 onClick={handleConfirmarEliminar}
                 disabled={bulkWorking}
-                title="Eliminar seleccionadas (no borra registros de auditoría)"
+                title="Eliminar seleccionadas de la bandeja"
               >
                 <Trash2 size={14} />
-                Eliminar
+                Eliminar seleccionadas
               </button>
-              <button className={styles.bulkBtnCancelar} onClick={clearSelection}>
+              <button
+                type="button"
+                className={styles.bulkBtnCancelar}
+                onClick={clearSelection}
+                title="Cancelar selección"
+              >
                 <X size={14} />
               </button>
             </div>
@@ -344,7 +484,7 @@ export function NotificacionesPage() {
         </div>
       )}
 
-      {/* ── Modal confirmación eliminar ── */}
+      {/* ── Modal de confirmación para eliminar ── */}
       {deletingIds && deletingIds.length > 0 && (
         <div className={styles.confirmOverlay} onClick={() => setDeletingIds(null)}>
           <div className={styles.confirmBox} onClick={(e) => e.stopPropagation()}>
@@ -356,19 +496,36 @@ export function NotificacionesPage() {
               ¿Eliminar {deletingIds.length} notificación{deletingIds.length !== 1 ? 'es' : ''} de la bandeja?
             </p>
             <p className={styles.confirmSubText}>
-              Esta acción solo quita las notificaciones de la vista. Los reportes, aprobaciones, solicitudes y registros de auditoría permanecen intactos.
+              Esta acción solo quita las notificaciones de la bandeja administrativa. Los reportes, las versiones históricas, las aprobaciones y las solicitudes de modificación permanecen intactas en Supabase para auditoría y trazabilidad.
             </p>
             <div className={styles.confirmActions}>
-              <button className={styles.confirmBtnCancelar} onClick={() => setDeletingIds(null)}>
+              <button
+                type="button"
+                className={styles.confirmBtnCancelar}
+                onClick={() => setDeletingIds(null)}
+              >
                 Cancelar
               </button>
-              <button className={styles.confirmBtnEliminar} onClick={handleEjecutarEliminar} disabled={bulkWorking}>
+              <button
+                type="button"
+                className={styles.confirmBtnEliminar}
+                onClick={handleEjecutarEliminar}
+                disabled={bulkWorking}
+              >
                 <Trash2 size={14} />
-                Eliminar
+                Eliminar de la bandeja
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── Cuadro de conversación y detalle de solicitud de modificación ── */}
+      {conversacionEvento && (
+        <SolicitudConversacionModal
+          ev={conversacionEvento}
+          onClose={() => setConversacionEvento(null)}
+        />
       )}
 
       {isLoading ? (
@@ -380,17 +537,25 @@ export function NotificacionesPage() {
       ) : (
         <div className={styles.list}>
           {eventos.map((ev) => {
-            const config = getEventConfig(ev.tipo);
+            const config = getEventConfig(ev.tipo, ev.detalles);
             const Icon = config.icon;
             const { fecha, hora } = formatFechaHora(ev.created_at);
-            const cliente = ev.cliente_nombre || ev.consorcio_nombre || 'Cliente';
+            const cliente = ev.cliente_nombre || ev.detalles?.cliente_nombre || ev.consorcio_nombre || 'Cliente';
             const codigo = ev.codigo_presupuesto ? ` ${ev.codigo_presupuesto}` : '';
             const reportePublicId = ev.detalles?.reporte_public_id ?? ev.reporte_public_id ?? null;
             const versionReporte = ev.reporte_version ?? ev.detalles?.version ?? null;
             const reporteTitulo = ev.detalles?.titulo ?? null;
             const detalleTexto = ev.detalles?.descripcion ?? ev.detalles?.mensaje ?? '';
-            const isReporteEvento = ev.tipo === 'reporte_aceptado' || ev.tipo === 'reporte_modificacion_solicitada';
-            const isSolicitudModificacion = ev.tipo === 'reporte_modificacion_solicitada';
+
+            // Detección robusta de solicitud de modificación o reporte
+            const normTipo = (ev.tipo || '').toLowerCase().trim();
+            const isSolicitudModificacion =
+              normTipo === 'reporte_modificacion_solicitada' ||
+              ev.detalles?.mensaje === 'Solicitud de modificación de reporte';
+            const isAprobacion =
+              normTipo === 'reporte_aceptado' ||
+              ev.detalles?.mensaje === 'Reporte aprobado por el cliente';
+            const isReporteEvento = isSolicitudModificacion || isAprobacion;
 
             const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
             const isSlnRead = config.isSln && !!lastVisit && ev.created_at < lastVisit;
@@ -423,14 +588,22 @@ export function NotificacionesPage() {
                   styles.notifCard,
                   config.isSln && styles.notifCardSln,
                   isConsulta && styles.notifCardConsulta,
+                  isReporteEvento && styles.notifCardReporte,
                   isRead && styles.notifCardRead,
                   isSelected && styles.notifCardSelected,
                 )}
+                onClick={() => {
+                  if (isSolicitudModificacion) {
+                    setConversacionEvento(ev);
+                  }
+                }}
+                style={{ cursor: isSolicitudModificacion ? 'pointer' : 'default' }}
               >
-                {/* ── Checkbox de selección ── */}
+                {/* ── Selector individual (checkbox) ── */}
                 <button
+                  type="button"
                   className={clsx(styles.checkboxBtn, isSelected && styles.checkboxBtnActive)}
-                  onClick={() => toggleSelect(ev.id)}
+                  onClick={(e) => toggleSelect(ev.id, e)}
                   title={isSelected ? 'Deseleccionar' : 'Seleccionar'}
                 >
                   {isSelected ? <Check size={13} /> : null}
@@ -479,7 +652,7 @@ export function NotificacionesPage() {
                         )}
                       </div>
 
-                      <div className={styles.consultaActions}>
+                      <div className={styles.consultaActions} onClick={(e) => e.stopPropagation()}>
                         {whatsappNum && (
                           <a href={waUrl} target="_blank" rel="noopener noreferrer" className={styles.actionBtnWa}>
                             <MessageSquare size={14} />
@@ -487,11 +660,24 @@ export function NotificacionesPage() {
                           </a>
                         )}
                         {!isAtendida && (
-                          <button className={styles.actionBtnAtendida} onClick={() => handleMarcarAtendida(ev.id, consultaId)}>
+                          <button
+                            type="button"
+                            className={styles.actionBtnAtendida}
+                            onClick={() => handleMarcarAtendida(ev.id, consultaId)}
+                          >
                             <Check size={14} />
                             Marcar como atendida
                           </button>
                         )}
+                        <button
+                          type="button"
+                          className={styles.actionBtnEliminarSingle}
+                          onClick={() => setDeletingIds([ev.id])}
+                          title="Eliminar notificación de la bandeja"
+                        >
+                          <Trash2 size={14} />
+                          Eliminar
+                        </button>
                       </div>
                     </>
                   ) : config.isSln ? (
@@ -507,6 +693,17 @@ export function NotificacionesPage() {
                           <span className={styles.fileTag}>{slnFile}</span>
                         </div>
                       )}
+                      <div className={styles.consultaActions} style={{ marginTop: '0.5rem' }} onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          className={styles.actionBtnEliminarSingle}
+                          onClick={() => setDeletingIds([ev.id])}
+                          title="Eliminar notificación de la bandeja"
+                        >
+                          <Trash2 size={14} />
+                          Eliminar
+                        </button>
+                      </div>
                     </>
                   ) : isReporteEvento ? (
                     <>
@@ -531,7 +728,10 @@ export function NotificacionesPage() {
                           </div>
                         )}
                         {isSolicitudModificacion && detalleTexto && (
-                          <div className={styles.consultaField} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.35rem' }}>
+                          <div
+                            className={styles.consultaField}
+                            style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.35rem' }}
+                          >
                             <span className={styles.consultaFieldLabel}>Modificaciones solicitadas:</span>
                             <div className={styles.consultaMensaje} style={{ width: '100%', fontStyle: 'normal', whiteSpace: 'pre-wrap' }}>
                               {isMsgLong && !isExpanded
@@ -539,7 +739,11 @@ export function NotificacionesPage() {
                                 : detalleTexto}
                             </div>
                             {isMsgLong && (
-                              <button className={styles.expandBtn} onClick={() => toggleExpanded(ev.id)}>
+                              <button
+                                type="button"
+                                className={styles.expandBtn}
+                                onClick={(e) => toggleExpanded(ev.id, e)}
+                              >
                                 {isExpanded ? <><ChevronUp size={12} /> Ver menos</> : <><ChevronDown size={12} /> Ver todo el mensaje</>}
                               </button>
                             )}
@@ -547,15 +751,17 @@ export function NotificacionesPage() {
                         )}
                       </div>
 
-                      <div className={styles.consultaActions}>
-                        {/* Botón "Ver detalle completo" para solicitudes de modificación */}
+                      <div className={styles.consultaActions} onClick={(e) => e.stopPropagation()}>
+                        {/* Abrir cuadro de conversación / detalle */}
                         {isSolicitudModificacion && (
                           <button
+                            type="button"
                             className={styles.actionBtnDetalle}
-                            onClick={() => setDetalleEvento(detalleEvento?.id === ev.id ? null : ev)}
+                            onClick={() => setConversacionEvento(ev)}
+                            title="Abrir cuadro de conversación y detalle"
                           >
-                            <FileText size={14} />
-                            {detalleEvento?.id === ev.id ? 'Cerrar detalle' : 'Ver detalle completo'}
+                            <MessageSquare size={14} />
+                            Abrir conversación
                           </button>
                         )}
                         {reportePublicId && (
@@ -565,39 +771,61 @@ export function NotificacionesPage() {
                             rel="noopener noreferrer"
                             className={styles.actionBtnWa}
                           >
+                            <FileText size={14} />
                             Abrir reporte
                           </a>
                         )}
                         {!isRead && (
-                          <button className={styles.actionBtnAtendida} onClick={() => handleMarcarLeida(ev.id)}>
+                          <button
+                            type="button"
+                            className={styles.actionBtnAtendida}
+                            onClick={() => handleMarcarLeida(ev.id)}
+                          >
                             <Check size={14} />
                             Marcar como leída
                           </button>
                         )}
+                        <button
+                          type="button"
+                          className={styles.actionBtnEliminarSingle}
+                          onClick={() => setDeletingIds([ev.id])}
+                          title="Eliminar notificación de la bandeja"
+                        >
+                          <Trash2 size={14} />
+                          Eliminar
+                        </button>
                       </div>
-
-                      {/* Panel de detalle inline */}
-                      {detalleEvento?.id === ev.id && isSolicitudModificacion && (
-                        <SolicitudDetallePanel ev={ev} onClose={() => setDetalleEvento(null)} />
-                      )}
                     </>
                   ) : (
-                    <div className={styles.notifText}>
-                      <span className={styles.highlight}>{cliente}</span> {config.label}
-                      {codigo && <span className={styles.highlight}>{codigo}</span>}
-                      {isRead && <span className={styles.leidaTag}>Leída</span>}
-                    </div>
-                  )}
+                    <>
+                      <div className={styles.notifText}>
+                        <span className={styles.highlight}>{cliente}</span> {config.label}
+                        {codigo && <span className={styles.highlight}>{codigo}</span>}
+                        {isRead && <span className={styles.leidaTag}>Leída</span>}
+                      </div>
 
-                  {!isConsulta && !config.isSln && !isReporteEvento && (
-                    <div className={styles.consultaActions} style={{ marginTop: '0.5rem' }}>
-                      {!isRead && (
-                        <button className={styles.actionBtnAtendida} onClick={() => handleMarcarLeida(ev.id)}>
-                          <Check size={14} />
-                          Marcar como leída
+                      <div className={styles.consultaActions} style={{ marginTop: '0.5rem' }} onClick={(e) => e.stopPropagation()}>
+                        {!isRead && (
+                          <button
+                            type="button"
+                            className={styles.actionBtnAtendida}
+                            onClick={() => handleMarcarLeida(ev.id)}
+                          >
+                            <Check size={14} />
+                            Marcar como leída
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className={styles.actionBtnEliminarSingle}
+                          onClick={() => setDeletingIds([ev.id])}
+                          title="Eliminar notificación de la bandeja"
+                        >
+                          <Trash2 size={14} />
+                          Eliminar
                         </button>
-                      )}
-                    </div>
+                      </div>
+                    </>
                   )}
 
                   <div className={styles.notifMeta}>
