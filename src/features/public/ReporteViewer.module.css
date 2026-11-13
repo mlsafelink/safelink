@@ -555,9 +555,34 @@
 
 .primaryButton:disabled,
 .secondaryButton:disabled,
-.cancelButton:disabled {
+.cancelButton:disabled,
+.shareButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.shareButton {
+  border: 1px solid var(--rv-border);
+  border-radius: 999px;
+  padding: 0.8rem 1.3rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #ffffff;
+  color: var(--rv-navy);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.shareButton:hover {
+  transform: translateY(-1px);
+  background: #f8fafc;
+  border-color: rgba(37, 99, 235, 0.35);
+  color: var(--rv-blue);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15);
 }
 
 .modificationCard,
@@ -757,6 +782,120 @@ textarea.modificationInput:focus {
   justify-content: flex-end;
   gap: 0.75rem;
   margin-top: 0.5rem;
+}
+
+/* ── Share modal options ── */
+.shareOptionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0.25rem 0;
+}
+
+.shareOptionCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  background: #f8fafc;
+  border: 1px solid var(--rv-border);
+  border-radius: 12px;
+  transition: all 0.15s ease;
+}
+
+.shareOptionCard:hover {
+  background: #f1f5f9;
+  border-color: rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.shareOptionInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.shareOptionIcon {
+  color: var(--rv-blue);
+  flex-shrink: 0;
+}
+
+.shareOptionTitle {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--rv-text);
+}
+
+.shareOptionDesc {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--rv-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shareActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  background: white;
+  border: 1px solid var(--rv-border);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--rv-navy);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.shareActionBtn:hover {
+  background: #f8fafc;
+  border-color: var(--rv-blue);
+  color: var(--rv-blue);
+}
+
+.shareActionBtnWa {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  background: #25D366;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: white !important;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
+}
+
+.shareActionBtnWa:hover {
+  opacity: 0.9;
+}
+
+.shareActionBtnMail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  background: var(--rv-blue);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: white !important;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+.shareActionBtnMail:hover {
+  opacity: 0.9;
 }
 
 /* ── LOADING / ERROR ── */

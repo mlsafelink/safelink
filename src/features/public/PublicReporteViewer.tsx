@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/Toast/ToastContext';
 import {
   Calendar, Building, ClipboardList, Clock, HelpCircle, Shield,
   FileText, Cpu, AlertTriangle, Phone, Mail, Image, CheckCircle2,
-  ShieldCheck
+  ShieldCheck, Share2, Copy, Check, MessageCircle, X
 } from 'lucide-react';
 import styles from './ReporteViewer.module.css';
 
@@ -21,6 +21,8 @@ export function PublicReporteViewer() {
   const [submitting, setSubmitting] = useState<'accept' | 'modify' | null>(null);
   const [confirmModal, setConfirmModal] = useState<'accept' | 'modify' | null>(null);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copiado, setCopiado] = useState(false);
 
   useEffect(() => {
     if (publicId) {
@@ -129,6 +131,17 @@ export function PublicReporteViewer() {
       showToast(msg, 'error');
     } finally {
       setSubmitting(null);
+    }
+  };
+
+  const handleCopiarEnlace = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopiado(true);
+      showToast('Enlace copiado al portapapeles', 'success');
+      setTimeout(() => setCopiado(false), 2500);
+    } catch {
+      showToast('No se pudo copiar el enlace', 'error');
     }
   };
 
@@ -370,6 +383,15 @@ export function PublicReporteViewer() {
           >
             Quiero modificar algo
           </button>
+          <button
+            type="button"
+            className={styles.shareButton}
+            onClick={() => setShowShareModal(true)}
+            title="Compartir enlace de este reporte por WhatsApp, Email o copiar dirección"
+          >
+            <Share2 size={16} />
+            <span>Compartir</span>
+          </button>
         </div>
 
         {showModifyForm && (
@@ -484,6 +506,110 @@ export function PublicReporteViewer() {
                 disabled={submitting !== null}
               >
                 {submitting === 'modify' ? 'Enviando...' : 'Enviar modificaciones'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: COMPARTIR REPORTE TÉCNICO ── */}
+      {showShareModal && (
+        <div className={styles.modalBackdrop} onClick={() => setShowShareModal(false)}>
+          <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 className={styles.modalTitle} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Share2 size={20} style={{ color: 'var(--rv-blue)' }} />
+                Compartir reporte técnico
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowShareModal(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--rv-muted)', padding: '0.2rem' }}
+                title="Cerrar"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p className={styles.modalText} style={{ fontSize: '0.85rem', color: 'var(--rv-muted)', margin: '0' }}>
+              {reporte.titulo}
+            </p>
+
+            <div className={styles.shareOptionsList}>
+              {/* Opción 1: Copiar dirección / URL */}
+              <div className={styles.shareOptionCard}>
+                <div className={styles.shareOptionInfo}>
+                  <Copy size={20} className={styles.shareOptionIcon} />
+                  <div>
+                    <span className={styles.shareOptionTitle}>Copiar dirección</span>
+                    <span className={styles.shareOptionDesc}>Copia el enlace del reporte al portapapeles</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className={styles.shareActionBtn}
+                  onClick={handleCopiarEnlace}
+                >
+                  {copiado ? (
+                    <>
+                      <Check size={14} style={{ color: '#16a34a' }} />
+                      <span style={{ color: '#16a34a' }}>¡Copiado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={14} />
+                      <span>Copiar</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Opción 2: Enviar por WhatsApp */}
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Hola, te comparto el Reporte Técnico "${reporte.titulo}" de SafeLink:\n${window.location.href}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.shareOptionCard}
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                <div className={styles.shareOptionInfo}>
+                  <MessageCircle size={20} style={{ color: '#25D366' }} />
+                  <div>
+                    <span className={styles.shareOptionTitle}>Enviar por WhatsApp</span>
+                    <span className={styles.shareOptionDesc}>Compartir directamente por chat de WhatsApp</span>
+                  </div>
+                </div>
+                <span className={styles.shareActionBtnWa}>
+                  WhatsApp ↗
+                </span>
+              </a>
+
+              {/* Opción 3: Enviar por Email */}
+              <a
+                href={`mailto:?subject=${encodeURIComponent(`Reporte Técnico SafeLink - ${reporte.titulo}`)}&body=${encodeURIComponent(`Hola,\n\nTe comparto el informe del Reporte Técnico "${reporte.titulo}" realizado por SafeLink.\n\nPuedes consultarlo en el siguiente enlace:\n${window.location.href}\n\nSaludos cordiales,\nSafeLink`)}`}
+                className={styles.shareOptionCard}
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                <div className={styles.shareOptionInfo}>
+                  <Mail size={20} style={{ color: '#2563eb' }} />
+                  <div>
+                    <span className={styles.shareOptionTitle}>Enviar por Email</span>
+                    <span className={styles.shareOptionDesc}>Abrir cliente de correo con el enlace preparado</span>
+                  </div>
+                </div>
+                <span className={styles.shareActionBtnMail}>
+                  Redactar ↗
+                </span>
+              </a>
+            </div>
+
+            <div className={styles.modalActions} style={{ marginTop: '0.25rem' }}>
+              <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={() => setShowShareModal(false)}
+              >
+                Cerrar
               </button>
             </div>
           </div>
