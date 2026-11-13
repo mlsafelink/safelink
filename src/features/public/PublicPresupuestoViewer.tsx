@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { presupuestoService, trackDocumentAccess } from '@/services/documentService';
@@ -199,35 +199,30 @@ export function PublicPresupuestoViewer() {
       {/* ── HEADER PERSONALIZADO O CORPORATIVO ── */}
       {apariencia.usar_banner_personalizado && apariencia.banner_url ? (
         <>
-          <header style={{
-            background: '#0b111e',
-            position: 'relative',
-            overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
-            height: `${apariencia.banner_altura}px`,
-          }}>
-            <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <header
+            className={styles.bannerHeader}
+            style={{
+              '--banner-h': `${apariencia.banner_altura}px`,
+              '--banner-fit': apariencia.banner_ajuste,
+              '--banner-pos': apariencia.banner_posicion,
+            } as CSSProperties}
+          >
+            <div className={styles.bannerImgContainer}>
               <img
                 src={apariencia.banner_url}
                 alt="SafeLink"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: apariencia.banner_ajuste,
-                  objectPosition: apariencia.banner_posicion,
-                  maxHeight: `${apariencia.banner_altura}px`
-                }}
+                className={styles.bannerImg}
               />
             </div>
           </header>
-          <div style={{ background: '#0f172a', padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-            <div style={{ maxWidth: 900, margin: '0 auto' }}>
-              <div className={styles.reporteBadge} style={{ background: `${apariencia.color_destacados}18`, color: apariencia.color_destacados }}>
+          <div className={styles.bannerTitleSection}>
+            <div className={styles.bannerTitleInner}>
+              <div className={styles.reporteBadge} style={{ background: `${apariencia.color_destacados}24`, color: apariencia.color_destacados }}>
                 <FileCheck size={12} />
                 Presupuesto Comercial {presupuesto.codigo ? `(${presupuesto.codigo})` : ''}
               </div>
-              <h1 className={styles.docTitle} style={{ color: apariencia.color_titulos, marginTop: '0.4rem' }}>{presupuesto.titulo}</h1>
-              <p className={styles.docSubtitle} style={{ color: apariencia.color_subtitulos, margin: 0 }}>
+              <h1 className={styles.bannerDocTitle}>{presupuesto.titulo}</h1>
+              <p className={styles.bannerDocSubtitle}>
                 Presupuesto detallado para la provisión e instalación de sistemas de seguridad técnica.
               </p>
             </div>
@@ -249,8 +244,8 @@ export function PublicPresupuestoViewer() {
                 <FileCheck size={12} />
                 Presupuesto Comercial {presupuesto.codigo ? `(${presupuesto.codigo})` : ''}
               </div>
-              <h1 className={styles.docTitle} style={{ color: apariencia.color_titulos }}>{presupuesto.titulo}</h1>
-              <p className={styles.docSubtitle} style={{ color: apariencia.color_subtitulos }}>
+              <h1 className={styles.docTitle}>{presupuesto.titulo}</h1>
+              <p className={styles.docSubtitle}>
                 Presupuesto detallado para la provisión e instalación de sistemas de seguridad técnica.
               </p>
             </div>

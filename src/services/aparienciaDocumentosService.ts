@@ -53,8 +53,8 @@ export const DEFAULT_APARIENCIA_DOCUMENTOS: AparienciaDocumentosConfig = {
   id: CONFIG_ID,
   usar_banner_personalizado: true,
   banner_url: '/banner-corporeo.png',
-  banner_altura: 200,
-  banner_ajuste: 'cover',
+  banner_altura: 180,
+  banner_ajuste: 'contain',
   banner_posicion: 'center',
   
   fondo_tipo: 'blanco',

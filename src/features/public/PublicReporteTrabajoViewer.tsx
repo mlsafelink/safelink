@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { reporteTrabajoService, trackDocumentAccess, normalizeFoto, type FotoItem } from '@/services/documentService';
@@ -108,29 +108,30 @@ export function PublicReporteTrabajoViewer() {
       {/* ── HEADER PERSONALIZADO O CORPORATIVO ── */}
       {apariencia.usar_banner_personalizado && apariencia.banner_url ? (
         <>
-          <header className={styles.corporeoHeader} style={{ height: `${apariencia.banner_altura}px` }}>
-            <div className={styles.bannerContainer} style={{ height: '100%' }}>
+          <header
+            className={styles.corporeoHeader}
+            style={{
+              '--banner-h': `${apariencia.banner_altura}px`,
+              '--banner-fit': apariencia.banner_ajuste,
+              '--banner-pos': apariencia.banner_posicion,
+            } as CSSProperties}
+          >
+            <div className={styles.bannerContainer}>
               <img
                 src={apariencia.banner_url}
                 alt="SafeLink"
                 className={styles.bannerImg}
-                style={{
-                  objectFit: apariencia.banner_ajuste,
-                  objectPosition: apariencia.banner_posicion,
-                  height: '100%',
-                  maxHeight: `${apariencia.banner_altura}px`
-                }}
               />
             </div>
           </header>
           <div className={styles.titleSection}>
             <div className={styles.titleSectionInner}>
-              <div className={styles.reporteBadge} style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981' }}>
+              <div className={styles.reporteBadge} style={{ background: 'rgba(16, 185, 129, 0.18)', color: '#10b981' }}>
                 <Wrench size={13} />
                 Informe de Trabajos Realizados ({codigoDoc})
               </div>
-              <h1 className={styles.docTitle} style={{ color: apariencia.color_titulos }}>{reporteTrabajo.titulo}</h1>
-              <p className={styles.docSubtitle} style={{ color: apariencia.color_subtitulos }}>
+              <h1 className={styles.docTitle} style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>{reporteTrabajo.titulo}</h1>
+              <p className={styles.docSubtitle} style={{ color: 'rgba(255,255,255,0.85)' }}>
                 Constancia documental de las tareas técnicas efectivamente realizadas, resultado final y registro fotográfico por SafeLink.
               </p>
             </div>
@@ -148,12 +149,12 @@ export function PublicReporteTrabajoViewer() {
               )}
             </div>
             <div className={styles.titleSide}>
-              <div className={styles.reporteBadge} style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981' }}>
+              <div className={styles.reporteBadge} style={{ background: 'rgba(16, 185, 129, 0.18)', color: '#10b981' }}>
                 <Wrench size={12} />
                 Informe de Trabajos Realizados ({codigoDoc})
               </div>
-              <h1 className={styles.docTitle} style={{ color: apariencia.color_titulos }}>{reporteTrabajo.titulo}</h1>
-              <p className={styles.docSubtitle} style={{ color: apariencia.color_subtitulos }}>
+              <h1 className={styles.docTitle}>{reporteTrabajo.titulo}</h1>
+              <p className={styles.docSubtitle}>
                 Constancia documental de las tareas técnicas efectivamente realizadas, resultado final y registro fotográfico por SafeLink.
               </p>
             </div>

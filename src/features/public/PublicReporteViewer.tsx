@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { reporteService, trackDocumentAccess, normalizeFoto } from '@/services/documentService';
@@ -173,29 +173,30 @@ export function PublicReporteViewer() {
       {/* ── HEADER PERSONALIZADO O CORPORATIVO ── */}
       {apariencia.usar_banner_personalizado && apariencia.banner_url ? (
         <>
-          <header className={styles.corporeoHeader} style={{ height: `${apariencia.banner_altura}px` }}>
-            <div className={styles.bannerContainer} style={{ height: '100%' }}>
+          <header
+            className={styles.corporeoHeader}
+            style={{
+              '--banner-h': `${apariencia.banner_altura}px`,
+              '--banner-fit': apariencia.banner_ajuste,
+              '--banner-pos': apariencia.banner_posicion,
+            } as CSSProperties}
+          >
+            <div className={styles.bannerContainer}>
               <img
                 src={apariencia.banner_url}
                 alt="SafeLink"
                 className={styles.bannerImg}
-                style={{
-                  objectFit: apariencia.banner_ajuste,
-                  objectPosition: apariencia.banner_posicion,
-                  height: '100%',
-                  maxHeight: `${apariencia.banner_altura}px`
-                }}
               />
             </div>
           </header>
           <div className={styles.titleSection}>
             <div className={styles.titleSectionInner}>
-              <div className={styles.reporteBadge} style={{ background: `${apariencia.color_destacados}18`, color: apariencia.color_destacados }}>
+              <div className={styles.reporteBadge} style={{ background: `${apariencia.color_destacados}24`, color: apariencia.color_destacados }}>
                 <ClipboardList size={13} />
                 Propuesta Técnica
               </div>
-              <h1 className={styles.docTitle} style={{ color: apariencia.color_titulos }}>{reporte.titulo}</h1>
-              <p className={styles.docSubtitle} style={{ color: apariencia.color_subtitulos }}>
+              <h1 className={styles.docTitle} style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>{reporte.titulo}</h1>
+              <p className={styles.docSubtitle} style={{ color: 'rgba(255,255,255,0.85)' }}>
                 Propuesta detallada de relevamiento técnico, equipos, diagnóstico y recomendaciones realizada por SafeLink.
               </p>
             </div>
@@ -213,12 +214,12 @@ export function PublicReporteViewer() {
               )}
             </div>
             <div className={styles.titleSide}>
-              <div className={styles.reporteBadge} style={{ background: `${apariencia.color_destacados}18`, color: apariencia.color_destacados }}>
+              <div className={styles.reporteBadge} style={{ background: `${apariencia.color_destacados}24`, color: apariencia.color_destacados }}>
                 <ClipboardList size={12} />
                 Propuesta Técnica
               </div>
-              <h1 className={styles.docTitle} style={{ color: apariencia.color_titulos }}>{reporte.titulo}</h1>
-              <p className={styles.docSubtitle} style={{ color: apariencia.color_subtitulos }}>
+              <h1 className={styles.docTitle}>{reporte.titulo}</h1>
+              <p className={styles.docSubtitle}>
                 Propuesta detallada de relevamiento técnico, equipos, diagnóstico y recomendaciones realizada por SafeLink.
               </p>
             </div>

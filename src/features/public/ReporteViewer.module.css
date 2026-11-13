@@ -25,28 +25,69 @@
   color: var(--rv-text);
 }
 
-/* ── HEADER CON BANNER CORPÓREO (PRUEBA LOCAL) ── */
+/* ── HEADER CON BANNER CORPÓREO O PERSONALIZADO ── */
 .corporeoHeader {
   background: #0b111e;
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* La altura se recibe como CSS custom property para que el media query pueda sobrescribirla */
+  height: var(--banner-h, 200px);
 }
 
 .bannerContainer {
   width: 100%;
   height: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
   display: flex;
   justify-content: center;
   align-items: center;
   background: #0b111e;
+  overflow: hidden;
 }
 
 .bannerImg {
   width: 100%;
-  max-width: 100%;
   height: 100%;
+  max-width: 100%;
   display: block;
+  object-fit: var(--banner-fit, contain);
+  object-position: var(--banner-pos, center);
+}
+
+/* ── RESPONSIVE MOBILE ── */
+@media (max-width: 768px) {
+  .corporeoHeader {
+    height: auto;        /* sobreescribe la CSS var sin !important */
+    min-height: 60px;
+    max-height: 48vw;    /* escala proporcionalmente al ancho de pantalla */
+    aspect-ratio: 16 / 5;
+  }
+
+  .bannerContainer {
+    width: 100%;
+    height: 100%;
+  }
+
+  .bannerImg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .titleSection {
+    padding: 0.85rem 1rem 1rem;
+  }
+
+  .titleSectionInner .docTitle {
+    font-size: clamp(1rem, 5vw, 1.4rem);
+  }
 }
 
 .titleSection {
@@ -61,6 +102,16 @@
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
+}
+
+/* Forzar blanco en el area de título (fondo siempre oscuro en este branch) */
+.titleSectionInner .docTitle {
+  color: #ffffff !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.titleSectionInner .docSubtitle {
+  color: rgba(255, 255, 255, 0.82) !important;
 }
 
 /* ── HEADER ORIGINAL ── */

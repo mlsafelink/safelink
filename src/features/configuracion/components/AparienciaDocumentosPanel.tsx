@@ -201,7 +201,7 @@ export function AparienciaDocumentosPanel() {
                   <div className={styles.presetBannerRow}>
                     <div
                       className={`${styles.presetCard} ${form.banner_url === '/banner-corporeo.png' ? styles.presetCardActive : ''}`}
-                      onClick={() => setForm(prev => ({ ...prev, banner_url: '/banner-corporeo.png', usar_banner_personalizado: true }))}
+                      onClick={() => setForm(prev => ({ ...prev, banner_url: '/banner-corporeo.png', usar_banner_personalizado: true, banner_ajuste: 'contain' }))}
                     >
                       <div className={styles.presetPreview}>
                         <img src="/banner-corporeo.png" alt="Banner Corpóreo" />
