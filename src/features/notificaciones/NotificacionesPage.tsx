@@ -8,6 +8,7 @@ import {
   Eye, Share2, CheckCircle2, Bell, Clock,
   Wrench, CheckSquare, ShieldAlert, FileText, BookOpen, FileArchive,
   DollarSign, Download, AlertTriangle, MessageCircle, MessageSquare, Check,
+  Trash2, CheckCheck, Square, X, User, Calendar, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { LAST_VISIT_KEY } from '@/features/safeLinkNote/SafeLinkNoteContext';
 import styles from './NotificacionesPage.module.css';
@@ -22,7 +23,6 @@ type EventConfig = {
   isConsultaWeb?: boolean;
 };
 
-
 function getEventConfig(tipo: EventoTipo): EventConfig {
   switch (tipo) {
     case 'consulta_web':
@@ -34,61 +34,21 @@ function getEventConfig(tipo: EventoTipo): EventConfig {
         isConsultaWeb: true,
       };
     case 'presupuesto_visto':
-      return {
-        icon: Eye,
-        color: '#3b82f6',
-        bgColor: 'rgba(59, 130, 246, 0.12)',
-        label: 'visualizó el presupuesto',
-      };
+      return { icon: Eye, color: '#3b82f6', bgColor: 'rgba(59, 130, 246, 0.12)', label: 'visualizó el presupuesto' };
     case 'presupuesto_compartido':
-      return {
-        icon: Share2,
-        color: '#8b5cf6',
-        bgColor: 'rgba(139, 92, 246, 0.12)',
-        label: 'compartió el presupuesto',
-      };
+      return { icon: Share2, color: '#8b5cf6', bgColor: 'rgba(139, 92, 246, 0.12)', label: 'compartió el presupuesto' };
     case 'presupuesto_aceptado':
-      return {
-        icon: CheckCircle2,
-        color: '#22c55e',
-        bgColor: 'rgba(34, 197, 94, 0.12)',
-        label: 'aceptó el presupuesto',
-      };
+      return { icon: CheckCircle2, color: '#22c55e', bgColor: 'rgba(34, 197, 94, 0.12)', label: 'aceptó el presupuesto' };
     case 'inicio_obra':
-      return {
-        icon: Wrench,
-        color: '#f59e0b',
-        bgColor: 'rgba(245, 158, 11, 0.12)',
-        label: 'Inicio de obra programado',
-      };
+      return { icon: Wrench, color: '#f59e0b', bgColor: 'rgba(245, 158, 11, 0.12)', label: 'Inicio de obra programado' };
     case 'trabajo_finalizado':
-      return {
-        icon: CheckSquare,
-        color: '#10b981',
-        bgColor: 'rgba(16, 185, 129, 0.12)',
-        label: 'Trabajo finalizado',
-      };
+      return { icon: CheckSquare, color: '#10b981', bgColor: 'rgba(16, 185, 129, 0.12)', label: 'Trabajo finalizado' };
     case 'garantia_vencer':
-      return {
-        icon: ShieldAlert,
-        color: '#ef4444',
-        bgColor: 'rgba(239, 68, 68, 0.12)',
-        label: 'Garantía próxima a vencer',
-      };
+      return { icon: ShieldAlert, color: '#ef4444', bgColor: 'rgba(239, 68, 68, 0.12)', label: 'Garantía próxima a vencer' };
     case 'nuevo_reporte':
-      return {
-        icon: FileText,
-        color: '#d97706',
-        bgColor: 'rgba(217, 119, 6, 0.12)',
-        label: 'Nuevo reporte generado',
-      };
+      return { icon: FileText, color: '#d97706', bgColor: 'rgba(217, 119, 6, 0.12)', label: 'Nuevo reporte generado' };
     case 'nuevo_instructivo':
-      return {
-        icon: BookOpen,
-        color: '#ec4899',
-        bgColor: 'rgba(236, 72, 153, 0.12)',
-        label: 'Nuevo instructivo publicado',
-      };
+      return { icon: BookOpen, color: '#ec4899', bgColor: 'rgba(236, 72, 153, 0.12)', label: 'Nuevo instructivo publicado' };
     case 'nuevo_sln':
       return {
         icon: FileArchive,
@@ -99,74 +59,124 @@ function getEventConfig(tipo: EventoTipo): EventConfig {
         isSln: true,
       };
     case 'factura_cargada':
-      return {
-        icon: DollarSign,
-        color: '#059669',
-        bgColor: 'rgba(5, 150, 105, 0.12)',
-        label: 'Nueva factura cargada',
-      };
+      return { icon: DollarSign, color: '#059669', bgColor: 'rgba(5, 150, 105, 0.12)', label: 'Nueva factura cargada' };
     case 'factura_descargada':
-      return {
-        icon: Download,
-        color: '#3b82f6',
-        bgColor: 'rgba(59, 130, 246, 0.12)',
-        label: 'descargó la factura',
-      };
+      return { icon: Download, color: '#3b82f6', bgColor: 'rgba(59, 130, 246, 0.12)', label: 'descargó la factura' };
     case 'factura_compartida':
-      return {
-        icon: Share2,
-        color: '#8b5cf6',
-        bgColor: 'rgba(139, 92, 246, 0.12)',
-        label: 'Factura compartida correctamente',
-      };
+      return { icon: Share2, color: '#8b5cf6', bgColor: 'rgba(139, 92, 246, 0.12)', label: 'Factura compartida correctamente' };
     case 'factura_proxima_vencer':
-      return {
-        icon: AlertTriangle,
-        color: '#f59e0b',
-        bgColor: 'rgba(245, 158, 11, 0.12)',
-        label: 'Factura próxima a vencer',
-      };
+      return { icon: AlertTriangle, color: '#f59e0b', bgColor: 'rgba(245, 158, 11, 0.12)', label: 'Factura próxima a vencer' };
     case 'factura_pagada':
-      return {
-        icon: CheckCircle2,
-        color: '#22c55e',
-        bgColor: 'rgba(34, 197, 94, 0.12)',
-        label: 'Factura marcada como pagada',
-      };
+      return { icon: CheckCircle2, color: '#22c55e', bgColor: 'rgba(34, 197, 94, 0.12)', label: 'Factura marcada como pagada' };
     case 'reporte_aceptado':
-      return {
-        icon: CheckCircle2,
-        color: '#22c55e',
-        bgColor: 'rgba(34, 197, 94, 0.12)',
-        label: 'Reporte aprobado por el cliente',
-      };
+      return { icon: CheckCircle2, color: '#22c55e', bgColor: 'rgba(34, 197, 94, 0.12)', label: 'Reporte aprobado por el cliente' };
     case 'reporte_modificacion_solicitada':
-      return {
-        icon: Wrench,
-        color: '#f59e0b',
-        bgColor: 'rgba(245, 158, 11, 0.12)',
-        label: 'Solicitud de modificación de reporte',
-      };
+      return { icon: Wrench, color: '#f59e0b', bgColor: 'rgba(245, 158, 11, 0.12)', label: 'Solicitud de modificación de reporte' };
     default:
-      return {
-        icon: Bell,
-        color: '#64748b',
-        bgColor: 'rgba(100, 116, 139, 0.12)',
-        label: 'Notificación del sistema',
-      };
+      return { icon: Bell, color: '#64748b', bgColor: 'rgba(100, 116, 139, 0.12)', label: 'Notificación del sistema' };
   }
 }
 
+// ── Panel de detalle para solicitudes de modificación ──────────────────────────
+function SolicitudDetallePanel({ ev, onClose }: { ev: EventoSistema; onClose: () => void }) {
+  const detalles = ev.detalles || {};
+  const cliente = ev.cliente_nombre || detalles.cliente_nombre || 'Cliente';
+  const reporteTitulo = detalles.titulo || 'Reporte técnico';
+  const reportePublicId = detalles.reporte_public_id ?? ev.reporte_public_id ?? null;
+  const versionReporte = ev.reporte_version ?? detalles.version ?? null;
+  const mensaje = detalles.descripcion ?? detalles.mensaje ?? '';
+  const fechaHora = (() => {
+    try {
+      const d = new Date(ev.created_at);
+      return d.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch { return ev.created_at; }
+  })();
+
+  return (
+    <div className={styles.detallePanel}>
+      <div className={styles.detallePanelHeader}>
+        <div className={styles.detallePanelTitle}>
+          <Wrench size={16} style={{ color: '#f59e0b' }} />
+          Solicitud de modificación
+        </div>
+        <button className={styles.detallePanelClose} onClick={onClose} title="Cerrar">
+          <X size={16} />
+        </button>
+      </div>
+
+      <div className={styles.detallePanelBody}>
+        <div className={styles.detallePanelField}>
+          <User size={13} style={{ color: 'var(--text-secondary)' }} />
+          <span className={styles.detallePanelLabel}>Cliente:</span>
+          <span className={styles.detallePanelValue}>{cliente}</span>
+        </div>
+
+        <div className={styles.detallePanelField}>
+          <FileText size={13} style={{ color: 'var(--text-secondary)' }} />
+          <span className={styles.detallePanelLabel}>Reporte:</span>
+          <span className={styles.detallePanelValue}>{reporteTitulo}</span>
+        </div>
+
+        {versionReporte !== null && (
+          <div className={styles.detallePanelField}>
+            <span className={styles.detallePanelLabel}>Versión:</span>
+            <span className={styles.detallePanelValue}>v{versionReporte}</span>
+          </div>
+        )}
+
+        <div className={styles.detallePanelField}>
+          <Calendar size={13} style={{ color: 'var(--text-secondary)' }} />
+          <span className={styles.detallePanelLabel}>Recibida el:</span>
+          <span className={styles.detallePanelValue}>{fechaHora} hs.</span>
+        </div>
+
+        {mensaje && (
+          <div className={styles.detallePanelMensaje}>
+            <span className={styles.detallePanelLabel} style={{ marginBottom: '0.4rem', display: 'block' }}>
+              Mensaje del cliente:
+            </span>
+            <div className={styles.detallePanelMensajeTexto}>{mensaje}</div>
+          </div>
+        )}
+
+        {reportePublicId && (
+          <a
+            href={`/p/reporte/${reportePublicId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.actionBtnWa}
+            style={{ marginTop: '0.25rem', alignSelf: 'flex-start' }}
+          >
+            <FileText size={13} />
+            Abrir reporte
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Componente principal ───────────────────────────────────────────────────────
 export function NotificacionesPage() {
   const queryClient = useQueryClient();
   const [atendidasState, setAtendidasState] = useState<Record<string, boolean>>({});
+
+  // Selección múltiple
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deletingIds, setDeletingIds] = useState<string[] | null>(null); // ids pendientes de confirmación
+  const [bulkWorking, setBulkWorking] = useState(false);
+
+  // Panel de detalle de solicitud
+  const [detalleEvento, setDetalleEvento] = useState<EventoSistema | null>(null);
+  // Expandir texto largo en tarjetas
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const { data: eventos = [], isLoading } = useQuery({
     queryKey: ['notificaciones-eventos'],
     queryFn: notificacionService.getAll,
   });
 
-  // Suscripción en tiempo real a Supabase Realtime
+  // Suscripción en tiempo real
   useEffect(() => {
     const unsubscribe = notificacionService.subscribeToEventos((nuevoEvento) => {
       queryClient.setQueryData<EventoSistema[]>(['notificaciones-eventos'], (old = []) => {
@@ -175,12 +185,10 @@ export function NotificacionesPage() {
         return [nuevoEvento, ...old];
       });
     });
-
-    return () => {
-      unsubscribe();
-    };
+    return () => { unsubscribe(); };
   }, [queryClient]);
 
+  // ── Handlers individuales ──────────────────────────────────────────────────
   const handleMarcarLeida = async (eventoId: string) => {
     setAtendidasState(prev => ({ ...prev, [eventoId]: true }));
     queryClient.setQueryData<EventoSistema[]>(['notificaciones-eventos'], (old = []) =>
@@ -192,23 +200,72 @@ export function NotificacionesPage() {
   const handleMarcarAtendida = async (eventoId: string, consultaId?: string) => {
     handleMarcarLeida(eventoId);
     if (consultaId) {
-      try {
-        await landingService.marcarAtendida(consultaId);
-      } catch (e) {
-        console.warn('Error al marcar consulta atendida:', e);
-      }
+      try { await landingService.marcarAtendida(consultaId); }
+      catch (e) { console.warn('Error al marcar consulta atendida:', e); }
     }
   };
 
+  // ── Selección múltiple ─────────────────────────────────────────────────────
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    setSelected(new Set(eventos.map(e => e.id)));
+  };
+
+  const clearSelection = () => setSelected(new Set());
+
+  const selectedCount = selected.size;
+  const allSelected = eventos.length > 0 && selectedCount === eventos.length;
+
+  // ── Acciones bulk ──────────────────────────────────────────────────────────
+  const handleBulkMarcarLeidas = async () => {
+    if (selectedCount === 0) return;
+    setBulkWorking(true);
+    const ids = [...selected];
+    queryClient.setQueryData<EventoSistema[]>(['notificaciones-eventos'], (old = []) =>
+      old.map(e => ids.includes(e.id) ? { ...e, leida: true, detalles: { ...(e.detalles || {}), leida: true } } : e)
+    );
+    setAtendidasState(prev => { const next = { ...prev }; ids.forEach(id => { next[id] = true; }); return next; });
+    await notificacionService.marcarLeidasBulk(ids);
+    clearSelection();
+    setBulkWorking(false);
+  };
+
+  const handleConfirmarEliminar = () => {
+    if (selectedCount === 0) return;
+    setDeletingIds([...selected]);
+  };
+
+  const handleEjecutarEliminar = async () => {
+    if (!deletingIds || deletingIds.length === 0) return;
+    setBulkWorking(true);
+    const ids = deletingIds;
+    setDeletingIds(null);
+    // Ocultar optimísticamente de la lista
+    queryClient.setQueryData<EventoSistema[]>(['notificaciones-eventos'], (old = []) =>
+      old.filter(e => !ids.includes(e.id))
+    );
+    clearSelection();
+    await notificacionService.eliminarNotificaciones(ids);
+    // Refetch para sincronizar con servidor
+    queryClient.invalidateQueries({ queryKey: ['notificaciones-eventos'] });
+    setBulkWorking(false);
+  };
+
+  // ── Helpers de UI ──────────────────────────────────────────────────────────
   const formatFechaHora = (isoDate: string) => {
     try {
       const d = new Date(isoDate);
       const fecha = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
       const hora = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
       return { fecha, hora };
-    } catch {
-      return { fecha: isoDate, hora: '' };
-    }
+    } catch { return { fecha: isoDate, hora: '' }; }
   };
 
   const formatServicioLabel = (servicio?: string) => {
@@ -221,6 +278,15 @@ export function NotificacionesPage() {
     }
   };
 
+  const toggleExpanded = (id: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -233,6 +299,77 @@ export function NotificacionesPage() {
           <span>Tiempo real activo</span>
         </div>
       </div>
+
+      {/* ── Barra de acciones bulk ── */}
+      {eventos.length > 0 && (
+        <div className={styles.bulkBar}>
+          {/* Selector "todos" */}
+          <button
+            className={styles.bulkSelectAll}
+            onClick={allSelected ? clearSelection : selectAll}
+            title={allSelected ? 'Deseleccionar todas' : 'Seleccionar todas'}
+          >
+            {allSelected
+              ? <CheckCheck size={15} />
+              : <Square size={15} />}
+            <span>{allSelected ? 'Deseleccionar todas' : 'Seleccionar todas'}</span>
+          </button>
+
+          {selectedCount > 0 && (
+            <div className={styles.bulkActions}>
+              <span className={styles.bulkCount}>{selectedCount} seleccionada{selectedCount !== 1 ? 's' : ''}</span>
+              <button
+                className={styles.bulkBtnLeidas}
+                onClick={handleBulkMarcarLeidas}
+                disabled={bulkWorking}
+                title="Marcar seleccionadas como leídas"
+              >
+                <Check size={14} />
+                Marcar leídas
+              </button>
+              <button
+                className={styles.bulkBtnEliminar}
+                onClick={handleConfirmarEliminar}
+                disabled={bulkWorking}
+                title="Eliminar seleccionadas (no borra registros de auditoría)"
+              >
+                <Trash2 size={14} />
+                Eliminar
+              </button>
+              <button className={styles.bulkBtnCancelar} onClick={clearSelection}>
+                <X size={14} />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Modal confirmación eliminar ── */}
+      {deletingIds && deletingIds.length > 0 && (
+        <div className={styles.confirmOverlay} onClick={() => setDeletingIds(null)}>
+          <div className={styles.confirmBox} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.confirmTitle}>
+              <Trash2 size={18} style={{ color: '#ef4444' }} />
+              Confirmar eliminación
+            </h3>
+            <p className={styles.confirmText}>
+              ¿Eliminar {deletingIds.length} notificación{deletingIds.length !== 1 ? 'es' : ''} de la bandeja?
+            </p>
+            <p className={styles.confirmSubText}>
+              Esta acción solo quita las notificaciones de la vista. Los reportes, aprobaciones, solicitudes y registros de auditoría permanecen intactos.
+            </p>
+            <div className={styles.confirmActions}>
+              <button className={styles.confirmBtnCancelar} onClick={() => setDeletingIds(null)}>
+                Cancelar
+              </button>
+              <button className={styles.confirmBtnEliminar} onClick={handleEjecutarEliminar} disabled={bulkWorking}>
+                <Trash2 size={14} />
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <p className={styles.loading}>Cargando notificaciones...</p>
@@ -253,15 +390,14 @@ export function NotificacionesPage() {
             const reporteTitulo = ev.detalles?.titulo ?? null;
             const detalleTexto = ev.detalles?.descripcion ?? ev.detalles?.mensaje ?? '';
             const isReporteEvento = ev.tipo === 'reporte_aceptado' || ev.tipo === 'reporte_modificacion_solicitada';
+            const isSolicitudModificacion = ev.tipo === 'reporte_modificacion_solicitada';
 
-            // Estado "leído"
             const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
             const isSlnRead = config.isSln && !!lastVisit && ev.created_at < lastVisit;
             const isPersistedRead = ev.leida === true || ev.detalles?.leida === true || atendidasState[ev.id] === true;
             const isRead = isPersistedRead || isSlnRead;
             const slnFile = ev.detalles?.archivo as string | undefined;
 
-            // Datos de consulta_web
             const isConsulta = config.isConsultaWeb;
             const detalles = ev.detalles || {};
             const whatsappNum = detalles.whatsapp as string | undefined;
@@ -276,6 +412,10 @@ export function NotificacionesPage() {
               ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Hola ${cliente}, gracias por comunicarte con SafeLink. Recibimos tu consulta sobre ${formatServicioLabel(servicio)}.`)}`
               : '#';
 
+            const isSelected = selected.has(ev.id);
+            const isExpanded = expandedIds.has(ev.id);
+            const isMsgLong = detalleTexto.length > 180;
+
             return (
               <div
                 key={ev.id}
@@ -284,14 +424,25 @@ export function NotificacionesPage() {
                   config.isSln && styles.notifCardSln,
                   isConsulta && styles.notifCardConsulta,
                   isRead && styles.notifCardRead,
+                  isSelected && styles.notifCardSelected,
                 )}
               >
+                {/* ── Checkbox de selección ── */}
+                <button
+                  className={clsx(styles.checkboxBtn, isSelected && styles.checkboxBtnActive)}
+                  onClick={() => toggleSelect(ev.id)}
+                  title={isSelected ? 'Deseleccionar' : 'Seleccionar'}
+                >
+                  {isSelected ? <Check size={13} /> : null}
+                </button>
+
                 <div
                   className={styles.iconBox}
                   style={{ background: config.bgColor, color: config.color }}
                 >
                   <Icon size={24} />
                 </div>
+
                 <div className={styles.notifContent}>
                   {isConsulta ? (
                     <>
@@ -330,21 +481,13 @@ export function NotificacionesPage() {
 
                       <div className={styles.consultaActions}>
                         {whatsappNum && (
-                          <a
-                            href={waUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={styles.actionBtnWa}
-                          >
+                          <a href={waUrl} target="_blank" rel="noopener noreferrer" className={styles.actionBtnWa}>
                             <MessageSquare size={14} />
                             Responder por WhatsApp
                           </a>
                         )}
                         {!isAtendida && (
-                          <button
-                            className={styles.actionBtnAtendida}
-                            onClick={() => handleMarcarAtendida(ev.id, consultaId)}
-                          >
+                          <button className={styles.actionBtnAtendida} onClick={() => handleMarcarAtendida(ev.id, consultaId)}>
                             <Check size={14} />
                             Marcar como atendida
                           </button>
@@ -383,21 +526,38 @@ export function NotificacionesPage() {
                         </div>
                         {versionReporte !== null && (
                           <div className={styles.consultaField}>
-                            <span className={styles.consultaFieldLabel}>Versión aprobada / referenciada:</span>
+                            <span className={styles.consultaFieldLabel}>Versión:</span>
                             <span>v{versionReporte}</span>
                           </div>
                         )}
-                        {ev.tipo === 'reporte_modificacion_solicitada' && detalleTexto && (
+                        {isSolicitudModificacion && detalleTexto && (
                           <div className={styles.consultaField} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.35rem' }}>
                             <span className={styles.consultaFieldLabel}>Modificaciones solicitadas:</span>
-                            <div className={styles.consultaMensaje} style={{ width: '100%', fontStyle: 'normal' }}>
-                              {detalleTexto}
+                            <div className={styles.consultaMensaje} style={{ width: '100%', fontStyle: 'normal', whiteSpace: 'pre-wrap' }}>
+                              {isMsgLong && !isExpanded
+                                ? detalleTexto.slice(0, 180) + '…'
+                                : detalleTexto}
                             </div>
+                            {isMsgLong && (
+                              <button className={styles.expandBtn} onClick={() => toggleExpanded(ev.id)}>
+                                {isExpanded ? <><ChevronUp size={12} /> Ver menos</> : <><ChevronDown size={12} /> Ver todo el mensaje</>}
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
 
                       <div className={styles.consultaActions}>
+                        {/* Botón "Ver detalle completo" para solicitudes de modificación */}
+                        {isSolicitudModificacion && (
+                          <button
+                            className={styles.actionBtnDetalle}
+                            onClick={() => setDetalleEvento(detalleEvento?.id === ev.id ? null : ev)}
+                          >
+                            <FileText size={14} />
+                            {detalleEvento?.id === ev.id ? 'Cerrar detalle' : 'Ver detalle completo'}
+                          </button>
+                        )}
                         {reportePublicId && (
                           <a
                             href={`/p/reporte/${reportePublicId}`}
@@ -409,15 +569,17 @@ export function NotificacionesPage() {
                           </a>
                         )}
                         {!isRead && (
-                          <button
-                            className={styles.actionBtnAtendida}
-                            onClick={() => handleMarcarLeida(ev.id)}
-                          >
+                          <button className={styles.actionBtnAtendida} onClick={() => handleMarcarLeida(ev.id)}>
                             <Check size={14} />
                             Marcar como leída
                           </button>
                         )}
                       </div>
+
+                      {/* Panel de detalle inline */}
+                      {detalleEvento?.id === ev.id && isSolicitudModificacion && (
+                        <SolicitudDetallePanel ev={ev} onClose={() => setDetalleEvento(null)} />
+                      )}
                     </>
                   ) : (
                     <div className={styles.notifText}>
@@ -430,10 +592,7 @@ export function NotificacionesPage() {
                   {!isConsulta && !config.isSln && !isReporteEvento && (
                     <div className={styles.consultaActions} style={{ marginTop: '0.5rem' }}>
                       {!isRead && (
-                        <button
-                          className={styles.actionBtnAtendida}
-                          onClick={() => handleMarcarLeida(ev.id)}
-                        >
+                        <button className={styles.actionBtnAtendida} onClick={() => handleMarcarLeida(ev.id)}>
                           <Check size={14} />
                           Marcar como leída
                         </button>

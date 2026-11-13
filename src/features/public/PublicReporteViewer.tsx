@@ -17,6 +17,7 @@ export function PublicReporteViewer() {
   const { showToast } = useToast();
   const [showModifyForm, setShowModifyForm] = useState(false);
   const [solicitudTexto, setSolicitudTexto] = useState('');
+  const [solicitudNombre, setSolicitudNombre] = useState('');
   const [submitting, setSubmitting] = useState<'accept' | 'modify' | null>(null);
   const [confirmModal, setConfirmModal] = useState<'accept' | 'modify' | null>(null);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
@@ -99,16 +100,21 @@ export function PublicReporteViewer() {
 
   const handleEjecutarModificacion = async () => {
     if (!publicId) return;
+    const nombre = solicitudNombre.trim();
     const texto = solicitudTexto.trim();
+    if (!nombre) {
+      showToast('Ingresá tu nombre y apellido antes de enviar.', 'warning');
+      return;
+    }
     if (!texto) {
-      showToast('Escribí los cambios que querés solicitar.', 'warning');
+      showToast('Describí los cambios que querés solicitar.', 'warning');
       return;
     }
     setConfirmModal(null);
 
     try {
       setSubmitting('modify');
-      await solicitarModificacion(publicId, texto, reporte.cliente_nombre ?? undefined);
+      await solicitarModificacion(publicId, texto, nombre);
 
       queryClient.invalidateQueries({ queryKey: ['public-reporte-historial', publicId] });
 
@@ -116,6 +122,7 @@ export function PublicReporteViewer() {
       showToast(msg, 'success');
       setSuccessBanner(msg);
       setSolicitudTexto('');
+      setSolicitudNombre('');
       setShowModifyForm(false);
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'No se pudo enviar la solicitud.';
@@ -367,7 +374,20 @@ export function PublicReporteViewer() {
 
         {showModifyForm && (
           <div className={styles.modificationCard}>
-            <label className={styles.modificationLabel}>Describí los cambios solicitados</label>
+            <label className={styles.modificationLabel}>
+              Tu nombre y apellido <span style={{ color: '#ef4444' }}>*</span>
+            </label>
+            <input
+              type="text"
+              className={styles.modificationInput}
+              value={solicitudNombre}
+              onChange={(event) => setSolicitudNombre(event.target.value)}
+              placeholder="Ej: María González"
+              style={{ marginBottom: '0.75rem' }}
+            />
+            <label className={styles.modificationLabel}>
+              Descripción de los cambios solicitados <span style={{ color: '#ef4444' }}>*</span>
+            </label>
             <textarea
               className={styles.modificationInput}
               value={solicitudTexto}
@@ -380,6 +400,10 @@ export function PublicReporteViewer() {
                 type="button"
                 className={styles.primaryButton}
                 onClick={() => {
+                  if (!solicitudNombre.trim()) {
+                    showToast('Ingresá tu nombre y apellido.', 'warning');
+                    return;
+                  }
                   if (!solicitudTexto.trim()) {
                     showToast('Escribí los cambios que querés solicitar antes de enviar.', 'warning');
                     return;

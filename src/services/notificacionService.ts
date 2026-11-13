@@ -30,6 +30,7 @@ export type EventoSistema = {
   reporte_version?: number | null;
   reporte_public_id?: string | null;
   leida?: boolean;
+  eliminada?: boolean;
   detalles?: Record<string, any> | null;
   created_at: string;
 };
@@ -41,9 +42,18 @@ export const notificacionService = {
     const { data, error } = await supabase
       .from('eventos_sistema')
       .select('*')
+      .or('eliminada.is.null,eliminada.eq.false')
       .order('created_at', { ascending: false });
 
     if (error) {
+      // Si la columna eliminada aún no existe (migración pendiente), cargar sin filtro
+      if (error.code === 'PGRST116' || error.message?.includes('eliminada')) {
+        const { data: fallback } = await supabase
+          .from('eventos_sistema')
+          .select('*')
+          .order('created_at', { ascending: false });
+        return (fallback || []) as EventoSistema[];
+      }
       console.error('Error fetching eventos:', error);
       return [];
     }
@@ -115,6 +125,55 @@ export const notificacionService = {
       return true;
     } catch (e) {
       console.error('[notificacionService] Excepción al marcar leído:', e);
+      return false;
+    }
+  },
+
+  /**
+   * Marcar múltiples notificaciones como leídas usando RPC bulk.
+   * Fallback a llamadas individuales si la función aún no existe.
+   */
+  async marcarLeidasBulk(ids: string[]): Promise<boolean> {
+    if (ids.length === 0) return true;
+    try {
+      const { error } = await supabase.rpc('marcar_notificaciones_leidas', {
+        p_ids: ids,
+      });
+      if (error) {
+        // Fallback: marcar una por una
+        await Promise.all(ids.map(id => notificacionService.marcarLeida(id)));
+      }
+      return true;
+    } catch (e) {
+      console.error('[notificacionService] Error en marcarLeidasBulk:', e);
+      return false;
+    }
+  },
+
+  /**
+   * Soft-delete de notificaciones: las oculta de la bandeja administrativa
+   * sin eliminar ningún registro de auditoría (versiones, aceptaciones, solicitudes).
+   */
+  async eliminarNotificaciones(ids: string[]): Promise<boolean> {
+    if (ids.length === 0) return true;
+    try {
+      const { error } = await supabase.rpc('eliminar_notificaciones', {
+        p_ids: ids,
+      });
+      if (error) {
+        // Fallback: actualizar campo eliminada directamente
+        const { error: errDirect } = await supabase
+          .from('eventos_sistema')
+          .update({ eliminada: true })
+          .in('id', ids);
+        if (errDirect) {
+          console.error('[notificacionService] Error eliminando notificaciones:', errDirect);
+          return false;
+        }
+      }
+      return true;
+    } catch (e) {
+      console.error('[notificacionService] Error en eliminarNotificaciones:', e);
       return false;
     }
   },

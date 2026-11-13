@@ -581,14 +581,25 @@
 
 .modificationInput {
   width: 100%;
-  min-height: 110px;
-  resize: vertical;
   border: 1px solid var(--rv-border);
   border-radius: 10px;
   padding: 0.9rem 1rem;
   font: inherit;
   color: var(--rv-text);
   background: white;
+  box-sizing: border-box;
+}
+
+textarea.modificationInput {
+  min-height: 110px;
+  resize: vertical;
+}
+
+input.modificationInput:focus,
+textarea.modificationInput:focus {
+  outline: none;
+  border-color: var(--rv-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .modificationActions {

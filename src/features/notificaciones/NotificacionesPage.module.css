@@ -269,3 +269,351 @@
   font-weight: 700;
 }
 
+/* ── Selección múltiple ── */
+.notifCard {
+  position: relative;
+}
+
+.notifCardSelected {
+  border-color: var(--primary-color);
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.04);
+}
+
+.checkboxBtn {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--glass-border);
+  background: var(--glass-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: border-color 0.15s, background 0.15s;
+  padding: 0;
+}
+
+.checkboxBtnActive {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+  color: white;
+}
+
+/* ── Barra de acciones bulk ── */
+.bulkBar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  flex-wrap: wrap;
+}
+
+.bulkSelectAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.bulkSelectAll:hover {
+  color: var(--text-primary);
+}
+
+.bulkActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.bulkCount {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.bulkBtnLeidas {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.bulkBtnLeidas:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.bulkBtnEliminar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.bulkBtnEliminar:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.18);
+}
+
+.bulkBtnCancelar {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem;
+  background: none;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.bulkBtnLeidas:disabled,
+.bulkBtnEliminar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Modal de confirmación eliminar ── */
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.confirmBox {
+  background: var(--bg-primary, white);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.confirmTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.confirmText {
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: 600;
+}
+
+.confirmSubText {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.confirmBtnCancelar {
+  padding: 0.5rem 1rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.confirmBtnEliminar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.confirmBtnEliminar:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.confirmBtnEliminar:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ── Expandir mensaje largo ── */
+.expandBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 0.1rem;
+}
+
+.expandBtn:hover {
+  text-decoration: underline;
+}
+
+/* ── Botón "Ver detalle" ── */
+.actionBtnDetalle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  background: rgba(245, 158, 11, 0.1);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.actionBtnDetalle:hover {
+  background: rgba(245, 158, 11, 0.18);
+}
+
+/* ── Panel de detalle de solicitud ── */
+.detallePanel {
+  margin-top: 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.05);
+  overflow: hidden;
+}
+
+.detallePanelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 1rem;
+  background: rgba(245, 158, 11, 0.1);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.detallePanelTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #92400e;
+  letter-spacing: 0.03em;
+}
+
+.detallePanelClose {
+  display: flex;
+  align-items: center;
+  padding: 0.2rem;
+  background: none;
+  border: none;
+  color: #92400e;
+  cursor: pointer;
+  border-radius: 4px;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.detallePanelClose:hover {
+  opacity: 1;
+}
+
+.detallePanelBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.9rem 1rem;
+}
+
+.detallePanelField {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+}
+
+.detallePanelLabel {
+  font-weight: 700;
+  color: var(--text-secondary);
+  min-width: 100px;
+  font-size: 0.8rem;
+}
+
+.detallePanelValue {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.detallePanelMensaje {
+  margin-top: 0.3rem;
+}
+
+.detallePanelMensajeTexto {
+  background: white;
+  border: 1px solid var(--glass-border);
+  border-left: 3px solid #f59e0b;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
