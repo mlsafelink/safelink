@@ -76,7 +76,7 @@ export function Dashboard() {
   });
 
   const recentDocs = [
-    ...reportes.map(r => ({ tipo: 'Reporte', titulo: r.titulo, fecha: r.created_at, color: '#d69e2e' })),
+    ...reportes.map(r => ({ tipo: 'Propuesta Técnica', titulo: r.titulo, fecha: r.created_at, color: '#d69e2e' })),
     ...presupuestos.map(p => ({ tipo: 'Presupuesto', titulo: p.titulo, fecha: p.created_at, color: '#805ad5' })),
     ...instructivos.map(i => ({ tipo: 'Instructivo', titulo: i.titulo, fecha: i.created_at, color: '#e53e3e' })),
   ]
@@ -95,7 +95,7 @@ export function Dashboard() {
         <StatCard title="Administraciones" value={administraciones.length} icon={Building2}     color="#3182ce" />
         <StatCard title="Consorcios"        value={consorcios.length}       icon={Building}      color="#38a169" />
         <StatCard title="Clientes Privados" value={particulares.length}     icon={UserCheck}     color="#6366f1" />
-        <StatCard title="Reportes"          value={reportes.length}         icon={ClipboardList} color="#d69e2e" />
+        <StatCard title="Propuestas Técnicas" value={reportes.length}      icon={ClipboardList} color="#d69e2e" />
         <StatCard title="Presupuestos"      value={presupuestos.length}     icon={FileText}      color="#805ad5" />
         <StatCard title="Instructivos"      value={instructivos.length}     icon={BookOpen}      color="#e53e3e" />
         <StatCard title="Facturas"          value={facturas.length}         icon={DollarSign}    color="#059669" />

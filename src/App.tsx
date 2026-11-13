@@ -114,6 +114,7 @@ function App() {
             <Route path="/configuracion"                  element={<ConfiguracionPage />} />
             <Route path="/configuracion/backup"           element={<BackupScreen />} />
             <Route path="/configuracion/apariencia"        element={<AparienciaScreen />} />
+            <Route path="/configuracion/apariencia/documentos" element={<Navigate to="/configuracion/apariencia?tab=documentos" replace />} />
             <Route path="/configuracion/sitio-web"         element={<SitioWebScreen />} />
             <Route path="/configuracion/security"          element={<SafeLinkSecurityScreen />} />
             <Route path="/configuracion/galeria-trabajos"  element={<GaleriaTrabajosScreen />} />

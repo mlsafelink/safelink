@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { reporteTrabajoService, trackDocumentAccess, normalizeFoto, type FotoItem } from '@/services/documentService';
+import { useAparienciaDocumentos } from '@/hooks/useAparienciaDocumentos';
 import {
   Calendar, Building, Shield, FileText,
   Cpu, CheckSquare, Wrench, Image,
@@ -14,6 +15,7 @@ import styles from './ReporteViewer.module.css';
 
 export function PublicReporteTrabajoViewer() {
   const { publicId } = useParams<{ publicId: string }>();
+  const { config: apariencia, cssVariables } = useAparienciaDocumentos();
 
   useEffect(() => {
     if (publicId) {
@@ -39,13 +41,13 @@ export function PublicReporteTrabajoViewer() {
   const handleShare = async () => {
     if (!reporteTrabajo) return;
     const shareUrl = window.location.href;
-    const shareTitle = `Reporte de Trabajo: ${reporteTrabajo.titulo} - SafeLink`;
+    const shareTitle = `Informe de Trabajos Realizados: ${reporteTrabajo.titulo} - SafeLink`;
 
     try {
       if (navigator.share) {
         await navigator.share({
           title: shareTitle,
-          text: `Reporte de Trabajo SafeLink: ${reporteTrabajo.titulo}`,
+          text: `Informe de Trabajos Realizados SafeLink: ${reporteTrabajo.titulo}`,
           url: shareUrl,
         });
         showToast('Enlace compartido correctamente');
@@ -62,7 +64,7 @@ export function PublicReporteTrabajoViewer() {
     return (
       <div className={styles.loadingWrap}>
         <div className={styles.spinner} />
-        <span>Cargando reporte de trabajo efectuado...</span>
+        <span>Cargando informe de trabajos realizados...</span>
       </div>
     );
   }
@@ -93,28 +95,71 @@ export function PublicReporteTrabajoViewer() {
   };
 
   return (
-    <div className={styles.page}>
+    <div
+      className={styles.page}
+      style={{
+        ...cssVariables,
+        ...(apariencia.fondo_tipo === 'solido' ? { backgroundColor: apariencia.fondo_color } : {}),
+        ...(apariencia.fondo_tipo === 'degradado' ? { background: apariencia.fondo_degradado } : {}),
+      }}
+    >
       {toastMessage && <div className={styles.toast}>{toastMessage}</div>}
 
-      {/* ── HEADER ── */}
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <div className={styles.brandSide}>
-            <div className={styles.brandLogo}>SafeLink</div>
-            <div className={styles.brandTagline}>Soluciones inteligentes para tu seguridad</div>
-          </div>
-          <div className={styles.titleSide}>
-            <div className={styles.reporteBadge} style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981' }}>
-              <Wrench size={12} />
-              Reporte de Trabajo Efectuado ({codigoDoc})
+      {/* ── HEADER PERSONALIZADO O CORPORATIVO ── */}
+      {apariencia.usar_banner_personalizado && apariencia.banner_url ? (
+        <>
+          <header className={styles.corporeoHeader} style={{ height: `${apariencia.banner_altura}px` }}>
+            <div className={styles.bannerContainer} style={{ height: '100%' }}>
+              <img
+                src={apariencia.banner_url}
+                alt="SafeLink"
+                className={styles.bannerImg}
+                style={{
+                  objectFit: apariencia.banner_ajuste,
+                  objectPosition: apariencia.banner_posicion,
+                  height: '100%',
+                  maxHeight: `${apariencia.banner_altura}px`
+                }}
+              />
             </div>
-            <h1 className={styles.docTitle}>{reporteTrabajo.titulo}</h1>
-            <p className={styles.docSubtitle}>
-              Constancia documental de los trabajos técnicos finalizados, equipamiento y garantía ofrecida por SafeLink.
-            </p>
+          </header>
+          <div className={styles.titleSection}>
+            <div className={styles.titleSectionInner}>
+              <div className={styles.reporteBadge} style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981' }}>
+                <Wrench size={13} />
+                Informe de Trabajos Realizados ({codigoDoc})
+              </div>
+              <h1 className={styles.docTitle} style={{ color: apariencia.color_titulos }}>{reporteTrabajo.titulo}</h1>
+              <p className={styles.docSubtitle} style={{ color: apariencia.color_subtitulos }}>
+                Constancia documental de las tareas técnicas efectivamente realizadas, resultado final y registro fotográfico por SafeLink.
+              </p>
+            </div>
           </div>
-        </div>
-      </header>
+        </>
+      ) : (
+        <header className={styles.header}>
+          <div className={styles.headerInner}>
+            <div className={styles.brandSide}>
+              {apariencia.mostrar_logo && (
+                <div className={styles.brandLogo}>SafeLink</div>
+              )}
+              {apariencia.mostrar_eslogan && (
+                <div className={styles.brandTagline}>Soluciones inteligentes para tu seguridad</div>
+              )}
+            </div>
+            <div className={styles.titleSide}>
+              <div className={styles.reporteBadge} style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981' }}>
+                <Wrench size={12} />
+                Informe de Trabajos Realizados ({codigoDoc})
+              </div>
+              <h1 className={styles.docTitle} style={{ color: apariencia.color_titulos }}>{reporteTrabajo.titulo}</h1>
+              <p className={styles.docSubtitle} style={{ color: apariencia.color_subtitulos }}>
+                Constancia documental de las tareas técnicas efectivamente realizadas, resultado final y registro fotográfico por SafeLink.
+              </p>
+            </div>
+          </div>
+        </header>
+      )}
 
       {/* ── BARRA DE INFO ── */}
       <div className={styles.infoBar}>

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { presupuestoService, trackDocumentAccess } from '@/services/documentService';
 import { notificacionService } from '@/services/notificacionService';
+import { useAparienciaDocumentos } from '@/hooks/useAparienciaDocumentos';
 import {
   Calendar, Building, FileText, Clock, HelpCircle, Shield,
   DollarSign, AlertCircle, Info, Phone, Mail, FileCheck,
@@ -13,6 +14,7 @@ import styles from './PresupuestoViewer.module.css';
 export function PublicPresupuestoViewer() {
   const { publicId } = useParams<{ publicId: string }>();
   const queryClient = useQueryClient();
+  const { config: apariencia, cssVariables } = useAparienciaDocumentos();
 
   useEffect(() => {
     if (publicId) {
@@ -177,7 +179,14 @@ export function PublicPresupuestoViewer() {
   const isAceptado = presupuesto.estado === 'aceptado';
 
   return (
-    <div className={styles.page}>
+    <div
+      className={styles.page}
+      style={{
+        ...cssVariables,
+        ...(apariencia.fondo_tipo === 'solido' ? { backgroundColor: apariencia.fondo_color } : {}),
+        ...(apariencia.fondo_tipo === 'degradado' ? { background: apariencia.fondo_degradado } : {}),
+      }}
+    >
 
       {/* ── TOAST NOTIFICATION ── */}
       {toastMessage && (
@@ -187,25 +196,67 @@ export function PublicPresupuestoViewer() {
         </div>
       )}
 
-      {/* ── HEADER ── */}
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <div className={styles.brandSide}>
-            <div className={styles.brandLogo}>SafeLink</div>
-            <div className={styles.brandTagline}>Soluciones inteligentes para tu seguridad</div>
-          </div>
-          <div className={styles.titleSide}>
-            <div className={styles.reporteBadge}>
-              <FileCheck size={12} />
-              Presupuesto Comercial {presupuesto.codigo ? `(${presupuesto.codigo})` : ''}
+      {/* ── HEADER PERSONALIZADO O CORPORATIVO ── */}
+      {apariencia.usar_banner_personalizado && apariencia.banner_url ? (
+        <>
+          <header style={{
+            background: '#0b111e',
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
+            height: `${apariencia.banner_altura}px`,
+          }}>
+            <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <img
+                src={apariencia.banner_url}
+                alt="SafeLink"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: apariencia.banner_ajuste,
+                  objectPosition: apariencia.banner_posicion,
+                  maxHeight: `${apariencia.banner_altura}px`
+                }}
+              />
             </div>
-            <h1 className={styles.docTitle}>{presupuesto.titulo}</h1>
-            <p className={styles.docSubtitle}>
-              Presupuesto detallado para la provisión e instalación de sistemas de seguridad técnica.
-            </p>
+          </header>
+          <div style={{ background: '#0f172a', padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <div style={{ maxWidth: 900, margin: '0 auto' }}>
+              <div className={styles.reporteBadge} style={{ background: `${apariencia.color_destacados}18`, color: apariencia.color_destacados }}>
+                <FileCheck size={12} />
+                Presupuesto Comercial {presupuesto.codigo ? `(${presupuesto.codigo})` : ''}
+              </div>
+              <h1 className={styles.docTitle} style={{ color: apariencia.color_titulos, marginTop: '0.4rem' }}>{presupuesto.titulo}</h1>
+              <p className={styles.docSubtitle} style={{ color: apariencia.color_subtitulos, margin: 0 }}>
+                Presupuesto detallado para la provisión e instalación de sistemas de seguridad técnica.
+              </p>
+            </div>
           </div>
-        </div>
-      </header>
+        </>
+      ) : (
+        <header className={styles.header}>
+          <div className={styles.headerInner}>
+            <div className={styles.brandSide}>
+              {apariencia.mostrar_logo && (
+                <div className={styles.brandLogo}>SafeLink</div>
+              )}
+              {apariencia.mostrar_eslogan && (
+                <div className={styles.brandTagline}>Soluciones inteligentes para tu seguridad</div>
+              )}
+            </div>
+            <div className={styles.titleSide}>
+              <div className={styles.reporteBadge}>
+                <FileCheck size={12} />
+                Presupuesto Comercial {presupuesto.codigo ? `(${presupuesto.codigo})` : ''}
+              </div>
+              <h1 className={styles.docTitle} style={{ color: apariencia.color_titulos }}>{presupuesto.titulo}</h1>
+              <p className={styles.docSubtitle} style={{ color: apariencia.color_subtitulos }}>
+                Presupuesto detallado para la provisión e instalación de sistemas de seguridad técnica.
+              </p>
+            </div>
+          </div>
+        </header>
+      )}
 
       {/* ── BARRA DE INFO ── */}
       <div className={styles.infoBar}>

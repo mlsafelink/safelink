@@ -1,12 +1,14 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reporteService, presupuestoService, instructivoService, reporteTrabajoService } from '@/services/documentService';
+import { consorcioService } from '@/services/consorcioService';
 import { Card } from '@/components/ui/Card/Card';
 import { Button } from '@/components/ui/Button/Button';
 import {
   FileText, ClipboardList, BookOpen, Plus, ExternalLink,
   Edit, Copy, Download, Trash2, Check, X, Wrench, Eye, History,
+  Search, Filter, ArrowUpDown, RotateCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { pdf } from '@react-pdf/renderer';
@@ -69,6 +71,11 @@ export function DocumentPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [historialReporte, setHistorialReporte] = useState<any | null>(null);
 
+  // Filtros y ordenamiento
+  const [filtroCliente, setFiltroCliente] = useState<string>('');
+  const [ordenFecha, setOrdenFecha] = useState<'desc' | 'asc'>('desc');
+  const [busquedaTexto, setBusquedaTexto] = useState<string>('');
+
   useEffect(() => {
     const editParam = searchParams.get('edit');
     const tabParam = searchParams.get('tab') as ActiveTab | null;
@@ -78,6 +85,12 @@ export function DocumentPage() {
       setViewMode('form');
     }
   }, [searchParams]);
+
+  // Consultas de datos
+  const { data: consorcios = [] } = useQuery({
+    queryKey: ['consorcios-documentos'],
+    queryFn: () => consorcioService.getAll(),
+  });
 
   const { data: reportes = [], isLoading: loadingReportes } = useQuery({
     queryKey: ['reportes'],
@@ -160,11 +173,72 @@ export function DocumentPage() {
     activeTab === 'reportes_trabajo' ? reportesTrabajo :
     instructivos;
 
+  // Lista unificada de clientes para el filtro
+  const clientesOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    consorcios.forEach(c => {
+      if (c.nombre) map.set(c.id, c.nombre);
+    });
+    currentData.forEach((doc: any) => {
+      if (doc.consorcios?.id && doc.consorcios?.nombre) {
+        map.set(doc.consorcios.id, doc.consorcios.nombre);
+      } else if (doc.cliente_nombre) {
+        map.set(doc.cliente_nombre, doc.cliente_nombre);
+      }
+    });
+    return Array.from(map.entries())
+      .map(([id, nombre]) => ({ id, nombre }))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }, [consorcios, currentData]);
+
+  // Aplicación reactiva de filtros y ordenamiento
+  const filteredData = useMemo(() => {
+    let list = [...currentData];
+
+    // 1. Filtro por cliente
+    if (filtroCliente) {
+      list = list.filter((doc: any) => {
+        const docConsorcioId = doc.consorcio_id || doc.consorcios?.id;
+        const docClienteNombre = doc.cliente_nombre || doc.consorcios?.nombre;
+        return docConsorcioId === filtroCliente || docClienteNombre === filtroCliente;
+      });
+    }
+
+    // 2. Filtro por búsqueda de texto
+    if (busquedaTexto.trim()) {
+      const q = busquedaTexto.toLowerCase().trim();
+      list = list.filter((doc: any) => {
+        const titulo = (doc.titulo || '').toLowerCase();
+        const codigo = (doc.codigo || '').toLowerCase();
+        const slug = (doc.public_slug || '').toLowerCase();
+        const cliente = (doc.consorcios?.nombre || doc.cliente_nombre || '').toLowerCase();
+        return titulo.includes(q) || codigo.includes(q) || slug.includes(q) || cliente.includes(q);
+      });
+    }
+
+    // 3. Ordenamiento por fecha
+    list.sort((a: any, b: any) => {
+      const timeA = new Date(a.fecha || a.created_at || 0).getTime();
+      const timeB = new Date(b.fecha || b.created_at || 0).getTime();
+      return ordenFecha === 'desc' ? timeB - timeA : timeA - timeB;
+    });
+
+    return list;
+  }, [currentData, filtroCliente, busquedaTexto, ordenFecha]);
+
+  const hasActiveFilters = filtroCliente !== '' || ordenFecha !== 'desc' || busquedaTexto !== '';
+
+  const handleClearFilters = () => {
+    setFiltroCliente('');
+    setOrdenFecha('desc');
+    setBusquedaTexto('');
+  };
+
   const tabConfig: { id: ActiveTab; label: string; icon: React.ElementType; color: string }[] = [
-    { id: 'reportes', label: 'Reportes Técnicos', icon: ClipboardList, color: '#d69e2e' },
+    { id: 'reportes', label: 'Propuestas Técnicas', icon: ClipboardList, color: '#d69e2e' },
     { id: 'presupuestos', label: 'Presupuestos', icon: FileText, color: '#805ad5' },
     { id: 'instructivos', label: 'Instructivos', icon: BookOpen, color: '#e53e3e' },
-    { id: 'reportes_trabajo', label: 'Reportes de Trabajo', icon: Wrench, color: '#10b981' },
+    { id: 'reportes_trabajo', label: 'Informes de Trabajos Realizados', icon: Wrench, color: '#10b981' },
   ];
 
   return (
@@ -172,10 +246,13 @@ export function DocumentPage() {
       <div className={styles.header}>
         <div>
           <h1>Documentos</h1>
-          <p>Administrá reportes, presupuestos e instructivos</p>
+          <p>Administrá propuestas técnicas, presupuestos, instructivos e informes de trabajos realizados</p>
         </div>
         <Button variant="primary" leftIcon={<Plus size={18} />} onClick={handleNew}>
-          Nuevo Documento
+          {activeTab === 'reportes' ? 'Nueva Propuesta Técnica' :
+           activeTab === 'reportes_trabajo' ? 'Nuevo Informe de Trabajos' :
+           activeTab === 'presupuestos' ? 'Nuevo Presupuesto' :
+           'Nuevo Instructivo'}
         </Button>
       </div>
 
@@ -194,16 +271,109 @@ export function DocumentPage() {
         ))}
       </div>
 
+      {/* ── BARRA DE FILTROS Y ORDENAMIENTO ── */}
+      <div className={styles.filterBar}>
+        <div className={styles.filterControls}>
+          {/* Filtro por cliente */}
+          <div className={styles.filterItem}>
+            <Filter size={16} style={{ color: '#3b82f6', flexShrink: 0 }} />
+            <label className={styles.filterLabel}>Cliente:</label>
+            <select
+              value={filtroCliente}
+              onChange={e => setFiltroCliente(e.target.value)}
+              className={styles.filterSelect}
+            >
+              <option value="">Todos los clientes</option>
+              {clientesOptions.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Ordenamiento por fecha */}
+          <div className={styles.filterItem}>
+            <ArrowUpDown size={16} style={{ color: '#8b5cf6', flexShrink: 0 }} />
+            <label className={styles.filterLabel}>Fecha:</label>
+            <select
+              value={ordenFecha}
+              onChange={e => setOrdenFecha(e.target.value as 'desc' | 'asc')}
+              className={styles.filterSelect}
+              style={{ minWidth: 160 }}
+            >
+              <option value="desc">Más recientes primero</option>
+              <option value="asc">Más antiguos primero</option>
+            </select>
+          </div>
+
+          {/* Buscador de texto */}
+          <div className={styles.filterSearchWrap}>
+            <Search size={15} style={{ color: '#64748b' }} />
+            <input
+              type="text"
+              placeholder="Buscar por título, código o cliente..."
+              value={busquedaTexto}
+              onChange={e => setBusquedaTexto(e.target.value)}
+              className={styles.filterSearchInput}
+            />
+            {busquedaTexto && (
+              <button
+                type="button"
+                onClick={() => setBusquedaTexto('')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0 }}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.filterActions}>
+          <span className={styles.filterCountBadge}>
+            {filteredData.length} {filteredData.length === 1 ? 'documento' : 'documentos'}
+          </span>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              className={styles.clearFilterBtn}
+              onClick={handleClearFilters}
+              title="Restablecer filtros de búsqueda"
+            >
+              <RotateCcw size={13} />
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Lista */}
       {isLoading ? (
         <p className={styles.loading}>Cargando documentos...</p>
-      ) : currentData.length === 0 ? (
+      ) : filteredData.length === 0 ? (
         <Card variant="neumorphic" className={styles.emptyCard}>
-          <p>No hay documentos de este tipo. ¡Creá el primero!</p>
+          {hasActiveFilters ? (
+            <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+              <p style={{ margin: '0 0 0.5rem 0', fontWeight: 600 }}>No se encontraron documentos con los filtros seleccionados.</p>
+              <button
+                type="button"
+                className={styles.clearFilterBtn}
+                onClick={handleClearFilters}
+                style={{ margin: '0 auto' }}
+              >
+                <RotateCcw size={13} />
+                Quitar filtros
+              </button>
+            </div>
+          ) : (
+            <p>
+              No hay {activeTab === 'reportes' ? 'propuestas técnicas' : activeTab === 'reportes_trabajo' ? 'informes de trabajos' : activeTab === 'presupuestos' ? 'presupuestos' : 'instructivos'}. ¡Creá el primero!
+            </p>
+          )}
         </Card>
       ) : (
         <div className={styles.docList}>
-          {currentData.map((doc, i) => (
+          {filteredData.map((doc, i) => (
             <motion.div
               key={doc.id}
               initial={{ opacity: 0, y: 8 }}
@@ -297,7 +467,7 @@ export function DocumentPage() {
                       {activeTab === 'reportes' && (
                         <LazyPdfDownload
                           document={<ReportePDF reporte={doc as any} />}
-                          fileName={`${doc.titulo}.pdf`}
+                          fileName={`SafeLink_PropuestaTecnica_${(doc as any).codigo || doc.titulo}.pdf`}
                         />
                       )}
                       {activeTab === 'presupuestos' && (
@@ -315,7 +485,7 @@ export function DocumentPage() {
                       {activeTab === 'reportes_trabajo' && (
                         <LazyPdfDownload
                           document={<ReporteTrabajoPDF reporte={doc as any} />}
-                          fileName={`SafeLink_ReporteTrabajo_${(doc as any).codigo || doc.titulo}.pdf`}
+                          fileName={`SafeLink_InformeTrabajo_${(doc as any).codigo || doc.titulo}.pdf`}
                         />
                       )}
 
@@ -341,12 +511,12 @@ export function DocumentPage() {
 
                       <div className={styles.actionsDivider} />
 
-                      {/* Historial de versiones y conformidad (solo reportes técnicos) */}
+                      {/* Historial de versiones y conformidad (solo propuestas técnicas) */}
                       {activeTab === 'reportes' && (
                         <button
                           className={`${styles.actionBtn} ${styles.btnHistory}`}
                           onClick={() => setHistorialReporte(doc)}
-                          title="Historial de versiones y conformidad"
+                          title="Historial de versiones y conformidad de la propuesta técnica"
                         >
                           <History size={15} />
                         </button>

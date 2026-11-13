@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { reporteService, trackDocumentAccess, normalizeFoto } from '@/services/documentService';
 import { getReporteHistorial, aceptarReporte, solicitarModificacion } from '@/services/reporteConformidadService';
+import { useAparienciaDocumentos } from '@/hooks/useAparienciaDocumentos';
 import { useToast } from '@/components/ui/Toast/ToastContext';
 import {
   Calendar, Building, ClipboardList, Clock, HelpCircle, Shield,
@@ -15,6 +16,7 @@ export function PublicReporteViewer() {
   const { publicId } = useParams<{ publicId: string }>();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
+  const { config: apariencia, cssVariables } = useAparienciaDocumentos();
   const [showModifyForm, setShowModifyForm] = useState(false);
   const [solicitudTexto, setSolicitudTexto] = useState('');
   const [solicitudNombre, setSolicitudNombre] = useState('');
@@ -48,7 +50,7 @@ export function PublicReporteViewer() {
     return (
       <div className={styles.loadingWrap}>
         <div className={styles.spinner} />
-        <span>Cargando reporte técnico...</span>
+        <span>Cargando propuesta técnica...</span>
       </div>
     );
   }
@@ -159,9 +161,72 @@ export function PublicReporteViewer() {
     : [];
 
   return (
-    <div className={styles.page}>
+    <div
+      className={styles.page}
+      style={{
+        ...cssVariables,
+        ...(apariencia.fondo_tipo === 'solido' ? { backgroundColor: apariencia.fondo_color } : {}),
+        ...(apariencia.fondo_tipo === 'degradado' ? { background: apariencia.fondo_degradado } : {}),
+      }}
+    >
       
-      {/* ── HEADER ── */}
+      {/* ── HEADER PERSONALIZADO O CORPORATIVO ── */}
+      {apariencia.usar_banner_personalizado && apariencia.banner_url ? (
+        <>
+          <header className={styles.corporeoHeader} style={{ height: `${apariencia.banner_altura}px` }}>
+            <div className={styles.bannerContainer} style={{ height: '100%' }}>
+              <img
+                src={apariencia.banner_url}
+                alt="SafeLink"
+                className={styles.bannerImg}
+                style={{
+                  objectFit: apariencia.banner_ajuste,
+                  objectPosition: apariencia.banner_posicion,
+                  height: '100%',
+                  maxHeight: `${apariencia.banner_altura}px`
+                }}
+              />
+            </div>
+          </header>
+          <div className={styles.titleSection}>
+            <div className={styles.titleSectionInner}>
+              <div className={styles.reporteBadge} style={{ background: `${apariencia.color_destacados}18`, color: apariencia.color_destacados }}>
+                <ClipboardList size={13} />
+                Propuesta Técnica
+              </div>
+              <h1 className={styles.docTitle} style={{ color: apariencia.color_titulos }}>{reporte.titulo}</h1>
+              <p className={styles.docSubtitle} style={{ color: apariencia.color_subtitulos }}>
+                Propuesta detallada de relevamiento técnico, equipos, diagnóstico y recomendaciones realizada por SafeLink.
+              </p>
+            </div>
+          </div>
+        </>
+      ) : (
+        <header className={styles.header}>
+          <div className={styles.headerInner}>
+            <div className={styles.brandSide}>
+              {apariencia.mostrar_logo && (
+                <div className={styles.brandLogo}>SafeLink</div>
+              )}
+              {apariencia.mostrar_eslogan && (
+                <div className={styles.brandTagline}>Soluciones inteligentes para tu seguridad</div>
+              )}
+            </div>
+            <div className={styles.titleSide}>
+              <div className={styles.reporteBadge} style={{ background: `${apariencia.color_destacados}18`, color: apariencia.color_destacados }}>
+                <ClipboardList size={12} />
+                Propuesta Técnica
+              </div>
+              <h1 className={styles.docTitle} style={{ color: apariencia.color_titulos }}>{reporte.titulo}</h1>
+              <p className={styles.docSubtitle} style={{ color: apariencia.color_subtitulos }}>
+                Propuesta detallada de relevamiento técnico, equipos, diagnóstico y recomendaciones realizada por SafeLink.
+              </p>
+            </div>
+          </div>
+        </header>
+      )}
+
+      {/* ── HEADER ORIGINAL (GUARDADO PARA RESTAURAR SI ES NECESARIO) ──
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <div className={styles.brandSide}>
@@ -180,6 +245,7 @@ export function PublicReporteViewer() {
           </div>
         </div>
       </header>
+      ── FIN HEADER ORIGINAL ── */}
 
       {/* ── BARRA DE INFO ── */}
       <div className={styles.infoBar}>
@@ -519,7 +585,7 @@ export function PublicReporteViewer() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 className={styles.modalTitle} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Share2 size={20} style={{ color: 'var(--rv-blue)' }} />
-                Compartir reporte técnico
+                Compartir Propuesta Técnica
               </h3>
               <button
                 type="button"
@@ -542,7 +608,7 @@ export function PublicReporteViewer() {
                   <Copy size={20} className={styles.shareOptionIcon} />
                   <div>
                     <span className={styles.shareOptionTitle}>Copiar dirección</span>
-                    <span className={styles.shareOptionDesc}>Copia el enlace del reporte al portapapeles</span>
+                    <span className={styles.shareOptionDesc}>Copia el enlace de la propuesta técnica al portapapeles</span>
                   </div>
                 </div>
                 <button
@@ -566,7 +632,7 @@ export function PublicReporteViewer() {
 
               {/* Opción 2: Enviar por WhatsApp */}
               <a
-                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Hola, te comparto el Reporte Técnico "${reporte.titulo}" de SafeLink:\n${window.location.href}`)}`}
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Hola, te comparto la Propuesta Técnica "${reporte.titulo}" de SafeLink:\n${window.location.href}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.shareOptionCard}
@@ -586,7 +652,7 @@ export function PublicReporteViewer() {
 
               {/* Opción 3: Enviar por Email */}
               <a
-                href={`mailto:?subject=${encodeURIComponent(`Reporte Técnico SafeLink - ${reporte.titulo}`)}&body=${encodeURIComponent(`Hola,\n\nTe comparto el informe del Reporte Técnico "${reporte.titulo}" realizado por SafeLink.\n\nPuedes consultarlo en el siguiente enlace:\n${window.location.href}\n\nSaludos cordiales,\nSafeLink`)}`}
+                href={`mailto:?subject=${encodeURIComponent(`Propuesta Técnica SafeLink - ${reporte.titulo}`)}&body=${encodeURIComponent(`Hola,\n\nTe comparto la Propuesta Técnica "${reporte.titulo}" elaborada por SafeLink.\n\nPuedes consultarla en el siguiente enlace:\n${window.location.href}\n\nSaludos cordiales,\nSafeLink`)}`}
                 className={styles.shareOptionCard}
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >

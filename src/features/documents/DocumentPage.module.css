@@ -47,6 +47,126 @@
   font-weight: 600;
 }
 
+/* ── BARRA DE FILTROS Y ORDENAMIENTO ── */
+.filterBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.filterControls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  flex: 1;
+}
+
+.filterItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filterLabel {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.filterSelect {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: #f8fafc;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.825rem;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 170px;
+}
+
+.filterSelect:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.filterSelect option {
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+.filterSearchWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.35rem 0.65rem;
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+}
+
+.filterSearchWrap:focus-within {
+  border-color: #3b82f6;
+}
+
+.filterSearchInput {
+  background: transparent;
+  border: none;
+  color: #f8fafc;
+  font-size: 0.825rem;
+  outline: none;
+  width: 100%;
+}
+
+.filterSearchInput::placeholder {
+  color: #64748b;
+}
+
+.filterActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.clearFilterBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.775rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clearFilterBtn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.filterCountBadge {
+  font-size: 0.775rem;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
 /* Doc list */
 .docList {
   display: flex;

@@ -225,7 +225,7 @@ export function ReporteTrabajoForm({ onBack, editingId }: ReporteTrabajoFormProp
         <Button variant="ghost" leftIcon={<ArrowLeft size={18} />} onClick={onBack}>
           Volver a la lista
         </Button>
-        <h2>{isEditing ? 'Editar Reporte de Trabajo' : 'Nuevo Reporte de Trabajo Efectuado (RTE)'}</h2>
+        <h2>{isEditing ? 'Editar Informe de Trabajos Realizados' : 'Nuevo Informe de Trabajos Realizados'}</h2>
       </div>
 
       {successMsg && (

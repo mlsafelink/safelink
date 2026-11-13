@@ -1,7 +1,9 @@
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card } from '@/components/ui/Card/Card';
 import { useConfiguracion } from '@/features/configuracion/ConfiguracionContext';
 import { useToast } from '@/components/ui/Toast/ToastContext';
+import { AparienciaDocumentosPanel } from '../components/AparienciaDocumentosPanel';
 import {
   type Tema,
   type ColorPrincipal,
@@ -10,7 +12,7 @@ import {
 } from '@/services/configuracionService';
 import {
   ArrowLeft, Palette, Sun, Moon, Laptop, Check,
-  Sparkles, Type, LayoutGrid, Zap
+  Sparkles, Type, LayoutGrid, Zap, FileText
 } from 'lucide-react';
 import styles from './AparienciaScreen.module.css';
 
@@ -41,8 +43,16 @@ const MODOS_DASHBOARD: { id: ModoDashboard; label: string; desc: string }[] = [
 
 export function AparienciaScreen() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'documentos' ? 'documentos' : 'interfaz';
+  const [activeTab, setActiveTab] = useState<'interfaz' | 'documentos'>(initialTab);
   const toast = useToast();
   const { config, updateConfig } = useConfiguracion();
+
+  const handleTabChange = (tab: 'interfaz' | 'documentos') => {
+    setActiveTab(tab);
+    setSearchParams(tab === 'documentos' ? { tab: 'documentos' } : {});
+  };
 
   const handleTemaChange = (t: Tema) => {
     updateConfig({ tema: t });
@@ -84,141 +94,165 @@ export function AparienciaScreen() {
           </div>
           <div>
             <h1>Apariencia y Personalización</h1>
-            <p>Ajustá el tema, colores, fuentes y modo de visualización de la plataforma</p>
+            <p>Configurá la identidad visual de la plataforma y el diseño unificado de todos los documentos</p>
           </div>
+        </div>
+
+        {/* Tabs de navegación */}
+        <div className={styles.navTabs}>
+          <button
+            type="button"
+            className={`${styles.navTab} ${activeTab === 'interfaz' ? styles.activeNavTab : ''}`}
+            onClick={() => handleTabChange('interfaz')}
+          >
+            <Palette size={18} />
+            Interfaz del Sistema
+          </button>
+          <button
+            type="button"
+            className={`${styles.navTab} ${activeTab === 'documentos' ? styles.activeNavTab : ''}`}
+            onClick={() => handleTabChange('documentos')}
+          >
+            <FileText size={18} />
+            Apariencia de Documentos
+          </button>
         </div>
       </div>
 
-      <div className={styles.sectionsGrid}>
-        {/* 1. Tema */}
-        <Card variant="glass" className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <Moon size={20} className={styles.sectionIcon} />
-            <h2 className={styles.sectionTitle}>Tema de la Interfaz</h2>
-          </div>
-          <div className={styles.temasGrid}>
-            {TEMAS.map(t => {
-              const Icon = t.icon;
-              const isSelected = config.tema === t.id;
-              return (
-                <div
-                  key={t.id}
-                  className={`${styles.temaBox} ${isSelected ? styles.selectedBox : ''}`}
-                  onClick={() => handleTemaChange(t.id)}
-                >
-                  <div className={styles.temaHeader}>
-                    <Icon size={20} />
-                    <span className={styles.temaLabel}>{t.label}</span>
-                    {isSelected && <Check size={16} className={styles.checkIcon} />}
-                  </div>
-                  <p className={styles.temaDesc}>{t.desc}</p>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-
-        {/* 2. Color Principal */}
-        <Card variant="glass" className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <Sparkles size={20} className={styles.sectionIcon} />
-            <h2 className={styles.sectionTitle}>Color Principal de Acento</h2>
-          </div>
-          <div className={styles.coloresGrid}>
-            {COLORES.map(c => {
-              const isSelected = config.color_principal === c.id;
-              return (
-                <button
-                  key={c.id}
-                  className={`${styles.colorBtn} ${isSelected ? styles.selectedColorBtn : ''}`}
-                  onClick={() => handleColorChange(c.id)}
-                >
-                  <span className={styles.colorCircle} style={{ backgroundColor: c.color }}>
-                    {isSelected && <Check size={16} color="white" />}
-                  </span>
-                  <span className={styles.colorLabel}>{c.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </Card>
-
-        {/* 3. Tipografía */}
-        <Card variant="glass" className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <Type size={20} className={styles.sectionIcon} />
-            <h2 className={styles.sectionTitle}>Tamaño de Tipografía</h2>
-          </div>
-          <div className={styles.tipografiaGrid}>
-            {TIPOGRAFIAS.map(tf => {
-              const isSelected = config.tipografia === tf.id;
-              return (
-                <div
-                  key={tf.id}
-                  className={`${styles.tipografiaBox} ${isSelected ? styles.selectedBox : ''}`}
-                  onClick={() => handleTipografiaChange(tf.id)}
-                >
-                  <div className={styles.tipografiaHeader}>
-                    <span className={styles.tipografiaLabel}>{tf.label}</span>
-                    {isSelected && <Check size={16} className={styles.checkIcon} />}
-                  </div>
-                  <span className={styles.tipografiaSize}>{tf.sizeText}</span>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-
-        {/* 4. Dashboard y Rendimiento */}
-        <Card variant="glass" className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <LayoutGrid size={20} className={styles.sectionIcon} />
-            <h2 className={styles.sectionTitle}>Dashboard y Rendimiento</h2>
-          </div>
-
-          <div className={styles.optionsList}>
-            {/* Animaciones */}
-            <div className={styles.optionRow}>
-              <div className={styles.optionInfo}>
-                <div className={styles.optionTitleRow}>
-                  <Zap size={16} className={styles.optionIcon} />
-                  <h3>Mostrar Animaciones y Transiciones</h3>
-                </div>
-                <p>Efectos de movimiento al interactuar con botones, cartas y menús.</p>
-              </div>
-              <button
-                className={`${styles.toggleSwitch} ${config.mostrar_animaciones ? styles.toggleActive : ''}`}
-                onClick={handleAnimacionesToggle}
-              >
-                <span className={styles.toggleKnob} />
-              </button>
+      {activeTab === 'documentos' ? (
+        <AparienciaDocumentosPanel />
+      ) : (
+        <div className={styles.sectionsGrid}>
+          {/* 1. Tema */}
+          <Card variant="glass" className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+              <Moon size={20} className={styles.sectionIcon} />
+              <h2 className={styles.sectionTitle}>Tema de la Interfaz</h2>
             </div>
-
-            {/* Modo Dashboard */}
-            <div className={styles.optionRow}>
-              <div className={styles.optionInfo}>
-                <div className={styles.optionTitleRow}>
-                  <LayoutGrid size={16} className={styles.optionIcon} />
-                  <h3>Modo de Vista del Dashboard</h3>
-                </div>
-                <p>Elegí entre un diseño con mayor espaciado o una vista compacta de elementos.</p>
-              </div>
-
-              <div className={styles.modoButtons}>
-                {MODOS_DASHBOARD.map(m => (
-                  <button
-                    key={m.id}
-                    className={`${styles.modoBtn} ${config.modo_dashboard === m.id ? styles.selectedModoBtn : ''}`}
-                    onClick={() => handleModoDashboardChange(m.id)}
+            <div className={styles.temasGrid}>
+              {TEMAS.map(t => {
+                const Icon = t.icon;
+                const isSelected = config.tema === t.id;
+                return (
+                  <div
+                    key={t.id}
+                    className={`${styles.temaBox} ${isSelected ? styles.selectedBox : ''}`}
+                    onClick={() => handleTemaChange(t.id)}
                   >
-                    {m.label}
+                    <div className={styles.temaHeader}>
+                      <Icon size={20} />
+                      <span className={styles.temaLabel}>{t.label}</span>
+                      {isSelected && <Check size={16} className={styles.checkIcon} />}
+                    </div>
+                    <p className={styles.temaDesc}>{t.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+
+          {/* 2. Color Principal */}
+          <Card variant="glass" className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+              <Sparkles size={20} className={styles.sectionIcon} />
+              <h2 className={styles.sectionTitle}>Color Principal de Acento</h2>
+            </div>
+            <div className={styles.coloresGrid}>
+              {COLORES.map(c => {
+                const isSelected = config.color_principal === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    className={`${styles.colorBtn} ${isSelected ? styles.selectedColorBtn : ''}`}
+                    onClick={() => handleColorChange(c.id)}
+                  >
+                    <span className={styles.colorCircle} style={{ backgroundColor: c.color }}>
+                      {isSelected && <Check size={16} color="white" />}
+                    </span>
+                    <span className={styles.colorLabel}>{c.label}</span>
                   </button>
-                ))}
+                );
+              })}
+            </div>
+          </Card>
+
+          {/* 3. Tipografía */}
+          <Card variant="glass" className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+              <Type size={20} className={styles.sectionIcon} />
+              <h2 className={styles.sectionTitle}>Tamaño de Tipografía</h2>
+            </div>
+            <div className={styles.tipografiaGrid}>
+              {TIPOGRAFIAS.map(tf => {
+                const isSelected = config.tipografia === tf.id;
+                return (
+                  <div
+                    key={tf.id}
+                    className={`${styles.tipografiaBox} ${isSelected ? styles.selectedBox : ''}`}
+                    onClick={() => handleTipografiaChange(tf.id)}
+                  >
+                    <div className={styles.tipografiaHeader}>
+                      <span className={styles.tipografiaLabel}>{tf.label}</span>
+                      {isSelected && <Check size={16} className={styles.checkIcon} />}
+                    </div>
+                    <span className={styles.tipografiaSize}>{tf.sizeText}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+
+          {/* 4. Dashboard y Rendimiento */}
+          <Card variant="glass" className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+              <LayoutGrid size={20} className={styles.sectionIcon} />
+              <h2 className={styles.sectionTitle}>Dashboard y Rendimiento</h2>
+            </div>
+
+            <div className={styles.optionsList}>
+              {/* Animaciones */}
+              <div className={styles.optionRow}>
+                <div className={styles.optionInfo}>
+                  <div className={styles.optionTitleRow}>
+                    <Zap size={16} className={styles.optionIcon} />
+                    <h3>Mostrar Animaciones y Transiciones</h3>
+                  </div>
+                  <p>Efectos de movimiento al interactuar con botones, cartas y menús.</p>
+                </div>
+                <button
+                  className={`${styles.toggleSwitch} ${config.mostrar_animaciones ? styles.toggleActive : ''}`}
+                  onClick={handleAnimacionesToggle}
+                >
+                  <span className={styles.toggleKnob} />
+                </button>
+              </div>
+
+              {/* Modo Dashboard */}
+              <div className={styles.optionRow}>
+                <div className={styles.optionInfo}>
+                  <div className={styles.optionTitleRow}>
+                    <LayoutGrid size={16} className={styles.optionIcon} />
+                    <h3>Modo de Vista del Dashboard</h3>
+                  </div>
+                  <p>Elegí entre un diseño con mayor espaciado o una vista compacta de elementos.</p>
+                </div>
+
+                <div className={styles.modoButtons}>
+                  {MODOS_DASHBOARD.map(m => (
+                    <button
+                      key={m.id}
+                      className={`${styles.modoBtn} ${config.modo_dashboard === m.id ? styles.selectedModoBtn : ''}`}
+                      onClick={() => handleModoDashboardChange(m.id)}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        </Card>
-      </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

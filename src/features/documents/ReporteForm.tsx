@@ -20,11 +20,11 @@ import { ReporteHistorialModal } from './components/ReporteHistorialModal';
 import styles from './DocForm.module.css';
 
 const STEPS = [
-  { id: 'situacion',           label: 'Situación',     icon: FileText },
-  { id: 'relevamiento',        label: 'Relevam.',      icon: Cpu },
-  { id: 'diagnostico',        label: 'Diagnóstico',   icon: AlertTriangle },
-  { id: 'fotos',              label: 'Fotos',         icon: Camera },
-  { id: 'soporte',            label: 'Soporte',       icon: Globe },
+  { id: 'situacion', label: 'Situación', icon: FileText },
+  { id: 'relevamiento', label: 'Relevam.', icon: Cpu },
+  { id: 'diagnostico', label: 'Diagnóstico', icon: AlertTriangle },
+  { id: 'fotos', label: 'Fotos', icon: Camera },
+  { id: 'soporte', label: 'Soporte', icon: Globe },
 ];
 
 const reporteSchema = z.object({
@@ -182,7 +182,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
       <div className={styles.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           <Button variant="ghost" leftIcon={<ArrowLeft size={18} />} onClick={onBack}>Volver</Button>
-          <h1>{isEditing ? 'Editar Reporte Técnico' : 'Nuevo Reporte Técnico'}</h1>
+          <h1>{isEditing ? 'Editar Propuesta Técnica' : 'Nueva Propuesta Técnica'}</h1>
         </div>
         {isEditing && editingId && (
           <Button
@@ -386,7 +386,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
             )}
           </div>
 
-                    {/* ── Datos de Soporte (¿Necesita ayuda?) ── */}
+          {/* ── Datos de Soporte (¿Necesita ayuda?) ── */}
           <div className={styles.sectionBlock} onFocus={() => setActiveStep('soporte')}>
             <div className={styles.sectionTitle}>
               <Globe size={16} />

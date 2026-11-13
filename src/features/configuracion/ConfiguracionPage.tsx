@@ -93,7 +93,7 @@ export function ConfiguracionPage() {
           </div>
         </Card>
 
-        {/* Tarjeta 3: Apariencia */}
+        {/* Tarjeta 4: Apariencia */}
         <Card
           variant="glass"
           className={styles.configCard}
@@ -108,11 +108,11 @@ export function ConfiguracionPage() {
           <div className={styles.cardContent}>
             <h2>Apariencia</h2>
             <p>
-              Personalización de temas (oscuro/claro), paleta de colores, modo compacto, tipografía y animaciones.
+              Temas de la interfaz y apariencia unificada de todos los documentos (Propuestas Técnicas, Informes y Presupuestos).
             </p>
           </div>
           <div className={styles.cardFooter}>
-            <span>Personalizar interfaz</span>
+            <span>Personalizar interfaz y documentos</span>
             <ChevronRight size={18} className={styles.arrow} />
           </div>
         </Card>
