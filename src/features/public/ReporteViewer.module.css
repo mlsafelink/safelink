@@ -3,7 +3,7 @@
    Visor público del Reporte Técnico — diseño premium SafeLink
    Mobile-first, fully responsive
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&family=Roboto:wght@300;400;500;700;900&display=swap');
 
 :root {
   --rv-navy: #1a2744;
@@ -19,10 +19,18 @@
 }
 
 .page {
+  /* Mapeo dinámico de preferencias de Apariencia de Documentos */
+  --rv-navy: var(--doc-color-primary, #1a2744);
+  --rv-navy-mid: var(--doc-color-secondary, #1e3a6e);
+  --rv-blue: var(--doc-color-accent, #2563eb);
+  --rv-text: var(--doc-color-text, #1e293b);
+  --rv-muted: var(--doc-color-subtitles, #64748b);
+  --rv-border: var(--doc-color-lines, rgba(0, 0, 0, 0.08));
+
   min-height: 100vh;
   background: var(--rv-bg);
-  font-family: 'Inter', sans-serif;
-  color: var(--rv-text);
+  font-family: var(--doc-font-family, 'Inter', sans-serif);
+  color: var(--doc-color-text, var(--rv-text));
 }
 
 /* ── HEADER CON BANNER CORPÓREO O PERSONALIZADO ── */

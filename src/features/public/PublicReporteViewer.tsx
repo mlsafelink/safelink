@@ -185,6 +185,11 @@ export function PublicReporteViewer() {
                 style={{
                   objectFit: apariencia.banner_ajuste,
                   objectPosition: apariencia.banner_posicion,
+                  width: apariencia.banner_ajuste === 'contain' ? 'auto' : '100%',
+                  height: '100%',
+                  maxWidth: '100%',
+                  transform: `scale(${((apariencia.banner_tamano_porcentaje || Math.round((apariencia.banner_altura / 180) * 100)) / 100)})`,
+                  transformOrigin: apariencia.banner_posicion === 'top' ? 'top center' : apariencia.banner_posicion === 'bottom' ? 'bottom center' : 'center center',
                 }}
               />
             </div>
