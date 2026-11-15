@@ -1,11 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { safeLinkNoteService, type SlnFile } from '@/services/safeLinkNoteService';
-import { notificacionService } from '@/services/notificacionService';
 
-const SEEN_KEY     = 'safelink_note_seen_files';
-const NOTIFIED_KEY = 'safelink_note_notified_files';
+const SEEN_KEY = 'safelink_note_seen_files';
 export const LAST_VISIT_KEY = 'safelink_note_last_visit';
-const POLL_INTERVAL = 30_000; // 30 segundos
+const POLL_INTERVAL = 45_000; // 45 segundos
 
 type SafeLinkNoteContextType = {
   files: SlnFile[];
@@ -41,6 +39,8 @@ export function SafeLinkNoteProvider({ children }: { children: React.ReactNode }
   const [isLoading, setIsLoading] = useState(true);
   const [hasUnread, setHasUnread] = useState(false);
   const currentFilesRef = useRef<Set<string>>(new Set());
+  const isFirstLoadRef = useRef(true);
+  const knownFilesRef = useRef<Set<string>>(new Set());
 
   const fetchFiles = useCallback(async () => {
     try {
@@ -50,34 +50,23 @@ export function SafeLinkNoteProvider({ children }: { children: React.ReactNode }
       const fileNames = new Set(fetchedFiles.map(f => f.name));
       currentFilesRef.current = fileNames;
 
-      const seenFiles     = getStoredSet(SEEN_KEY);
-      const notifiedFiles = getStoredSet(NOTIFIED_KEY);
+      const seenFiles = getStoredSet(SEEN_KEY);
 
-      // Evaluar si existen archivos no vistos por el usuario
-      const newFiles = fetchedFiles.filter(f => !seenFiles.has(f.name));
-      if (newFiles.length > 0) {
-        setHasUnread(true);
-      }
-
-      // Notificar archivos que no hayan sido notificados previamente
-      const toNotify = fetchedFiles.filter(f => !notifiedFiles.has(f.name));
-      for (const file of toNotify) {
-        try {
-          await notificacionService.create({
-            tipo: 'nuevo_sln',
-            detalles: {
-              archivo:    file.name,
-              created_at: file.created_at,
-            },
-          });
-          notifiedFiles.add(file.name);
-        } catch (err) {
-          console.error('[SafeLinkNote] Error creando notificación:', err);
+      if (isFirstLoadRef.current) {
+        // En la primera carga, registrar los archivos existentes como conocidos en la sesión.
+        // Los archivos históricos que ya están en el storage NUNCA deben encender el punto rojo
+        // ni crear notificaciones espurias en el sistema.
+        knownFilesRef.current = new Set([...seenFiles, ...fileNames]);
+        saveSet(SEEN_KEY, knownFilesRef.current);
+        isFirstLoadRef.current = false;
+      } else {
+        // Solo en sondeos posteriores durante la sesión activa:
+        // si se recibe o genera un archivo .sln nuevo que antes no existía, marcar como no leído.
+        const newlyArrived = fetchedFiles.filter(f => !knownFilesRef.current.has(f.name));
+        if (newlyArrived.length > 0) {
+          setHasUnread(true);
+          newlyArrived.forEach(f => knownFilesRef.current.add(f.name));
         }
-      }
-
-      if (toNotify.length > 0) {
-        saveSet(NOTIFIED_KEY, notifiedFiles);
       }
     } catch (err) {
       console.error('[SafeLinkNote] Error buscando archivos .sln:', err);

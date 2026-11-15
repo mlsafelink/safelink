@@ -37,11 +37,27 @@ export type EventoSistema = {
 
 export type EventoInsert = Omit<EventoSistema, 'id' | 'created_at'>;
 
+let slnPurged = false;
+
 export const notificacionService = {
   async getAll() {
+    // Purgar silenciosamente eventos residuales de tipo 'nuevo_sln' creados erróneamente en el pasado
+    if (!slnPurged) {
+      slnPurged = true;
+      (async () => {
+        try {
+          await supabase
+            .from('eventos_sistema')
+            .update({ eliminada: true, leida: true })
+            .eq('tipo', 'nuevo_sln');
+        } catch {}
+      })();
+    }
+
     const { data, error } = await supabase
       .from('eventos_sistema')
       .select('*')
+      .neq('tipo', 'nuevo_sln')
       .or('eliminada.is.null,eliminada.eq.false')
       .order('created_at', { ascending: false });
 
@@ -51,13 +67,14 @@ export const notificacionService = {
         const { data: fallback } = await supabase
           .from('eventos_sistema')
           .select('*')
+          .neq('tipo', 'nuevo_sln')
           .order('created_at', { ascending: false });
-        return (fallback || []) as EventoSistema[];
+        return ((fallback || []) as EventoSistema[]).filter(e => e.tipo !== 'nuevo_sln');
       }
       console.error('Error fetching eventos:', error);
       return [];
     }
-    return (data || []) as EventoSistema[];
+    return ((data || []) as EventoSistema[]).filter(e => e.tipo !== 'nuevo_sln');
   },
 
   async create(evento: EventoInsert) {

@@ -24,7 +24,7 @@ export function Sidebar() {
   });
 
   const hasUnreadNotificaciones = eventos.some(
-    ev => ev.leida !== true && ev.detalles?.leida !== true
+    ev => ev.tipo !== 'nuevo_sln' && ev.leida !== true && ev.detalles?.leida !== true
   );
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;

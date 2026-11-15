@@ -343,6 +343,9 @@ export function NotificacionesPage() {
   // Suscripción en tiempo real
   useEffect(() => {
     const unsubscribe = notificacionService.subscribeToEventos((nuevoEvento) => {
+      // Ignorar eventos de tipo nuevo_sln para que no generen notificaciones ni puntos rojos
+      if (nuevoEvento.tipo === 'nuevo_sln') return;
+
       queryClient.setQueryData<EventoSistema[]>(['notificaciones-eventos'], (old = []) => {
         const exists = old.some(e => e.id === nuevoEvento.id);
         if (exists) return old;
