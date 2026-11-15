@@ -34,7 +34,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: var(--banner-h, 200px);
+  /* La altura viene por inline style desde el componente (banner_altura del usuario) */
 }
 
 .bannerImgContainer {
@@ -53,8 +53,6 @@
   height: 100%;
   max-width: 100%;
   display: block;
-  object-fit: var(--banner-fit, contain);
-  object-position: var(--banner-pos, center);
 }
 
 .bannerTitleSection {
@@ -89,18 +87,19 @@
   margin: 0;
 }
 
-/* Mobile responsive para banner en Presupuesto */
+/* Mobile responsive para banner en Presupuesto
+   !important es necesario para sobrescribir el inline style de altura */
 @media (max-width: 768px) {
   .bannerHeader {
-    height: auto;
+    height: auto !important;
     min-height: 60px;
     max-height: 48vw;
     aspect-ratio: 16 / 5;
   }
 
   .bannerImg {
-    object-fit: contain;
-    object-position: center;
+    object-fit: contain !important;
+    object-position: center !important;
   }
 
   .bannerTitleSection {

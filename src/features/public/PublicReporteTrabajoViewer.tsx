@@ -1,4 +1,4 @@
-import { useState, useEffect, type CSSProperties } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { reporteTrabajoService, trackDocumentAccess, normalizeFoto, type FotoItem } from '@/services/documentService';
@@ -110,17 +110,17 @@ export function PublicReporteTrabajoViewer() {
         <>
           <header
             className={styles.corporeoHeader}
-            style={{
-              '--banner-h': `${apariencia.banner_altura}px`,
-              '--banner-fit': apariencia.banner_ajuste,
-              '--banner-pos': apariencia.banner_posicion,
-            } as CSSProperties}
+            style={{ height: `${apariencia.banner_altura}px` }}
           >
             <div className={styles.bannerContainer}>
               <img
                 src={apariencia.banner_url}
                 alt="SafeLink"
                 className={styles.bannerImg}
+                style={{
+                  objectFit: apariencia.banner_ajuste,
+                  objectPosition: apariencia.banner_posicion,
+                }}
               />
             </div>
           </header>

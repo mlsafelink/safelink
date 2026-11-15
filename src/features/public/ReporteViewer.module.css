@@ -35,8 +35,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  /* La altura se recibe como CSS custom property para que el media query pueda sobrescribirla */
-  height: var(--banner-h, 200px);
+  /* La altura viene por inline style desde el componente (banner_altura del usuario) */
 }
 
 .bannerContainer {
@@ -56,16 +55,15 @@
   height: 100%;
   max-width: 100%;
   display: block;
-  object-fit: var(--banner-fit, contain);
-  object-position: var(--banner-pos, center);
 }
 
-/* ── RESPONSIVE MOBILE ── */
+/* ── RESPONSIVE MOBILE ──
+   !important es necesario para sobrescribir el inline style de altura */
 @media (max-width: 768px) {
   .corporeoHeader {
-    height: auto;        /* sobreescribe la CSS var sin !important */
+    height: auto !important;
     min-height: 60px;
-    max-height: 48vw;    /* escala proporcionalmente al ancho de pantalla */
+    max-height: 48vw;
     aspect-ratio: 16 / 5;
   }
 
@@ -77,8 +75,8 @@
   .bannerImg {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    object-position: center;
+    object-fit: contain !important;
+    object-position: center !important;
   }
 
   .titleSection {
