@@ -79,9 +79,14 @@ export function DocumentPage() {
   useEffect(() => {
     const editParam = searchParams.get('edit');
     const tabParam = searchParams.get('tab') as ActiveTab | null;
+    const nuevoParam = searchParams.get('nuevo');
     if (editParam) {
       if (tabParam) setActiveTab(tabParam);
       setEditingId(editParam);
+      setViewMode('form');
+    } else if (nuevoParam === 'true') {
+      if (tabParam) setActiveTab(tabParam);
+      setEditingId(null);
       setViewMode('form');
     }
   }, [searchParams]);
@@ -234,9 +239,11 @@ export function DocumentPage() {
     { id: 'reportes_trabajo', label: 'Informes de Trabajos Realizados', icon: Wrench, color: '#10b981' },
   ];
 
+  const defaultConsorcioId = searchParams.get('consorcioId') || undefined;
+
   if (viewMode === 'form') {
-    if (activeTab === 'reportes') return <ReporteForm onBack={handleBack} editingId={editingId} />;
-    if (activeTab === 'presupuestos') return <PresupuestoForm onBack={handleBack} editingId={editingId} />;
+    if (activeTab === 'reportes') return <ReporteForm onBack={handleBack} editingId={editingId} defaultConsorcioId={defaultConsorcioId} />;
+    if (activeTab === 'presupuestos') return <PresupuestoForm onBack={handleBack} editingId={editingId} defaultConsorcioId={defaultConsorcioId} />;
     if (activeTab === 'instructivos') return <InstructivoForm onBack={handleBack} editingId={editingId} />;
     if (activeTab === 'reportes_trabajo') return <ReporteTrabajoForm onBack={handleBack} editingId={editingId} />;
   }

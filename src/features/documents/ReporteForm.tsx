@@ -48,9 +48,10 @@ type ReporteFormData = z.infer<typeof reporteSchema>;
 interface ReporteFormProps {
   onBack: () => void;
   editingId: string | null;
+  defaultConsorcioId?: string;
 }
 
-export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
+export function ReporteForm({ onBack, editingId, defaultConsorcioId }: ReporteFormProps) {
   const queryClient = useQueryClient();
   const isEditing = !!editingId;
   const [isDataLoaded, setIsDataLoaded] = useState(!isEditing);
@@ -84,7 +85,7 @@ export function ReporteForm({ onBack, editingId }: ReporteFormProps) {
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<ReporteFormData>({
     resolver: zodResolver(reporteSchema),
     defaultValues: {
-      consorcio_id: '',
+      consorcio_id: defaultConsorcioId || '',
       fecha: new Date().toISOString().split('T')[0],
       titulo: '',
       nombre_enlace: '',

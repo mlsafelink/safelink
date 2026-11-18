@@ -47,9 +47,10 @@ type PresupuestoFormData = z.infer<typeof presupuestoSchema>;
 interface PresupuestoFormProps {
   onBack: () => void;
   editingId: string | null;
+  defaultConsorcioId?: string;
 }
 
-export function PresupuestoForm({ onBack, editingId }: PresupuestoFormProps) {
+export function PresupuestoForm({ onBack, editingId, defaultConsorcioId }: PresupuestoFormProps) {
   const queryClient = useQueryClient();
   const isEditing = !!editingId;
   const [isDataLoaded, setIsDataLoaded] = useState(!isEditing);
@@ -73,7 +74,7 @@ export function PresupuestoForm({ onBack, editingId }: PresupuestoFormProps) {
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<PresupuestoFormData>({
     resolver: zodResolver(presupuestoSchema),
     defaultValues: {
-      consorcio_id: '',
+      consorcio_id: defaultConsorcioId || '',
       titulo: '',
       nombre_enlace: '',
       fecha: new Date().toISOString().split('T')[0],
@@ -174,7 +175,7 @@ export function PresupuestoForm({ onBack, editingId }: PresupuestoFormProps) {
 
       <Card variant="neumorphic" className={styles.formCard}>
         <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-          
+
           {/* ── Datos Generales ── */}
           <div className={styles.sectionBlock}>
             <div className={styles.sectionTitle}>

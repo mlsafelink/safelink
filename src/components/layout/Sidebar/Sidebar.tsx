@@ -4,7 +4,7 @@ import { notificacionService } from '@/services/notificacionService';
 import {
   LayoutDashboard, Building2, Building, FileText, LogOut,
   UserCheck, Bell, StickyNote, Bot, DollarSign, Lock,
-  Settings, Radio, Layers, ChevronLeft, Sparkles
+  Settings, Radio, Layers, ChevronLeft, Sparkles, Briefcase
 } from 'lucide-react';
 import logoImg from '@/assets/logo.png';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -87,6 +87,15 @@ export function Sidebar() {
         >
           <UserCheck size={20} />
           <span>Clientes Privados</span>
+        </NavLink>
+
+        <NavLink
+          to="/comercial"
+          className={({ isActive }) => clsx(styles.navItem, isActive && styles.active)}
+          onClick={handleNavClick}
+        >
+          <Briefcase size={20} />
+          <span>Desarrollo Comercial</span>
         </NavLink>
 
         <NavLink

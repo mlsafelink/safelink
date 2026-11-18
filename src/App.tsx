@@ -8,6 +8,7 @@ import { Dashboard } from '@/features/dashboard/Dashboard';
 import { AdminPage } from '@/features/admins/AdminPage';
 import { ConsorcioPage } from '@/features/consorcios/ConsorcioPage';
 import { ParticularPage } from '@/features/particulares/ParticularPage';
+import { ComercialPage } from '@/features/comercial/ComercialPage';
 import { DocumentPage } from '@/features/documents/DocumentPage';
 import { NotificacionesPage } from '@/features/notificaciones/NotificacionesPage';
 import { PublicReporteViewer } from '@/features/public/PublicReporteViewer';
@@ -76,6 +77,7 @@ function App() {
             <Route path="/administraciones" element={<AdminPage />} />
             <Route path="/consorcios"      element={<ConsorcioPage />} />
             <Route path="/clientes"        element={<ParticularPage />} />
+            <Route path="/comercial"       element={<ComercialPage />} />
             <Route path="/documentos"      element={<DocumentPage />} />
             <Route path="/finanzas"        element={<FinanzasPage />} />
             <Route path="/notificaciones"  element={<NotificacionesPage />} />
